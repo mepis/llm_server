@@ -1,4 +1,5 @@
 #! /bin/bash
+cd ..
 cd llama.cpp
 mkdir build
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
