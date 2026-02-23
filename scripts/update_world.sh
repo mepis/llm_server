@@ -4,7 +4,7 @@ sudo apt upgrade -y
 
 cd ..
 cd llama.cpp
-git pull
+git pull origin main
 
 cd ..
 cd scripts
