@@ -8,7 +8,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
 import db from './models/database.js';
+import swaggerSpec from './config/swagger.js';
 
 // Load environment variables
 dotenv.config();
@@ -31,7 +33,34 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'LLM Server API Documentation',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * @openapi
+ * /api/health:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Check server health
+ *     description: Returns the health status of the server
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ */
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
