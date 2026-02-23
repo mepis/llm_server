@@ -1,10 +1,12 @@
 #! /bin/bash
+
 cd ..
 
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install build-essential cmake -y
 
 git submodule update --init --recursive
 
-sudo ubuntu-drivers install
+cd scripts
+
+./build.sh
