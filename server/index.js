@@ -46,9 +46,11 @@ app.get('/api/health', (req, res) => {
 // API routes
 import systemRoutes from './routes/system.js';
 import llamaRoutes from './routes/llama.js';
+import serviceRoutes from './routes/service.js';
 
 app.use('/api/system', systemRoutes);
 app.use('/api/llama', llamaRoutes);
+app.use('/api/service', serviceRoutes);
 
 // Serve frontend static files (production)
 if (process.env.NODE_ENV === 'production') {
