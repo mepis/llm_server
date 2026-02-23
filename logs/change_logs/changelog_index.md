@@ -18,6 +18,12 @@ This index tracks all changes committed to the LLM Server project. Each entry li
 - **[2026-02-22] e992948** - Core infrastructure with Express.js and SQLite
   - [View Details](2026-02-22_core_infrastructure.md)
 
+- **[2026-02-22] e1fdbe9** - Llama.cpp build automation and management API
+  - [View Details](2026-02-22_phases_5-6.md)
+
+- **[2026-02-22] 36a9722** - Service management and auto-update system
+  - [View Details](2026-02-22_phases_5-6.md)
+
 ---
 
 **Last Updated:** 2026-02-22
