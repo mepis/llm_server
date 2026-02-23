@@ -15,6 +15,9 @@ This index tracks all changes committed to the LLM Server project. Each entry li
 - **[2026-02-22] 3f08513** - Initial project setup: Planning and preparation phases
   - [View Details](2026-02-22_initial_setup.md)
 
+- **[2026-02-22] e992948** - Core infrastructure with Express.js and SQLite
+  - [View Details](2026-02-22_core_infrastructure.md)
+
 ---
 
 **Last Updated:** 2026-02-22

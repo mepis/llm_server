@@ -18,6 +18,9 @@ This index tracks all progress made on the LLM Server project. Each entry links 
 - **[2026-02-22] Phase 2 - Preparation** - Created AGENTS.md with project directives, set up logs and documentation folder structure
   - [View Details](progress/2026-02-22_phase2_preparation.md)
 
+- **[2026-02-22] Phase 3 - Core Infrastructure** - Implemented SQLite database layer, Express.js server, system monitoring APIs with hardware detection (CPU/Memory/GPU), all endpoints tested and working
+  - [View Details](progress/2026-02-22_phase3_core_infrastructure.md)
+
 ---
 
 **Last Updated:** 2026-02-22
