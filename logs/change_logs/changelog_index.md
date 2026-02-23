@@ -10,7 +10,10 @@ This index tracks all changes committed to the LLM Server project. Each entry li
 
 ## Change Logs
 
-*No commits yet. Change logs will be added after each commit.*
+### 2026-02-22
+
+- **[2026-02-22] 3f08513** - Initial project setup: Planning and preparation phases
+  - [View Details](2026-02-22_initial_setup.md)
 
 ---
 
