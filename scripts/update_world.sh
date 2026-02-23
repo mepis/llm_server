@@ -1,12 +1,12 @@
 #! /bin/bash
-
-cd ..
-
 sudo apt update -y
 sudo apt upgrade -y
 
-git submodule update --init --recursive
+cd ..
+cd llama.cpp
+git pull
 
+cd ..
 cd scripts
 
-./build.sh
+./build.sh 
