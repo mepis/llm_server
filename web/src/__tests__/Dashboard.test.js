@@ -12,53 +12,52 @@ vi.mock('../services/api', () => ({
 }));
 
 describe('Dashboard.vue', () => {
+  // Mock return values match what the Axios interceptor returns: { success, data: <payload> }
   const mockSystemInfo = {
+    success: true,
     data: {
-      data: {
-        platform: 'linux',
-        cpu: {
-          model: 'Intel Core i7',
-          cores: 8,
-          architecture: 'x64',
-          features: {
-            avx2: true,
-            avx512: false,
-          },
+      platform: 'linux',
+      cpu: {
+        model: 'Intel Core i7',
+        cores: 8,
+        architecture: 'x64',
+        features: {
+          avx2: true,
+          avx512: false,
         },
-        memory: {
-          total: 16777216000,
-          available: 8388608000,
-        },
-        gpu: {
-          nvidia: {
-            available: true,
-            name: 'RTX 3080',
-            memory: 10737418240,
-          },
-          amd: {
-            available: false,
-          },
-        },
-        recommendedBuild: 'cuda',
       },
+      memory: {
+        total: 16777216000,
+        available: 8388608000,
+      },
+      gpu: {
+        nvidia: {
+          available: true,
+          name: 'RTX 3080',
+          memory: 10737418240,
+        },
+        amd: {
+          available: false,
+        },
+      },
+      recommendedBuild: 'cuda',
     },
   };
 
   const mockMetrics = {
+    success: true,
     data: {
-      data: {
-        cpu: {
-          usage: 45.2,
-          cores: 8,
-        },
-        memory: {
-          total: 16777216000,
-          used: 8388608000,
-          free: 8388608000,
-        },
-        uptime: 86400,
-        loadAverage: [1.5, 1.2, 1.0],
+      cpu: {
+        usage: 45.2,
+        cores: 8,
       },
+      memory: {
+        total: 16777216000,
+        used: 8388608000,
+        free: 8388608000,
+      },
+      uptime: 86400,
+      loadAverage: [1.5, 1.2, 1.0],
     },
   };
 
@@ -136,7 +135,7 @@ describe('Dashboard.vue', () => {
     });
 
     const statusClass = wrapper.vm.getCPUStatusClass();
-    expect(statusClass).toBe('normal'); // 45.2% is normal
+    expect(statusClass).toBe('normal'); // 45.2% is below medium threshold (50%)
   });
 
   it('determines correct memory status class', async () => {
@@ -147,7 +146,7 @@ describe('Dashboard.vue', () => {
     });
 
     const statusClass = wrapper.vm.getMemoryStatusClass();
-    expect(statusClass).toBe('medium'); // 50% is medium
+    expect(statusClass).toBe('normal'); // exactly 50% is NOT > 50, so normal
   });
 
   it('handles API errors gracefully', async () => {

@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import api from '../services/api';
+import { formatDate } from '../utils/formatting.js';
+import { getBuildStatusBadge } from '../utils/statusHelpers.js';
+import { POLLING } from '../config/constants.js';
 
 const buildStatus = ref(null);
 const buildHistory = ref([]);
@@ -21,7 +24,7 @@ const buildTypes = [
 async function fetchBuildStatus() {
   try {
     const response = await api.getBuildStatus();
-    buildStatus.value = response.data.data;
+    buildStatus.value = response.data;
   } catch (err) {
     console.error('Failed to fetch build status:', err);
   }
@@ -30,7 +33,7 @@ async function fetchBuildStatus() {
 async function fetchBuildHistory() {
   try {
     const response = await api.getBuildHistory();
-    buildHistory.value = response.data.data || [];
+    buildHistory.value = response.data || [];
   } catch (err) {
     console.error('Failed to fetch build history:', err);
   }
@@ -45,10 +48,10 @@ async function startBuild() {
     buildOutput.value = [];
 
     const response = await api.buildLlama(selectedBuildType.value);
-    currentBuildId = response.data.data.buildId;
+    currentBuildId = response.data.buildId;
 
     // Start polling for output
-    outputInterval = setInterval(fetchBuildOutput, 1000);
+    outputInterval = setInterval(fetchBuildOutput, POLLING.BUILD_OUTPUT);
   } catch (err) {
     console.error('Failed to start build:', err);
     building.value = false;
@@ -61,7 +64,7 @@ async function fetchBuildOutput() {
 
   try {
     const response = await api.getBuildOutput(currentBuildId);
-    const data = response.data.data;
+    const data = response.data;
 
     if (data.output && data.output.length > 0) {
       buildOutput.value = data.output;
@@ -104,21 +107,6 @@ onUnmounted(() => {
     clearInterval(outputInterval);
   }
 });
-
-function formatDate(dateString) {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleString();
-}
-
-function getBuildStatusBadge(status) {
-  const badges = {
-    'completed': 'badge-success',
-    'failed': 'badge-error',
-    'running': 'badge-info',
-    'pending': 'badge-warning'
-  };
-  return badges[status] || 'badge-info';
-}
 </script>
 
 <template>
@@ -249,21 +237,6 @@ function getBuildStatusBadge(status) {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 1rem;
 }
 
 .build-content {
@@ -406,12 +379,6 @@ function getBuildStatusBadge(status) {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6b7280;
 }
 
 .history-table {

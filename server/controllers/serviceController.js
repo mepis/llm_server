@@ -5,8 +5,7 @@
 
 import * as service from '../utils/service.js';
 import db from '../models/database.js';
-
-const MANAGED_SERVICES = ['llama-server', 'llm-frontend', 'llm-updater'];
+import { MANAGED_SERVICES } from '../constants.js';
 
 /**
  * Get status of all managed services
@@ -35,19 +34,11 @@ export async function getAllStatus(req, res, next) {
 }
 
 /**
- * Get service status
+ * Get service status (serviceName validated by middleware)
  */
 export async function getStatus(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const status = await service.getServiceStatus(serviceName);
 
     // Update database
@@ -66,144 +57,77 @@ export async function getStatus(req, res, next) {
 }
 
 /**
- * Start service
+ * Start service (serviceName validated by middleware)
  */
 export async function start(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const result = await service.startService(serviceName);
-
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
 }
 
 /**
- * Stop service
+ * Stop service (serviceName validated by middleware)
  */
 export async function stop(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const result = await service.stopService(serviceName);
-
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
 }
 
 /**
- * Restart service
+ * Restart service (serviceName validated by middleware)
  */
 export async function restart(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const result = await service.restartService(serviceName);
-
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
 }
 
 /**
- * Enable service
+ * Enable service (serviceName validated by middleware)
  */
 export async function enable(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const result = await service.enableService(serviceName);
-
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
 }
 
 /**
- * Disable service
+ * Disable service (serviceName validated by middleware)
  */
 export async function disable(req, res, next) {
   try {
     const { serviceName } = req.params;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
-
     const result = await service.disableService(serviceName);
-
-    res.json({
-      success: true,
-      data: result
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
 }
 
 /**
- * Get service logs
+ * Get service logs (serviceName validated by middleware)
  */
 export async function logs(req, res, next) {
   try {
     const { serviceName } = req.params;
     const { lines = 100 } = req.query;
-
-    if (!MANAGED_SERVICES.includes(serviceName)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid service name'
-      });
-    }
 
     const logOutput = await service.getServiceLogs(serviceName, parseInt(lines));
 

@@ -1,6 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import api from '../services/api';
+import { formatBytes } from '../utils/formatting.js';
+import { getUsageStatusClass } from '../utils/statusHelpers.js';
+import { POLLING } from '../config/constants.js';
 
 const systemInfo = ref(null);
 const metrics = ref(null);
@@ -11,7 +14,7 @@ let metricsInterval = null;
 async function fetchSystemInfo() {
   try {
     const response = await api.getSystemInfo();
-    systemInfo.value = response.data.data;
+    systemInfo.value = response.data;
   } catch (err) {
     console.error('Failed to fetch system info:', err);
     error.value = 'Failed to load system information';
@@ -21,7 +24,7 @@ async function fetchSystemInfo() {
 async function fetchMetrics() {
   try {
     const response = await api.getSystemMetrics();
-    metrics.value = response.data.data;
+    metrics.value = response.data;
     loading.value = false;
   } catch (err) {
     console.error('Failed to fetch metrics:', err);
@@ -33,9 +36,7 @@ async function fetchMetrics() {
 onMounted(async () => {
   await fetchSystemInfo();
   await fetchMetrics();
-
-  // Update metrics every 3 seconds
-  metricsInterval = setInterval(fetchMetrics, 3000);
+  metricsInterval = setInterval(fetchMetrics, POLLING.METRICS);
 });
 
 onUnmounted(() => {
@@ -44,38 +45,23 @@ onUnmounted(() => {
   }
 });
 
-function formatBytes(bytes) {
-  if (!bytes) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-}
-
 function getMemoryPercentage() {
   if (!metrics.value?.memory) return 0;
   return ((metrics.value.memory.used / metrics.value.memory.total) * 100).toFixed(1);
 }
 
 function getCPUStatusClass() {
-  if (!metrics.value?.cpu) return 'normal';
-  const usage = metrics.value.cpu.usage;
-  if (usage > 80) return 'high';
-  if (usage > 50) return 'medium';
-  return 'normal';
+  return getUsageStatusClass(metrics.value?.cpu?.usage ?? 0);
 }
 
 function getMemoryStatusClass() {
-  const percentage = getMemoryPercentage();
-  if (percentage > 80) return 'high';
-  if (percentage > 50) return 'medium';
-  return 'normal';
+  return getUsageStatusClass(getMemoryPercentage());
 }
 </script>
 
 <template>
   <div class="dashboard">
-    <div class="dashboard-header">
+    <div class="page-header">
       <h1>Dashboard</h1>
       <p class="subtitle">System monitoring and overview</p>
     </div>
@@ -211,45 +197,6 @@ function getMemoryStatusClass() {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.dashboard-header {
-  margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-.loading-container,
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  color: #6b7280;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #2dd4bf;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .info-grid {

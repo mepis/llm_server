@@ -8,11 +8,28 @@ import { fileURLToPath } from 'url';
 import * as scriptRunner from '../services/scriptRunner.js';
 import * as system from '../utils/system.js';
 import db from '../models/database.js';
+import { VALID_BUILD_TYPES, BUILD_STATUSES } from '../constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SCRIPT_DIR = path.join(__dirname, '../../scripts');
+
+/**
+ * Persist a build record to the database
+ */
+async function logBuildToDb(buildType, exitCode, info) {
+  await db.run(
+    'INSERT INTO build_history (build_type, status, log_output, started_at, completed_at) VALUES (?, ?, ?, ?, ?)',
+    [
+      buildType,
+      exitCode === 0 ? BUILD_STATUSES.SUCCESS : BUILD_STATUSES.FAILED,
+      JSON.stringify(info.output),
+      new Date(info.startTime).toISOString(),
+      new Date(info.endTime).toISOString()
+    ]
+  );
+}
 
 /**
  * Clone llama.cpp repository
@@ -22,13 +39,7 @@ export async function cloneLlama(req, res, next) {
     const scriptPath = path.join(SCRIPT_DIR, 'llama/clone-llama.sh');
 
     const buildInfo = scriptRunner.runScript(scriptPath, [], {
-      onComplete: async (code, info) => {
-        // Log to database
-        await db.run(
-          'INSERT INTO build_history (build_type, status, log_output, started_at, completed_at) VALUES (?, ?, ?, ?, ?)',
-          ['clone', code === 0 ? 'success' : 'failed', JSON.stringify(info.output), new Date(info.startTime).toISOString(), new Date(info.endTime).toISOString()]
-        );
-      }
+      onComplete: (code, info) => logBuildToDb('clone', code, info)
     });
 
     res.json({
@@ -51,12 +62,10 @@ export async function buildLlama(req, res, next) {
   try {
     const { buildType } = req.body;
 
-    // Validate build type
-    const validTypes = ['cpu', 'cuda', 'rocm', 'auto'];
-    if (!validTypes.includes(buildType)) {
+    if (!VALID_BUILD_TYPES.includes(buildType)) {
       return res.status(400).json({
         success: false,
-        error: `Invalid build type. Must be one of: ${validTypes.join(', ')}`
+        error: `Invalid build type. Must be one of: ${VALID_BUILD_TYPES.join(', ')}`
       });
     }
 
@@ -69,13 +78,7 @@ export async function buildLlama(req, res, next) {
     const scriptPath = path.join(SCRIPT_DIR, `llama/build-${selectedType}.sh`);
 
     const buildInfo = scriptRunner.runScript(scriptPath, [], {
-      onComplete: async (code, info) => {
-        // Log to database
-        await db.run(
-          'INSERT INTO build_history (build_type, status, log_output, started_at, completed_at) VALUES (?, ?, ?, ?, ?)',
-          [selectedType, code === 0 ? 'success' : 'failed', JSON.stringify(info.output), new Date(info.startTime).toISOString(), new Date(info.endTime).toISOString()]
-        );
-      }
+      onComplete: (code, info) => logBuildToDb(selectedType, code, info)
     });
 
     res.json({
@@ -163,11 +166,7 @@ export function getBuildOutput(req, res, next) {
 export function getActiveBuilds(req, res, next) {
   try {
     const builds = scriptRunner.getActiveBuilds();
-
-    res.json({
-      success: true,
-      data: builds
-    });
+    res.json({ success: true, data: builds });
   } catch (error) {
     next(error);
   }
@@ -180,15 +179,12 @@ export async function getBuildHistory(req, res, next) {
   try {
     const { limit = 50 } = req.query;
 
-    const history = db.all(
+    const history = await db.all(
       'SELECT * FROM build_history ORDER BY started_at DESC LIMIT ?',
       [parseInt(limit)]
     );
 
-    res.json({
-      success: true,
-      data: history
-    });
+    res.json({ success: true, data: history });
   } catch (error) {
     next(error);
   }
@@ -213,9 +209,7 @@ export function killBuild(req, res, next) {
 
     res.json({
       success: true,
-      data: {
-        message: 'Build killed successfully'
-      }
+      data: { message: 'Build killed successfully' }
     });
   } catch (error) {
     next(error);

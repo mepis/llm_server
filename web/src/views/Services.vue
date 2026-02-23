@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import api from '../services/api';
+import { getServiceStatusBadge } from '../utils/statusHelpers.js';
+import { POLLING } from '../config/constants.js';
 
 const services = ref([]);
 const logs = ref({});
@@ -10,8 +12,8 @@ let statusInterval = null;
 
 async function fetchServices() {
   try {
-    const response = await api.getServiceStatus();
-    services.value = response.data.data || [];
+    const response = await api.getAllServiceStatus();
+    services.value = response.data || [];
     loading.value = false;
   } catch (err) {
     console.error('Failed to fetch services:', err);
@@ -22,7 +24,7 @@ async function fetchServices() {
 async function fetchLogs(serviceName) {
   try {
     const response = await api.getServiceLogs(serviceName);
-    logs.value[serviceName] = response.data.data.logs || [];
+    logs.value[serviceName] = response.data.logs || [];
   } catch (err) {
     console.error(`Failed to fetch logs for ${serviceName}:`, err);
   }
@@ -82,8 +84,7 @@ async function toggleAutoStart(serviceName, enable) {
 
 onMounted(async () => {
   await fetchServices();
-  // Update service status every 5 seconds
-  statusInterval = setInterval(fetchServices, 5000);
+  statusInterval = setInterval(fetchServices, POLLING.SERVICES);
 });
 
 onUnmounted(() => {
@@ -91,16 +92,6 @@ onUnmounted(() => {
     clearInterval(statusInterval);
   }
 });
-
-function getStatusBadge(status) {
-  const badges = {
-    'running': 'badge-success',
-    'stopped': 'badge-error',
-    'failed': 'badge-error',
-    'inactive': 'badge-warning'
-  };
-  return badges[status] || 'badge-info';
-}
 
 function toggleLogs(serviceName) {
   if (logs.value[serviceName]) {
@@ -133,7 +124,7 @@ function toggleLogs(serviceName) {
           <div class="service-header">
             <div class="service-title">
               <h3>{{ service.name }}</h3>
-              <span class="badge" :class="getStatusBadge(service.status)">
+              <span class="badge" :class="getServiceStatusBadge(service.status)">
                 {{ service.active ? 'Running' : 'Stopped' }}
               </span>
             </div>
@@ -228,50 +219,6 @@ function toggleLogs(serviceName) {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  color: #6b7280;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #2dd4bf;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem;
-  color: #6b7280;
 }
 
 .services-grid {
