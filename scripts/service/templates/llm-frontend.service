@@ -1,0 +1,24 @@
+[Unit]
+Description=LLM Server Frontend
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/llm-frontend.log
+StandardError=append:/var/log/llm-frontend.error.log
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+Environment="HOST=0.0.0.0"
+
+# Security
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
