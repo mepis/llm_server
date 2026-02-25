@@ -9,7 +9,7 @@ cd bin
 
 ./llama-server -hf unsloth/Qwen3-Coder-Next-GGUF:Q4_0  \
   --port 4096 \
-  --host 100.72.27.6 \
+  --host 100.90.21.80 \
   --no-mmap \
    -c 64000 \
   -ngl 99 \
