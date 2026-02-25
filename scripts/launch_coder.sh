@@ -7,7 +7,7 @@ cd llama.cpp
 cd build
 cd bin
 
-./llama-server -hf unsloth/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf  \
+./llama-server -hf unsloth/Qwen3.5-35B-A3B-GGUF:Q6_K  \
   --port 4096 \
   --host 100.90.21.80 \
   --no-mmap \
