@@ -17,7 +17,7 @@ cd bin
   --tensor-split 16/12/12  \
   --main-gpu 0 \
   --spec-type ngram-mod --spec-ngram-size-n 24 --draft-min 48 --draft-max 64 \
-  -p 2048 -n 2048 -b 1024 -ub 512 -ctk q4_0 --flash-attn
+  -n 2048 -b 1024 -ub 512 -ctk q4_0 --flash-attn --reasoning-budge -1 
 #  & disown
 
 
