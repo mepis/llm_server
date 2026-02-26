@@ -8,8 +8,8 @@ cd build
 cd bin
 
 ./llama-server -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL  \
-  --port 4096 \
-  --host 100.90.21.80 \
+  --port 3000 \
+  --host 100.115.205.84 \
   --no-mmap \
    -c 64000 \
   -ngl 99 \
