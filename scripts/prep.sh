@@ -21,4 +21,11 @@ sudo cp /var/cuda-repo-ubuntu2404-13-1-local/cuda-*-keyring.gpg /usr/share/keyri
 sudo apt-get update
 sudo apt-get -y install cuda-toolkit-13-1
 
-sudo apt-get install -y nvidia-open
+echo 
+echo
+echo "######################################################################"
+echo "# NVidia Info"
+echo "# You should see the results of nvidia-smi"
+echo "# Verify CUDA version (top right) to ensure Cuda toolkit is installed"
+echo "######################################################################"
+nvidia-smi
