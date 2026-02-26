@@ -7,7 +7,7 @@ cd llama.cpp
 cd build
 cd bin
 
-./llama-server -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL  \
+./llama-server -hf AesSedai/Qwen3.5-35B-A3B-GGUF:Q4_K_M  \
   --port 3000 \
   --host 100.115.205.84 \
   --no-mmap \
@@ -19,7 +19,4 @@ cd bin
   --spec-type ngram-mod --spec-ngram-size-n 24 --draft-min 48 --draft-max 64 \
   -n 2048 -b 1024 -ub 512 -ctk q4_0 --flash-attn on --reasoning-budget -1 
 #  & disown
-
-
-
 
