@@ -10,6 +10,8 @@ echo "######################################################################"
 cd ..
 cd llama.cpp  
 
+sudo rm -r build
+
 git pull
 rm -r build
 cmake -B build
