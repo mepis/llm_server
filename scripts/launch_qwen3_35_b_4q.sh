@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export LLAMA_CACHE=/home/jon/git/llama_server/models
+export LLAMA_CACHE=/home/jon/llama_server/models
 
 cd ..
 cd llama.cpp
