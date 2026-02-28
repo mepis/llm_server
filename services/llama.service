@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenCode Web Server
+Description=Lamma Server
 After=network.target
 
 [Service]
