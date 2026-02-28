@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=%h
-ExecStart=/home/jon/git/llm_server/scripts/launch_qwen3_35_b_4q.sh
+ExecStart=/home/jon/llm_server/scripts/launch_qwen3_35_b_4q.sh
 Restart=on-failure
 RestartSec=5
 
