@@ -2,11 +2,7 @@
 
 export LLAMA_CACHE=/home/jon/llama_server/models
 
-cd ..
-cd llama.cpp
-cd build
-cd bin
-
+cd ~/home/jon/llm_server/scripts
 ./llama-server -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL  \
   --port 3000 \
   --host 100.115.205.84 \
