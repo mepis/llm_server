@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-ls -l ~/llm_server/models
+ls -l ~/llm_server/models *.gguf
 
 echo 
 echo ======================================
