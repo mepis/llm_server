@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cudav="86;89"
+cudav="86;89;120"
 cudaBatchSize=64
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
