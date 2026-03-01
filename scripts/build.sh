@@ -10,7 +10,6 @@ export GGML_CCACHE=ON
 
 nvidia-smi
 
-cd ..
 cd llama.cpp  
 git pull
 rm -r build/
