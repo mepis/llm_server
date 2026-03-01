@@ -25,5 +25,6 @@ wget https://developer.download.nvidia.com/compute/cuda/13.1.1/local_installers/
 sudo dpkg -i cuda-repo-ubuntu2404-13-1-local_13.1.1-590.48.01-1_amd64.deb
 sudo cp /var/cuda-repo-ubuntu2404-13-1-local/cuda-*-keyring.gpg /usr/share/keyrings/
 sudo apt update
-# sudo apt -y install cuda-toolkit-13-1
-sudo apt -y install cuda-toolkit-12-9
+
+sudo apt -y install cuda-toolkit-13-1
+#sudo apt -y install cuda-toolkit-12-9
