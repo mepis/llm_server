@@ -6,7 +6,7 @@ cudaBatchSize=64
 cd ..
 mkdir models
 
-sudo apt install build-essential ccmake ccache nvidia-cuda-toolkit libopenblas-dev
+sudo apt install build-essential cmake ccache nvidia-cuda-toolkit libopenblas-dev
 nvidia-smi
 
 sudo rm -r llama.cpp
