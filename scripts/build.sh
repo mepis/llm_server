@@ -1,10 +1,13 @@
 #! /bin/bash
 
-cudav="86;89"
+cudav="86;89;120"
 cudaBatchSize=64
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export GGML_CCACHE=OFF
+
+# which nvcc
+# export CUDACXX=/usr/bin/nvcc
 
 cd ..
 cd llama.cpp  
