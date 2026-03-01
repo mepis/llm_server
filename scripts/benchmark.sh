@@ -18,4 +18,4 @@ echo ======================================
 echo "Enter model:"
 read model
 
-~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat # --progress --output $outputType
+GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat # --progress --output $outputType
