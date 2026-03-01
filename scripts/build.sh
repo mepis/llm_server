@@ -6,6 +6,10 @@ cudaBatchSize=64
 cd ..
 mkdir models
 
+sudo apt build-essential ccmake ccache nvidia-cuda-toolkit libopenblas-dev
+nvidia-smi
+
+rm -r llama.cpp
 git clone https://github.com/ggml-org/llama.cpp
 # export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 # export GGML_CCACHE=OFF
