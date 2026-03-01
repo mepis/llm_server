@@ -16,4 +16,4 @@ echo ======================================
 echo "Enter model:"
 read model
 
-~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0  --batch-size $batch -ub 512 -ctk $cachType --flash-attn $flash --poll 75 --mmap $mmapOn --direct-io $dioOn --progress -r $repeat
+~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0  --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll 75 --mmap $mmapOn --direct-io $dioOn --progress -r $repeat
