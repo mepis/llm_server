@@ -28,3 +28,7 @@ sudo apt update
 
 sudo apt -y install cuda-toolkit-13-1
 #sudo apt -y install cuda-toolkit-12-9
+
+echo 'export PATH=/usr/local/cuda/bin:${PATH}' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}' >> ~/.bashrc
+source ~/.bashrc
