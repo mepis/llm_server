@@ -1,4 +1,7 @@
 #! /bin/bash
+
+curl -fsSL https://opencode.ai/install | bash
+mkdir ~/.config/opencode
 cd ..
 
 mkdir -p ~/.config/systemd/user
