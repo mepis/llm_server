@@ -1,6 +1,6 @@
 #! /bin/bash
 
-cudav="86;89;90"
+cudav="86;89;120"
 cudaBatchSize=64
 
 cd ..
