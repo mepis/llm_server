@@ -2,6 +2,11 @@
 
 # CONFIGS
 repeat=1
+batch=512-5120+512
+ubatch=512-5120+512
+flash=0
+mmapOn=1
+dioOn=1
 
 ls -l ~/llm_server/models *.gguf
 
@@ -10,6 +15,4 @@ echo ======================================
 echo "Enter model:"
 read model
 
-# ~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0 -n 1024-5120+1024 --batch-size 4096 -ub 512 -ctk q4_0 --flash-attn 0 --poll 75 --mmap 1   --direct-io 1 --progress -r $repeat
-
-~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0  --batch-size 4096 -ub 512 -ctk q4_0 --flash-attn 0 --poll 75 --mmap 1   --direct-io 1 --progress -r $repeat
+~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0  --batch-size $batch -ub 512 -ctk q4_0 --flash-attn $flash --poll 75 --mmap $mmapOn --direct-io $dioOn --progress -r $repeat
