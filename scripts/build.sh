@@ -6,6 +6,7 @@ cudaBatchSize=64
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export GGML_CCACHE=OFF
 
+# update nvcc path if needed
 # which nvcc
 # export CUDACXX=/usr/bin/nvcc
 
