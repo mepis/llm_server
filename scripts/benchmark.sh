@@ -2,17 +2,17 @@
 
 # CONFIGS
 repeat=1
-batch=512-5120+512
-ubatch=512-5120+512
+batch=2048
+ubatch=128
 flash=0
-mmapOn=0-1+1
-polling=10-100+10
-dioOn=0-1+1
+mmapOn=1
+polling=80
+dioOn=1
 cachType=q4_0
 outputType=csv
-ncmoe=0-30+1
-nprompt=512-4096+512
-ngen=128-1024+128
+ncmoe=30
+nprompt=512
+ngen=128
 
 
 ls -l ~/llm_server/models *.gguf
