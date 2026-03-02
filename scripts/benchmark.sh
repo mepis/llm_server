@@ -10,7 +10,7 @@ polling=80
 dioOn=1
 cachType=q4_0
 outputType=csv
-ncmoe=30
+ncmoe=0
 nprompt=512
 ngen=128
 
