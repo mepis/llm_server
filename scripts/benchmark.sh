@@ -2,8 +2,8 @@
 
 # CONFIGS
 repeat=1
-batch=2048
-ubatch=128
+batch=4096
+ubatch=1024
 flash=0
 mmapOn=1
 polling=80
