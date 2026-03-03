@@ -9,5 +9,5 @@ cd ..
 cd llama.cpp
 cd build
 cd bin
-GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -hf $model --port 3000 --host 100.115.205.84 -c 128000 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 -b 1024 -ub 512 -ctk bf16 --flash-attn 0 --webui --reasoning-budget 0
+GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -hf $model --port 3000 --host 100.115.205.84 -c 32768 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 -b 1024 -ub 512 --memory-key-type bf16 --threads 10 --temp 0.6 --repetition_penalty 1.0 --presence_penalty 1.5 --top-p 0.8 --min-p 0.0 --flash-attn 0 --webui --reasoning-budget 0
 
