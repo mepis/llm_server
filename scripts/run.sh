@@ -2,7 +2,7 @@
 
 # model=AesSedai/Qwen3.5-35B-A3B-GGUF:Q4_K_M
 # model=unsloth/Qwen3.5-27B-GGUF:Q4_K_S
-model=unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q8_K_XL
+model=~/llm_server/models/unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q8_K_XL
 
 export LLAMA_CACHE=/home/jon/llm_server/models
 cd ..
