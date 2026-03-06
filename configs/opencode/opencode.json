@@ -1,0 +1,59 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "theme": "opencode",
+  "autoupdate": true,
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
+  "server": {
+    "port": 4096,
+    "hostname": "100.110.34.26",
+    "mdns": true,
+    "cors": ["*"]
+  },
+  "permission": {
+    "question": "allow",
+    "webfetch": "allow",
+    "todoread": "allow",
+    "todowrite": "allow",
+    "skill": "allow",
+    "edit": "allow",
+    "lsp": "allow",
+    "list": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "read": "allow",
+    "bash": "allow"
+  },
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama",
+      "options": {
+        "baseURL": "http://10.16.2.209:11434/v1"
+      },
+      "models": {
+        "glm-4.7-flash:q4_K_M": {
+          "name": "glm-4.7-flash:q4_K_M"
+        }
+      }
+    },
+    "llama.cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama-server",
+      "options": {
+        "baseURL": "http://100.102.215.14:3000/v1"
+      },
+      "models": {
+        "unsloth/Qwen3.5-35B-A3B-GGUF:Q6_K": {
+          "name": "unsloth/Qwen3.5-35B-A3B-GGUF:Q8_K_XL",
+          "limit": {
+            "context": 128000,
+            "output": 64000
+          }
+        }
+      }
+    }
+  }
+}
