@@ -1,7 +1,6 @@
 cd ..
 mkdir models
 
-sudo apt install build-essential cmake ccache nvidia-cuda-toolkit libopenblas-dev
+sudo apt install build-essential cmake ccache nvidia-cuda-toolkit libopenblas-dev pkg-config libssl-dev libopenblas64-dev
 nvidia-smi
 
-git clone https://github.com/ggml-org/llama.cpp

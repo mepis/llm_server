@@ -54,6 +54,22 @@
           }
         }
       }
+    },
+    "llama.cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama-server",
+      "options": {
+        "baseURL": "http://localhost:3000/v1"
+      },
+      "models": {
+        "unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL": {
+          "name": "unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL",
+          "limit": {
+            "context": 128000,
+            "output": 64000
+          }
+        }
+      }
     }
   }
 }
