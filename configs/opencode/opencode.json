@@ -8,7 +8,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.100.217.105",
+    "hostname": "100.120.235.11",
     "mdns": true,
     "cors": ["*"]
   },
@@ -51,6 +51,22 @@
           "limit": {
             "context": 128000,
             "output": 64000
+          }
+        }
+      }
+    },
+    "local-llama.cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama-server",
+      "options": {
+        "baseURL": "http://100.120.235.11:3000/v1"
+      },
+      "models": {
+        "unsloth/Qwen3.5-9B-GGUF_Qwen3.5-9B-UD-Q4_K_XL": {
+          "name": "unsloth/Qwen3.5-9B-GGUF_Qwen3.5-9B-UD-Q4_K_XL",
+          "limit": {
+            "context": 65536,
+            "output": 32768
           }
         }
       }
