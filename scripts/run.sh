@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # model=unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL
-model=hf.co/lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q8_0
+model=lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q8_0
 logDir=~/llm_server/llama_logs/logs.log
 
 threads=10
