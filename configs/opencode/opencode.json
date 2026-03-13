@@ -56,8 +56,8 @@
         "baseURL": "http://100.115.205.84:3000/v1"
       },
       "models": {
-        "unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL": {
-          "name": "unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL",
+        "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:UD-Q6_K_XL": {
+          "name": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:UD-Q6_K_XL",
           "limit": {
             "context": 128000,
             "output": 64000
