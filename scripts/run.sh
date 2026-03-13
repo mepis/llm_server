@@ -1,6 +1,6 @@
 #! /bin/bash
 
-model=unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL
+model=unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:UD-Q6_K_XL
 
 
 threads=10
