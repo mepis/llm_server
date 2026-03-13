@@ -1,9 +1,7 @@
 #! /bin/bash
 
-# model=unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL
-# model=lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF:Q8_0
-model=~/llm_server/models/unsloth_Qwen3.5-27B-GGUF_Qwen3.5-27B-Q4_K_S.gguf
-logDir=~/llm_server/llama_logs/logs.log
+model=unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL
+
 
 threads=10
 
@@ -14,5 +12,5 @@ cd bin
 
 export LLAMA_CACHE=/home/jon/git/llm_server/models
 
-GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -m $model --port 3000 --host 100.115.205.84 -c 65536 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 -b 2048 -ub 1024 -ctk bf16 --threads $threads --webui # --temp 0.7 --repeat-penalty 1.0 --presence-penalty 1.5 --top-p 0.8 --min-p 0.0 --flash-attn 0  --reasoning-budget 0 --cont-batching --kv-unified --log-file $logDir
+GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -h $model --port 3000 --host 100.115.205.84 -c 65536 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 -b 2048 -ub 1024 -ctk bf16 --threads $threads --webui # --temp 0.7 --repeat-penalty 1.0 --presence-penalty 1.5 --top-p 0.8 --min-p 0.0 --flash-attn 0  --reasoning-budget 0 --cont-batching --kv-unified --log-file $logDir
 
