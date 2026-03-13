@@ -59,8 +59,8 @@
         "baseURL": "http://100.115.205.84:3000/v1"
       },
       "models": {
-        "Tesslate/OmniCoder-9B-GGUF:Q8_0": {
-          "name": "Tesslate/OmniCoder-9B-GGUF:Q8_0",
+        "unsloth/Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL": {
+          "name": "unsloth/Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL",
           "limit": {
             "context": 128000,
             "output": 64000
