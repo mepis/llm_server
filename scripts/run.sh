@@ -13,5 +13,5 @@ cd bin
 
 export LLAMA_CACHE=/home/jon/git/llm_server/models
 
-GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -hf $model --port 3000 --host 100.115.205.84 -c 262144 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --webui --temp 0.6 --top-p 0.95 --cont-batching -np 4 -b 2048 -ub 1024 -ctk q8_0 --kv-unified  #--repeat-penalty 1.0 --presence-penalty 1.5  --min-p 0.0 --log-file $logDir   --threads $threads --flash-attn 0  --reasoning-budget 0 
+CUDA_SCALE_LAUNCH_QUEUES=4x GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-server -hf $model --port 3000 --host 100.115.205.84 -c 262144 -ngl 99 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --webui --temp 0.6 --top-p 0.95 --cont-batching -np 4 -b 2048 -ub 1024 -ctk q8_0 --kv-unified --repeat-penalty 1.0 --presence-penalty 1.5 # --min-p 0.0  --threads $threads --flash-attn 0  --reasoning-budget 0 --log-file $logDir
 
