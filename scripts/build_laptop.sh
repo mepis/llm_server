@@ -3,10 +3,9 @@
 cudav="89"
 
 cd ~/git/llm_server/
-# rm -r llama.cpp
-# git clone https://github.com/ggml-org/llama.cpp
+rm -r llama.cpp
+git clone https://github.com/ggml-org/llama.cpp
 
-export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export GGML_CCACHE=ON
 
 cd ..

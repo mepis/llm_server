@@ -1,2 +1,51 @@
+# Build artifacts
+build/
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+*.o
+*.obj
+*.a
+*.so
+*.d
+*.out
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Env files
+.env
+.env.local
+.env.*.secret
+
+# Logs
+*.log
+
+# Temporary files
+.tmp
+.tmp/*
+
+# Model and build related entries (existing)
+llama.cpp/
 llama.cpp/*
 models/*
+
+# Node.js dependencies
+**/node_modules/

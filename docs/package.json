@@ -1,0 +1,13 @@
+{
+  "name": "llama-cpp-docs",
+  "version": "1.0.0",
+  "description": "VuePress documentation for llama.cpp build and runtime options",
+  "scripts": {
+    "docs:dev": "vuepress dev",
+    "docs:build": "vuepress build"
+  },
+  "theme": "@vuepress/default",
+  "dependencies": {
+    "@vuepress/default": "^2.0.0-rc.15"
+  }
+}

@@ -9,7 +9,7 @@
   "mcp": {
     "searxng": {
       "type": "local",
-      "command": ["/home/jon/git/searxng_opencode_mcp/searxng-mcp/./searxng-mcp"],
+      "command": ["./git/searxng_opencode_mcp/run.sh"],
       "environment": {
         "SEARXNG_ENDPOINT": "http://100.75.17.75/searxng/"
       },
@@ -21,7 +21,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.120.235.11",
+    "hostname": "100.75.103.12",
     "mdns": true,
     "cors": ["*"]
   },
@@ -72,11 +72,11 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama-server",
       "options": {
-        "baseURL": "http://100.120.235.11:3000/v1"
+        "baseURL": "http://100.75.103.12:3000/v1"
       },
       "models": {
-        "unsloth/Qwen3.5-9B-GGUF_Qwen3.5-9B-UD-Q4_K_XL": {
-          "name": "unsloth/Qwen3.5-9B-GGUF_Qwen3.5-9B-UD-Q4_K_XL",
+        "Tesslate/OmniCoder-9B-GGUF:Q6_K": {
+          "name": "Tesslate/OmniCoder-9B-GGUF:Q6_K",
           "limit": {
             "context": 65536,
             "output": 32768
