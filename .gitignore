@@ -50,3 +50,4 @@ models/*
 # Node.js dependencies
 **/node_modules/
 llama.cpp
+llama.cpp
