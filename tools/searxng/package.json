@@ -2,9 +2,9 @@
   "name": "opencode-searxng-tool",
   "version": "1.0.0",
   "description": "Opencode custom tool that performs web searches using SearxNG",
-  "main": "searxng_search.ts",
+  "main": "webfetch.ts",
   "scripts": {
-    "search": "ts-node searxng_search.ts"
+    "search": "ts-node webfetch.ts"
   },
   "dependencies": {
     "node-fetch": "^3.0.0"

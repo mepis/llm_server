@@ -28,6 +28,7 @@
   "permission": {
     "question": "allow",
     "webfetch": "allow",
+    "websearch": "allow",
     "todoread": "allow",
     "todowrite": "allow",
     "skill": "allow",
@@ -72,7 +73,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama-server",
       "options": {
-        "baseURL": "http://100.75.103.12:3001/v1"
+        "baseURL": "http://100.75.103.12:3031/v1"
       },
       "models": {
         "Tesslate/OmniCoder-9B-GGUF:Q6_K": {
