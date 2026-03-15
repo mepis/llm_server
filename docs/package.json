@@ -4,10 +4,12 @@
   "description": "VuePress documentation for llama.cpp build and runtime options",
   "scripts": {
     "docs:dev": "vuepress dev",
-    "docs:build": "vuepress build"
+    "docs:build": "vuepress build",
+    "serve:docs": "node ../server/server.js"
   },
   "theme": "@vuepress/default",
   "dependencies": {
-    "@vuepress/default": "^2.0.0-rc.15"
+    "@vuepress/default": "^2.0.0-rc.15",
+    "express": "^4.18.2"
   }
 }
