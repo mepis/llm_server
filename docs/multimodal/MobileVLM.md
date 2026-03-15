@@ -360,7 +360,7 @@ llama_print_timings:        eval time =    7259.43 ms /   255 runs   (   28.47 m
 llama_print_timings:       total time =   14371.19 ms /   446 tokens
 ```
 
-## TODO
+
 
 - [x] Support non-CPU backend for the new operators, such as `depthwise`, `hardswish`, `hardsigmoid`
 - [ ] Optimize LDP projector performance

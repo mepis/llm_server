@@ -14,7 +14,7 @@
 - [Environment Variable](#environment-variable)
 - [Performance Optimization](#performance-optimization)
 - [Known Issues](#known-issues)
-- [TODO](#todo)
+
 
 ## Background
 
@@ -214,6 +214,6 @@ A: Ensure:
 ### **GitHub Contribution**:
 Please add the **[ZenDNN]** prefix/tag in issues/PRs titles to help the ZenDNN-team check/address them without delay.
 
-## TODO
+## Future Work
 
 - Expand operation support beyond MUL_MAT (attention operations, activations, etc.)

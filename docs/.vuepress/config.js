@@ -5,7 +5,10 @@ module.exports = {
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Build Options', link: '/build-options' },
-      { text: 'Runtime Options', link: '/runtime-options' }
+      { text: 'Runtime Options', link: '/runtime-options' },
+      { text: 'Backend', link: '/backend' },
+      { text: 'Multimodal', link: '/multimodal' },
+      { text: 'Operations', link: '/ops' }
     ],
     sidebar: {
       '/build-options/': [
@@ -19,8 +22,26 @@ module.exports = {
           title: 'Runtime Options',
           path: '/runtime-options/'
         }
-      ]
-    },
+ ]
+  '/backend/': [
+    {
+      title: 'Backend',
+      path: '/backend/'
+    }
+  ],
+  '/multimodal/': [
+    {
+      title: 'Multimodal',
+      path: '/multimodal/'
+    }
+  ],
+  '/ops/': [
+    {
+      title: 'Operations',
+      path: '/ops/'
+    }
+  ],
+},
     markdown: {
       lineNumbers: true
     }

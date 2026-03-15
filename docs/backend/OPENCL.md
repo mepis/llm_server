@@ -10,7 +10,7 @@
 - [Windows 11 Arm64](#windows-11-arm64)
 - [Linux](#Linux)
 - [Known Issue](#known-issues)
-- [TODO](#todo)
+
 
 ## Background
 
@@ -275,7 +275,7 @@ ninja
 - Currently OpenCL backend works on A6xx GPUs with recent drivers and compilers (usually found in IoT platforms).
   However, it does not work on A6xx GPUs found in phones with old drivers and compilers.
 
-## TODO
+
 
 - Optimization for Q6_K
 - Support and optimization for Q4_K

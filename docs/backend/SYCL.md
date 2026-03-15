@@ -12,7 +12,7 @@
 - [Design Rule](#design-rule)
 - [Known Issue](#known-issues)
 - [Q&A](#qa)
-- [TODO](#todo)
+
 
 ## Background
 
@@ -789,6 +789,6 @@ use 1 SYCL GPUs: [0] with Max compute units:512
 ### **GitHub contribution**:
 Please add the `[SYCL]` prefix/tag in issues/PRs titles to help the SYCL contributors to check/address them without delay.
 
-## TODO
+
 
 - Review ZES_ENABLE_SYSMAN: https://github.com/intel/compute-runtime/blob/master/programmers-guide/SYSMAN.md#support-and-limitations

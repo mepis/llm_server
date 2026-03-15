@@ -1,15 +1,15 @@
 # Summary
 
-//TODO
+
 Write a brief executive summary for this app.
 
 # Instructions
 
 ## Instructions Phase 1 (Planning)
 
-1. Read these instructions before proceeding. Identify any sections that contain a '//TODO' statement.
-   2A. If any section of this document conatins a '//TODO' statement, immediately stop and notify the user. Do not proceed any further.
-   2B. If no sections contain a '//TODO' statement, proceed.
+1. Read these instructions before proceeding. Identify any sections that contain a '' statement.
+   2A. If any section of this document conatins a '' statement, immediately stop and notify the user. Do not proceed any further.
+   2B. If no sections contain a '' statement, proceed.
 2. Now, re-read and review these instructions thoroughly. Develop a detailed plan to build this application.
 3. Read the documentation links below (if available). Update the development plan as needed with information from the documentation links as needed.
 4. Ask the user for further information to clarify requirements or options in the development plan if needed.
@@ -72,7 +72,7 @@ Write a brief executive summary for this app.
 
 On a scale of 1 to 10, how much creative liberty should I have when making choices for building this application, where 1 equals no creativy liberty (I should ask the user for clarification on anything ambigous) and 10 equals complete autonomy (I am able to make any choices I feel are required while adhering to the instructions and requirements).
 
-//TODO
+
 Answer:
 
 # Requirements
@@ -128,14 +128,14 @@ Answer:
   -- Consider this requirement when creating any application services that may run or monitor jobs so that the application services or jobs can be gracefully paused and restarted after this service restarts the application and its services.
 
 **Feature Requirements**
-//TODO
+
 //Erase this section if not needed
 
 - List application features here such as user management systems, etc.
 
 ## Application Requirements
 
-//TODO
+
 //Erase this section if not needed
 
 - application requirements go here
@@ -145,7 +145,7 @@ Answer:
 
 **Additional Requirements**
 
-//TODO
+
 //Erase this section if not needed
 
 - EXAMPLE: Create a bullet point list of specific technical requirements if no options exists below
