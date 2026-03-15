@@ -1,6 +1,7 @@
 #!/bin/bash 
+# Load central configuration
+source "$(dirname "$0")/central_config.sh"
 
-# CONFIGS
 repeat=1
 batch=1024
 ubatch=512
@@ -15,11 +16,11 @@ nprompt=512
 ngen=128
 
 
-ls -l ~/llm_server/models *.gguf
+ls -l "${MODELS_DIR}"/*.gguf
 
 echo 
 echo ======================================
 echo "Enter model:"
 read model
 
-GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ~/llm_server/llama.cpp/build/bin/./llama-bench -m ~/llm_server/models/$model --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat --n-prompt $nprompt --n-gen $ngen # -ncmoe $ncmoe   --progress --output $outputType
+GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 "${LLAMA_BENCH_BIN}" -m "${MODELS_DIR}/$model" --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat --n-prompt $nprompt --n-gen $ngen # -ncmoe $ncmoe   --progress --output $outputType

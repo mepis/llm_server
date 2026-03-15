@@ -13,7 +13,7 @@ nprompt=512
 ngen=128
 threads=28
 
-ls -l ~/git/llm_server/models *.gguf
+ls -l "${MODELS_DIR}"/*.gguf
 
 echo 
 echo ======================================
@@ -21,5 +21,5 @@ echo "Enter model:"
 read model
 
 
-cd  ~/git/llm_server/llama.cpp/build/bin/
-CUDA_SCALE_LAUNCH_QUEUES=4x GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-bench -m ~/git/llm_server/models/$model --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat --n-prompt $nprompt --n-gen $ngen --threads $threads --flash-attn 0
+cd "${LLAMA_BUILD_DIR}/bin"
+CUDA_SCALE_LAUNCH_QUEUES=4x GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 "${LLAMA_BENCH_BIN}" -m "${MODELS_DIR}/$model" --batch-size $batch -ub $ubatch -ctk $cachType --flash-attn $flash --poll $polling --mmap $mmapOn --direct-io $dioOn -r $repeat --n-prompt $nprompt --n-gen $ngen --threads $threads --flash-attn 0
