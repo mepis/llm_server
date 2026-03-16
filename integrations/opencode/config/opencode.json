@@ -6,18 +6,8 @@
     "auto": true,
     "prune": true
   },
-  "mcp": {
-    "searxng": {
-      "type": "local",
-      "command": ["./git/searxng_opencode_mcp/run.sh"],
-      "environment": {
-        "SEARXNG_ENDPOINT": "http://100.75.17.75/searxng/"
-      },
-      "enabled": true
-    }
-  },
   "tools": {
-    "searxng": true
+    "search_the_web": true
   },
   "server": {
     "port": 4096,
@@ -28,7 +18,6 @@
   "permission": {
     "question": "allow",
     "webfetch": "allow",
-    "websearch": "allow",
     "todoread": "allow",
     "todowrite": "allow",
     "skill": "allow",
@@ -65,22 +54,6 @@
           "limit": {
             "context": 128000,
             "output": 64000
-          }
-        }
-      }
-    },
-    "local-llama.cpp": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "llama-server",
-      "options": {
-        "baseURL": "http://100.75.103.12:3031/v1"
-      },
-      "models": {
-        "Tesslate/OmniCoder-9B-GGUF:Q6_K": {
-          "name": "Tesslate/OmniCoder-9B-GGUF:Q6_K",
-          "limit": {
-            "context": 65536,
-            "output": 32768
           }
         }
       }
