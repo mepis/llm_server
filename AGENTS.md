@@ -141,3 +141,14 @@ clang-format -output-replacements-xml | xmlstarlet sel //error
 
 ---
 *Document generated on Sun Mar 15 2026.*
+
+
+## Additional Notes
+
+- No Cursor rules or Copilot instructions were found in this repository. If new rules appear, add them to this document.
+
+- When contributing, ensure you run `pre-commit run --all-files` and that all checks pass before pushing.
+
+- For running a single test, you can also use `./tools/server/tests/tests.sh unit/<file>.py -k "test_<pattern>"` to filter tests.
+
+- For debugging tests, use `ccache --show-stats` after running the test to view cache hits.

@@ -32,6 +32,7 @@ func TestDefaultConfig(t *testing.T) {
 
 // TestMergeParams checks that request values correctly override defaults.
 func TestMergeParams(t *testing.T) {
+    defaults = DefaultConfig()
 	// Save original defaults for isolation
 	origTemperature := defaults.Temperature
 	origTopP := defaults.TopP
