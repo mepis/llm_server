@@ -1,4 +1,4 @@
-#!/ /bin/bash
+#!/bin/bash
 source "$(dirname "$0")/central_config.sh"
 
 export GGML_CCACHE=ON
