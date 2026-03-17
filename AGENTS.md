@@ -1,154 +1,144 @@
-# AGENTS.md - Instructions for AI Agents
+# AGENTS.md – Development Agent Guidelines
 
-> This file outlines standards and procedures for AI agents working in this repository. It is intended for use by AI coding assistants to ensure consistent, high‑quality contributions.
-
----
-## Build, Lint, and Test Commands
+## 1. Build, Lint, and Test
 
 ### Build Commands
-```bash
-# CPU build (default)
-cmake -B build
-cmake --build build --config Release
+1. `npm run dev` – Starts Vite dev server with HMR.
+2. `npm run build` – Produces production bundle in `dist/`.
+3. `npm run preview` – Serves `dist/` locally for verification.
 
-# CUDA build
-cmake -B build -DGGML_CUDA=ON
-cmake --build build --config Release
+### Linting
+1. `npm run lint` – Runs ESLint via `.eslintrc.cjs`.
+2. `npm run format` – Runs Prettier on `*.js, *.ts, *.vue`.
 
-# Debug build
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+### Testing
+1. **Overall runner** – Vitest configured via `vitest.config.ts`; npm script `"test": "vitest run __tests__/"`.
+2. **Single test** – `npx vitest run path/to/file.test.ts [--watch]`
+   - Replace with relative path; `--watch` re‑runs on changes.
+3. **Coverage** – `npx vitest run --coverage` (outputs to `coverage/`).
+4. **Pattern filter** – `npx vitest run "src/**/my-feature.test.ts"`.
 
-# Build server only
-cmake --build build --target llama-server
+## 2. Code Style & Formatting
 
-# Clean build artifacts
-cmake --build build --target clean
-```
+### Imports
+- Prefer named imports.
+- Group: external libraries, internal utils, component defs.
+- Example:
+  ```js
+  import { ref, reactive } from 'vue';
+  import { v4 as uuidv4 } from 'uuid';
+  import { formatDate } from '@/utils/date';
+  ```
 
-### Test Commands
-```bash
-# Run a single test (specify file and test name)
-./tools/server/tests/tests.sh unit/test_chat_completion.py::test_invalid_chat_completion_req
+### Files & Exports
+- PascalCase for components & directories.
+- camelCase for functions/variables.
+- Single default export or named exports.
+  ```js
+  export const MyComponent = { /* ... */ };
+  export function fetchData() { /* ... */ }
+  ```
 
-# Run all tests in a file with verbose output, stop on first failure
-./tools/server/tests/tests.sh unit/test_chat_completion.py -v -x
+### Types
+- Enable `strict` in `tsconfig.json`.
+- Use interfaces for APIs, enums for groups.
+- Avoid `any`; use `unknown` when unsure.
 
-# Run a subset of tests using a grep pattern
-./tools/server/tests/tests.sh unit/*.py -k "test_.*_edge"
-
-# Run pre‑commit hooks manually
-pre-commit run --all-files
-```
-
-### Linting & Static Analysis
-```bash
-# Python style checks
-flake8
-
-# Type checking
-mypy
-
-# C++ static analysis
-clang-tidy -p build src/**/*.cpp
-
-# Formatting compliance
-clang-format -output-replacements-xml | xmlstarlet sel //error
-```
-
----
-## Code Style Guidelines
-
-### General Formatting
-- 4‑space indentation; tabs prohibited.
-- LF line endings only; no CRLF.
-- Trim trailing whitespace.
-- Include final newline.
-- Keep lines ≤120 characters when possible.
-- Use descriptive variable names.
-
-### Import Order (C++)
-1. Double‑quoted headers (`"header.h"`)
-2. Standard C headers (`<stdio.h>`, `<stdlib.h>`, …)
-3. Standard C++ headers (`<vector>`, `<string>`, `<unordered_map>`, …)
-4. Third‑party headers (e.g., `"llama.h"`)
-5. Project‑specific headers
-
-### Import Order (Python)
-- Standard library
-- Third‑party packages
-- Local application imports
-
-### Naming Conventions
-- Functions, variables, type aliases: `snake_case`
-- Classes, structs: `PascalCase`
-- Constants: `UPPER_SNAKE_CASE`
-- Enums/struct tags: prefix with `LLAMA_` or `LLAMA_CTX_`
-- Private members: prepend `_`
-- Prefix public functions with module name for clarity.
-- Use versioned constants for feature flags.
-
-### Type Usage
-- Prefer explicit types over `auto` in public APIs.
-- Use fixed‑width integers (`int32_t`, `uint64_t`) for cross‑platform code.
-- Omit `struct`/`enum` keywords in function signatures when type is clear.
-- Use opaque types ending in `_t` for public handles.
+### Formatting
+- 2‑space indentation, no tabs.
+- ≤100 chars per line; wrap longer lines.
+- Arrow functions for concise callbacks.
+- No side‑effects in module scope.
 
 ### Error Handling
-- Return error codes for all failures; never abort silently.
-- Use `llama_log` with appropriate severity levels.
-- Clean up all allocated resources on every exit path.
-- Check return values of `malloc`/`calloc`/`new`.
-- Convert internal errors to user‑friendly messages for public APIs.
-- Validate all inputs before processing.
-- Use assertions for internal invariants.
-- Log error details with context and timestamps.
-- Prefer early returns for error paths.
-- Document error semantics in public APIs.
+- Throw custom `AppError` for app‑specific errors.
+- Catch at async boundaries, re‑throw with context.
+  ```js
+  async function loadData() {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new AppError('Network error', r.status);
+      return await r.json();
+    } catch (e) {
+      throw new AppError('Load failed', e.message);
+    }
+  }
+  ```
 
----
-## AI Agent Usage Policy
+### Naming
+- Functions: `camelCase`, verb for side‑effects (`loadUser`).
+- Variables: descriptive `camelCase` (`userProfile`).
+- Files: kebab‑case dirs, PascalCase entry points.
+- Constants: `UPPER_SNAKE_CASE`.
 
-### Permitted Activities
-- Answer codebase questions.
-- Review existing code.
-- Suggest refactorings.
-- Write missing tests.
-- Draft documentation.
-- Update `README.md` with examples.
+### Docs
+- JSDoc for all public APIs (`@param`, `@returns`, `@example`).
+- Keep up‑to‑date, remove stale notes.
 
-### Forbidden Activities
-- Submit AI‑generated PRs without manual review.
-- Make autonomous commit decisions.
-- Bypass pre‑commit hooks or CI.
-- Generate entire modules without supervision.
-- Hard‑code secrets, API keys, or credentials.
+## 3. Cursor & Copilot Rules
+- No `.cursor/rules/` or `.cursorrules` files.
+- No `.github/copilot-instructions.md`; default Copilot behavior applies.
+- Follow Prettier & ESLint rules from project dependencies.
 
-### Required Practices
-- Disclose AI assistance in commit messages (`AI: generated X`).
-- Manually verify all generated code for correctness and security.
-- Explain AI‑generated logic before committing.
-- Never commit secrets.
-- Run `pre-commit run --all-files` and ensure all checks pass before pushing.
+## 4. General Development Practices
+1. **Commit Messages** – Conventional commits, ≤72 chars.
+2. **Pull Requests** – Clear description, change list, test notes.
+3. **Code Review** – Address all comments; add commits, don’t amend.
+4. **Dependency Updates** – Run `npm audit` & `npm outdated` first.
+5. **Performance** – Profile with Vue Devtools; avoid unnecessary re‑renders (`v-memo`, `watchEffect`).
 
-## Related Directories
-- `docs/` – Documentation source.
-- `tools/server/` – Server‑related scripts and utilities.
-- `llama.cpp/` – Core model implementation.
-- `tests/` – Test suite.
-- `scripts/` – Automation and deployment scripts.
-- `ci/` – CI configuration files.
+## 5. CI / Deployment
+- GitHub Actions run `npm ci`, `npm run lint`, `npm test`.
+- Minimum 80 % coverage for new code; failures block merges.
+- Deploy via `npm run build && npm run preview` to `gh-pages`.
+- Docker builds on tag; env vars from `.env.production`.
 
----
-*Document generated on Sun Mar 15 2026.*
+## 6. Security
+- No secrets in repo; use GitHub Secrets.
+- Validate all user inputs.
+- CSP headers via server config; `helmet` for Express.
 
+## 7. Pre‑commit Hooks
+- Husky runs `npm run lint` and `npm run format -- --check`.
+- Lint failures abort commit; fix and re‑stage.
 
-## Additional Notes
+## 8. Versioning
+- Semantic Versioning: MAJOR, MINOR, PATCH.
+- Tag with `vX.Y.Z` to trigger CI deployment.
 
-- No Cursor rules or Copilot instructions were found in this repository. If new rules appear, add them to this document.
+## 9. FAQ
+- **Single test?** `npx vitest run path/to/file.test.ts`.
+- **Env vars location?** `.env.*` files; never commit secrets.
+- **Manual Prettier?** `npm run format`.
 
-- When contributing, ensure you run `pre-commit run --all-files` and that all checks pass before pushing.
+## 10. Agent Configuration
+- Agents read this file on startup for build/lint/test commands.
+- `test` command executes a single test when requested.
+- Agents must pass `npm run lint` before pushing.
 
-- For running a single test, you can also use `./tools/server/tests/tests.sh unit/<file>.py -k "test_<pattern>"` to filter tests.
+## 11. Agent Logging
+- Logs to `logs/agent.log` with timestamps.
+- Errors sent to `#ops` Slack webhook.
 
-- For debugging tests, use `ccache --show-stats` after running the test to view cache hits.
+## 12. Continuous Improvement
+- Review quarterly; update linters, CI workflows.
+- Solicit dev team feedback on style guide.
+
+## 13. Environment Variables
+- Use `.env.*` files at repository root.
+- Prefix client‑exposed variables with `VITE_`.
+- Secrets stay in GitHub Secrets; never push real keys.
+- Access via `import.meta.env` in Vue/Vite projects.
+
+## 14. Bundle Analysis
+- Run `npm run build` then `npx source-map-explorer dist/*.js` to visualize dependencies.
+- Spot large packages; replace with dynamic `import()` where possible.
+
+## 15. Testing Best Practices
+- Keep tests isolated and deterministic.
+- Mock external services via `vi.mock()` or `vi.fn()`.
+- Use descriptive `it` titles (`it('should fetch user data', ...)`).
+- Generate per‑run coverage with `npm test -- --coverage`.
+
+---  
+*Generated for agentic coding assistants. Keep at repository root.*
