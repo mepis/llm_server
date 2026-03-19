@@ -4,7 +4,7 @@
 LLM_SERVER_HOME=~/.llm_server
 
 # Host Configs
-port=4000
+port=3000
 host=100.75.103.12
 
 # Hardware Configs
