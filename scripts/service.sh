@@ -1,8 +1,7 @@
 #!/ /bin/bash
-source "$(dirname "$0")/central_config.sh"
 cd ..
 mkdir -p ~/.config/systemd/user
-cp services/llama.service ~/.config/systemd/user/llama.service
+cp ./../integrations/linux/llama.service ~/.config/systemd/user/llama.service
 loginctl enable-linger $USER
 systemctl --user daemon-reload
 systemctl --user enable llama.service

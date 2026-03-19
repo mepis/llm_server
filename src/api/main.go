@@ -47,14 +47,6 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Serve Vue3 application
-	// Static files are served from ../app/dist relative to the binary's working directory
-	r.Static("/app", "../app/dist")
-	// Fallback for SPA routing - serve index.html for any unmatched routes under /app/*
-	r.Any("/app/*path", func(c *gin.Context) {
-		c.File("../app/dist/index.html")
-	})
-
 	// Run server
 	addr := os.Getenv("PORT")
 	if addr == "" {

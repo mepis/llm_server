@@ -1,6 +1,7 @@
 #!/bin/bash 
 # Load central configuration
-source "$(dirname "$0")/central_config.sh"
+
+LLM_SERVER_HOME=~/.llm_server
 
 repeat=1
 batch=1024
@@ -16,7 +17,7 @@ nprompt=512
 ngen=128
 
 
-ls -l "${MODELS_DIR}"/*.gguf
+ls -l "${LLM_SERVER_HOME}"/models/*.gguf
 
 echo 
 echo ======================================

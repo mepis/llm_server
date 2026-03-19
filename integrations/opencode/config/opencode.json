@@ -55,6 +55,13 @@
             "context": 128000,
             "output": 64000
           }
+        },
+        "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL": {
+          "name": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL",
+          "limit": {
+            "context": 128000,
+            "output": 64000
+          }
         }
       }
     }
