@@ -2,8 +2,6 @@
 Description=OpenCode Web Server
 After=network.target
 
-Environment="OPENCODE_SERVER_PASSWORD=Mandielove2."
-
 [Service]
 Type=simple
 WorkingDirectory=%h
