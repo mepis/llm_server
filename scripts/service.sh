@@ -1,4 +1,4 @@
-#!/ /bin/bash
+#!/bin/bash
 cd ..
 mkdir -p ~/.config/systemd/user
 cp ./../integrations/linux/llama.service ~/.config/systemd/user/llama.service

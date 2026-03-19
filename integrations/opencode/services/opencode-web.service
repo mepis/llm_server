@@ -7,7 +7,7 @@ Environment="OPENCODE_SERVER_PASSWORD=Mandielove2."
 [Service]
 Type=simple
 WorkingDirectory=%h
-ExecStart=/home/jon/.opencode/bin/opencode web
+ExecStart=~/.opencode/bin/opencode web
 Restart=on-failure
 RestartSec=5
 

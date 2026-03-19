@@ -1,8 +1,8 @@
-#!/ /bin/bash
+#!/bin/bash
 
 LLM_SERVER_HOME=~/.llm_server
 
-cudav="61;86;89"
+cudav="86;89"
 cudaBatchSize=64
 
 
@@ -12,7 +12,7 @@ cudaBatchSize=64
 
 export GGML_CCACHE=ON
 
-cd "${LLM_SERVER_HOME}"
+cd $LLM_SERVER_HOME
 git clone https://github.com/ggml-org/llama.cpp 
 cd llama.cpp
 rm -r build
