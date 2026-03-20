@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-LLM_SERVER_HOME=~/.llm_server
+LLM_SERVER_HOME=/home/jon/.llm_server
 
 # Host Configs
 port=3000
