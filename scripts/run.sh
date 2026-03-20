@@ -22,15 +22,17 @@ context=262144
 temp=0.6
 topP=0.95
 prio=3
-minP=0.01
+minP=0.00
+topK=0.95
 
 #model=Tesslate_OmniCoder-9B-GGUF_omnicoder-9b-q6_k.gguf
 # model=unsloth_Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL.gguf
 # model=unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:UD-Q6_K_XL
 # model=Tesslate/OmniCoder-9B-GGUF:Q8_0
-model=Tesslate_OmniCoder-9B-GGUF_omnicoder-9b-q8_0.gguf
+# model=Tesslate_OmniCoder-9B-GGUF_omnicoder-9b-q8_0.gguf
 # model=unsloth/GLM-4.7-Flash-GGUF:Q8_0
 # model=unsloth_Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf 
+model=Qwen3.5-35B-A3B-UD-Q6_K_S.gguf
 
 modelDir="${LLM_SERVER_HOME}/models/"
 
@@ -46,4 +48,4 @@ cd llama.cpp/build/bin/
 
 
 
-LLAMA_CACHE="${modelDir}" GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${modelDir}/${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --prio $prio --min_p $minP --threads $threads # - "${MODELS_DIR}${model}"
+LLAMA_CACHE="${modelDir}" GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${MODELS_DIR}${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --prio $prio --min_p $minP --threads $threads --top-l $topK # - "${MODELS_DIR}${model}"

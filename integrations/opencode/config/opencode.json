@@ -1,4 +1,4 @@
-{ 
+{
   "$schema": "https://opencode.ai/config.json",
   "theme": "opencode",
   "autoupdate": true,
@@ -11,9 +11,11 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.75.103.12",
+    "hostname": "100.87.146.38",
     "mdns": true,
-    "cors": ["*"]
+    "cors": [
+      "*"
+    ]
   },
   "permission": {
     "question": "allow",
@@ -56,8 +58,8 @@
             "output": 64000
           }
         },
-        "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL": {
-          "name": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL",
+        "Qwen3.5-35B-A3B-UD-Q6_K_S.gguf": {
+          "name": "Qwen3.5-35B-A3B-UD-Q6_K_S.gguf",
           "limit": {
             "context": 128000,
             "output": 64000
