@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-LLM_SERVER_HOME=/home/jon/.llm_server
+LLM_SERVER_HOME=/home/jon/.llm_server/
 
 # Host Configs
 port=3000
@@ -34,7 +34,7 @@ topK=0.95
 # model=unsloth_Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf 
 model=Qwen3.5-35B-A3B-UD-Q6_K_S.gguf
 
-modelDir="${LLM_SERVER_HOME}/models/"
+modelDir=/home/jon/.llm_server/models/
 
 cd "${LLM_SERVER_HOME}"
 cd llama.cpp/build/bin/
