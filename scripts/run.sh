@@ -5,7 +5,7 @@ LLM_SERVER_HOME=~/.llm_server
 
 # Host Configs
 port=3000
-host=100.75.103.12
+host=100.115.205.84
 
 # Hardware Configs
 mainGpu=0
