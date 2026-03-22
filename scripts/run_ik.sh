@@ -31,4 +31,4 @@ logsDir="${LLM_SERVER_HOME}logs"
 cd "${LLM_SERVER_HOME}"
 cd ik_llama.cpp/build/bin/
 
-LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${MODELS_DIR}${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min_p $minP --threads $threads --top-k $topK --log-file $logDir -np 4 -pps
+LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${MODELS_DIR}${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min_p $minP --threads $threads --top-k $topK --log-file $logDir --parallel 4 -pps
