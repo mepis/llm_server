@@ -34,6 +34,8 @@ topK=0.95
 # model=unsloth_Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf 
 model=Qwen3.5-35B-A3B-UD-Q6_K_S.gguf
 
+unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0
+
 modelDir=/home/jon/.llm_server/models/
 
 cd "${LLM_SERVER_HOME}"

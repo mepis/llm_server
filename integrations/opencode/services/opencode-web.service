@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=%h
-ExecStart=~/.opencode/bin/opencode web
+ExecStart=/home/jon/.opencode/bin/opencode web
 Restart=on-failure
 RestartSec=5
 

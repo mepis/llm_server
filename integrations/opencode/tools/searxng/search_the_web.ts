@@ -7,7 +7,7 @@ export default tool({
   },
   async execute(args, context) {
     const script =
-      "/home/jon/git/llm_server/integrations/opencode/tools/searxng/search.js";
+      "/home/jon/.config/opencode/tools/search.js";
 
     const result = await Bun.$`node ${script} ${args.query}`.text();
     return result.trim();
