@@ -4,7 +4,7 @@
 LLM_SERVER_HOME=/home/jon/.llm_server/
 
 # Host Configs
-port=3000
+port=11434
 host=100.115.205.84
 
 # Hardware Configs
