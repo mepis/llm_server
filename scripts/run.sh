@@ -52,4 +52,4 @@ cd llama.cpp/build/bin/
 
 
 
-LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/Qwen3.5-35B-A3B-UD-Q6_K_S.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching  --min_p $minP --threads $threads --top-k $topK --kv-unified --log-file $logDir --kv-unified -np 8 -b 1024 --swa-full --mmap --prio $threatPriority
+LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/Qwen3.5-35B-A3B-UD-Q6_K_S.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching  --min_p $minP --threads $threads --top-k $topK  --log-file $logDir  -np 8 -b 1024 --swa-full  --mmap --prio $threatPriority
