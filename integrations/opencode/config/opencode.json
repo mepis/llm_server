@@ -48,7 +48,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "llama-server",
       "options": {
-        "baseURL": "http://100.115.205.84:3000/v1"
+        "baseURL": "http://100.115.205.84:11434/v1"
       },
       "models": {
         "unsloth/Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL": {

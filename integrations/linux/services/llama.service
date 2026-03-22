@@ -5,7 +5,8 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=%h
-ExecStart=/home/jon/llm_server/scripts/launch_qwen3_35_b_4q.sh
+# Edit the script path and name for the local system
+ExecStart=/home/jon/llm_server/scripts/run_qwen3.5-35.sh
 Restart=on-failure
 RestartSec=5
 
