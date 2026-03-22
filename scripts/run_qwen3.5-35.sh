@@ -17,7 +17,6 @@ threads=26
 # Model Configs
 ###############
 
-# best for nemotron model
 context=262144
 temp=0.6
 topP=0.95
