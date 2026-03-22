@@ -30,6 +30,6 @@ cd "${LLM_SERVER_HOME}"
 
 cd llama.cpp/build/bin/
 
-LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/unsloth_Qwen3.5-35B-A3B-GGUF_Qwen3.5-35B-A3B-Q8_0.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK -np 16 --prio $threadPriority -ctk q8_0 --direct-io --kv-unified 
+CUDA_SCALE_LAUNCH_QUEUES=4x LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/unsloth_Qwen3.5-35B-A3B-GGUF_Qwen3.5-35B-A3B-Q8_0.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK -np 16 --prio $threadPriority -ctk q8_0 --direct-io --kv-unified 
 
 # -b 2048 -ub 1024 --kv-unified 
