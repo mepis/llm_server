@@ -21,7 +21,6 @@ threads=16
 context=262144
 temp=0.6
 topP=0.95
-prio=3
 minP=0.00
 topK=0.95
 
@@ -50,4 +49,4 @@ cd llama.cpp/build/bin/
 
 
 
-LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${MODELS_DIR}${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --prio $prio --min_p $minP --threads $threads --top-k $topK --kv-unified --log-file $logDir -np 4 -pps
+LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m "${MODELS_DIR}${model}" --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching  --min_p $minP --threads $threads --top-k $topK --kv-unified --log-file $logDir -np 4 -pps
