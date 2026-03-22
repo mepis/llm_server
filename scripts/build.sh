@@ -3,7 +3,7 @@
 LLM_SERVER_HOME=~/.llm_server
 
 cudav="86;89"
-cudaBatchSize=512
+cudaBatchSize=1024
 
 
 # update nvcc path if needed
