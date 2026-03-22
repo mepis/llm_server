@@ -1,144 +1,104 @@
-# AGENTS.md – Development Agent Guidelines
+# AGENTS.md
 
-## 1. Build, Lint, and Test
+## Build/Lint/Test Commands
 
-### Build Commands
-1. `npm run dev` – Starts Vite dev server with HMR.
-2. `npm run build` – Produces production bundle in `dist/`.
-3. `npm run preview` – Serves `dist/` locally for verification.
+### Build
+```bash
+# Initialize environment (install dependencies)
+./scripts/init.sh
 
-### Linting
-1. `npm run lint` – Runs ESLint via `.eslintrc.cjs`.
-2. `npm run format` – Runs Prettier on `*.js, *.ts, *.vue`.
+# Build llama.cpp with CUDA support
+./scripts/build.sh
+```
 
-### Testing
-1. **Overall runner** – Vitest configured via `vitest.config.ts`; npm script `"test": "vitest run __tests__/"`.
-2. **Single test** – `npx vitest run path/to/file.test.ts [--watch]`
-   - Replace with relative path; `--watch` re‑runs on changes.
-3. **Coverage** – `npx vitest run --coverage` (outputs to `coverage/`).
-4. **Pattern filter** – `npx vitest run "src/**/my-feature.test.ts"`.
+### Run
+```bash
+# Run with Qwen3.5-35B Q8 quantization
+./scripts/run.sh
 
-## 2. Code Style & Formatting
+# Or run specific models directly:
+./scripts/run_qwen3.5-35-q8.sh      # Q8 quantization
+./scripts/run_qwen3.5-35-q6-k-s.sh  # Q6_K_S quantization
 
-### Imports
-- Prefer named imports.
-- Group: external libraries, internal utils, component defs.
-- Example:
-  ```js
-  import { ref, reactive } from 'vue';
-  import { v4 as uuidv4 } from 'uuid';
-  import { formatDate } from '@/utils/date';
-  ```
+# Stop server
+./scripts/kill.sh
+```
 
-### Files & Exports
-- PascalCase for components & directories.
-- camelCase for functions/variables.
-- Single default export or named exports.
-  ```js
-  export const MyComponent = { /* ... */ };
-  export function fetchData() { /* ... */ }
-  ```
+### Benchmark
+```bash
+# Run performance benchmarks
+./scripts/benchmark.sh
+```
 
-### Types
-- Enable `strict` in `tsconfig.json`.
-- Use interfaces for APIs, enums for groups.
-- Avoid `any`; use `unknown` when unsure.
+### Test
+This repository does not have automated tests. Testing is done manually by:
+1. Running the server with `./scripts/run.sh`
+2. Verifying inference with an LLM client
+3. Checking logs in `~/.llm_server/logs/`
 
-### Formatting
-- 2‑space indentation, no tabs.
-- ≤100 chars per line; wrap longer lines.
-- Arrow functions for concise callbacks.
-- No side‑effects in module scope.
+## Code Style Guidelines
+
+### Shell Scripts (Bash)
+- Use `#!/bin/bash` shebang
+- Set `LLM_SERVER_HOME` variable at top of scripts
+- Use uppercase for configuration variables (e.g., `port=11434`)
+- Group related configurations with comments (e.g., `# Host Configs`, `# Model Configs`)
+- Use `set -euo pipefail` for robustness in production scripts
+- Quote all variable expansions: `"$var"` not `$var`
+- Use `./scripts/kill.sh` pattern for process management with `pkill`
+
+### TypeScript (Bun runtime)
+- Use ESM imports: `import { tool } from "@opencode-ai/plugin"`
+- Follow existing patterns in `integrations/opencode/tools/`
+- Use `tool.schema.string().describe()` for argument schemas
+- Async/await for all I/O operations
+- Trim return values: `result.trim()`
+
+### JavaScript (Node.js)
+- Use CommonJS (`require`/`module.exports`)
+- Handle errors with try/catch blocks
+- Exit with proper codes: `process.exit(1)` on errors
+- Set global configurations early (e.g., HTTPS agent settings)
+
+### Naming Conventions
+- Shell scripts: lowercase with hyphens (`run_qwen3.5-35-q8.sh`)
+- Service files: lowercase (`llama.service`, `opencode-web.service`)
+- TypeScript: lowercase with underscores for tools (`search_the_web.ts`)
+- JavaScript: lowercase (`search.js`)
 
 ### Error Handling
-- Throw custom `AppError` for app‑specific errors.
-- Catch at async boundaries, re‑throw with context.
-  ```js
-  async function loadData() {
-    try {
-      const r = await fetch(url);
-      if (!r.ok) throw new AppError('Network error', r.status);
-      return await r.json();
-    } catch (e) {
-      throw new AppError('Load failed', e.message);
-    }
-  }
-  ```
+- Shell: Check exit codes, use `|| echo "message"` patterns
+- JavaScript/TypeScript: Use try/catch with `process.exit(1)` on failure
+- Log errors with descriptive messages
 
-### Naming
-- Functions: `camelCase`, verb for side‑effects (`loadUser`).
-- Variables: descriptive `camelCase` (`userProfile`).
-- Files: kebab‑case dirs, PascalCase entry points.
-- Constants: `UPPER_SNAKE_CASE`.
+### Configuration
+- Environment variables: UPPERCASE with underscores (`GGML_CUDA=ON`, `LLAMA_CACHE`)
+- Service files use systemd format with `[Unit]`, `[Service]`, `[Install]` sections
+- Keep hardcoded paths in variables at script top
 
-### Docs
-- JSDoc for all public APIs (`@param`, `@returns`, `@example`).
-- Keep up‑to‑date, remove stale notes.
+## Project Structure
+```
+llm_server/
+├── scripts/           # Shell scripts for build, run, benchmark
+├── integrations/
+│   ├── linux/
+│   │   └── services/  # Systemd service files
+│   └── opencode/
+│       ├── config/
+│       ├── services/
+│       └── tools/     # TypeScript/JavaScript tool integrations
+```
 
-## 3. Cursor & Copilot Rules
-- No `.cursor/rules/` or `.cursorrules` files.
-- No `.github/copilot-instructions.md`; default Copilot behavior applies.
-- Follow Prettier & ESLint rules from project dependencies.
+## Key Technologies
+- **llama.cpp**: Main inference engine (built with CUDA support)
+- **Bun**: JavaScript runtime for tool execution
+- **Node.js**: Alternative runtime for tools
+- **CMake**: Build system for llama.cpp
+- **Systemd**: Service management
 
-## 4. General Development Practices
-1. **Commit Messages** – Conventional commits, ≤72 chars.
-2. **Pull Requests** – Clear description, change list, test notes.
-3. **Code Review** – Address all comments; add commits, don’t amend.
-4. **Dependency Updates** – Run `npm audit` & `npm outdated` first.
-5. **Performance** – Profile with Vue Devtools; avoid unnecessary re‑renders (`v-memo`, `watchEffect`).
-
-## 5. CI / Deployment
-- GitHub Actions run `npm ci`, `npm run lint`, `npm test`.
-- Minimum 80 % coverage for new code; failures block merges.
-- Deploy via `npm run build && npm run preview` to `gh-pages`.
-- Docker builds on tag; env vars from `.env.production`.
-
-## 6. Security
-- No secrets in repo; use GitHub Secrets.
-- Validate all user inputs.
-- CSP headers via server config; `helmet` for Express.
-
-## 7. Pre‑commit Hooks
-- Husky runs `npm run lint` and `npm run format -- --check`.
-- Lint failures abort commit; fix and re‑stage.
-
-## 8. Versioning
-- Semantic Versioning: MAJOR, MINOR, PATCH.
-- Tag with `vX.Y.Z` to trigger CI deployment.
-
-## 9. FAQ
-- **Single test?** `npx vitest run path/to/file.test.ts`.
-- **Env vars location?** `.env.*` files; never commit secrets.
-- **Manual Prettier?** `npm run format`.
-
-## 10. Agent Configuration
-- Agents read this file on startup for build/lint/test commands.
-- `test` command executes a single test when requested.
-- Agents must pass `npm run lint` before pushing.
-
-## 11. Agent Logging
-- Logs to `logs/agent.log` with timestamps.
-- Errors sent to `#ops` Slack webhook.
-
-## 12. Continuous Improvement
-- Review quarterly; update linters, CI workflows.
-- Solicit dev team feedback on style guide.
-
-## 13. Environment Variables
-- Use `.env.*` files at repository root.
-- Prefix client‑exposed variables with `VITE_`.
-- Secrets stay in GitHub Secrets; never push real keys.
-- Access via `import.meta.env` in Vue/Vite projects.
-
-## 14. Bundle Analysis
-- Run `npm run build` then `npx source-map-explorer dist/*.js` to visualize dependencies.
-- Spot large packages; replace with dynamic `import()` where possible.
-
-## 15. Testing Best Practices
-- Keep tests isolated and deterministic.
-- Mock external services via `vi.mock()` or `vi.fn()`.
-- Use descriptive `it` titles (`it('should fetch user data', ...)`).
-- Generate per‑run coverage with `npm test -- --coverage`.
-
----  
-*Generated for agentic coding assistants. Keep at repository root.*
+## Common Patterns
+- Model paths: `~/.llm_server/models/`
+- Logs: `~/.llm_server/logs/`
+- Build output: `llama.cpp/build/bin/`
+- GPU configuration: `--split-mode layer/row`, `--tensor-split`
+- Context handling: `-c` flag with context size
