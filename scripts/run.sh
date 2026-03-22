@@ -38,8 +38,6 @@ modelDir=/home/jon/.llm_server/models/
 logsDir="${LLM_SERVER_HOME}logs"
 
 cd "${LLM_SERVER_HOME}"
-git pull
-
 cd llama.cpp/build/bin/
 
 
