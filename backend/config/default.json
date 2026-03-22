@@ -1,0 +1,15 @@
+{
+  "llmServerHome": "/home/jon/.llm_server",
+  "scriptsDir": "/home/jon/.llm_server/scripts",
+  "servicesDir": "/home/jon/.llm_server/integrations/linux/services",
+  "modelDir": "/home/jon/.llm_server/models",
+  "logsDir": "/home/jon/.llm_server/logs",
+  "huggingface": {
+    "token": null,
+    "cacheDir": "~/.cache/huggingface"
+  },
+  "server": {
+    "port": 3000,
+    "host": "127.0.0.1"
+  }
+}
