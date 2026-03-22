@@ -10,7 +10,7 @@ host=100.115.205.84
 # Hardware Configs
 mainGpu=0
 tensorSplit=16,12,12
-splitMode=row
+splitMode=layer
 threads=26
 threadPriority=3
 
