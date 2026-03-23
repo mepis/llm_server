@@ -14,7 +14,7 @@ class HuggingFaceService {
     url.searchParams.set('search', query);
     url.searchParams.set('limit', Math.min(limit, 100).toString());
     url.searchParams.set('sort', sort);
-    url.searchParams.set('direction', order);
+    // Hugging Face API doesn't support direction parameter
 
     return new Promise((resolve, reject) => {
       https.get(url.toString(), (res) => {
@@ -22,11 +22,12 @@ class HuggingFaceService {
         res.on('data', chunk => data += chunk);
         res.on('end', () => {
           try {
-            const models = JSON.parse(data);
+            const parsed = JSON.parse(data);
+            const models = Array.isArray(parsed) ? parsed : (parsed.data || []);
             resolve(models.map(m => ({
-              id: m.modelId,
-              name: m.name || m.modelId.split('/')[1],
-              author: m.author,
+              id: m.id || m.modelId,
+              name: m.name || (m.modelId ? m.modelId.split('/')[1] : 'Unknown'),
+              author: m.author || 'Unknown',
               downloads: m.downloads || 0,
               likes: m.likes || 0,
               tags: m.tags || [],

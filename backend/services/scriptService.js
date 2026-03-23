@@ -4,7 +4,7 @@ const { exec } = require('child_process');
 
 class ScriptService {
   constructor() {
-    this.scriptsDir = process.env.SCRIPTS_DIR || './scripts';
+    this.scriptsDir = process.env.SCRIPTS_DIR || process.env.HOME + '/.llm_server/scripts';
   }
 
   async listScripts() {
