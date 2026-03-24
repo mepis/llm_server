@@ -10,7 +10,7 @@ host=100.115.205.84
 mainGpu=0
 tensorSplit=16,12,12
 splitMode=layer
-threads=8
+threads=2
 threadPriority=2
 
 ###############
@@ -28,4 +28,4 @@ modelDir=/home/jon/.llm_server/models/
 cd "${LLM_SERVER_HOME}"
 cd llama.cpp/build/bin/
 
-CUDA_SCALE_LAUNCH_QUEUES=3x LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/unsloth_Qwen3.5-35B-A3B-GGUF_Qwen3.5-35B-A3B-Q8_0.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK --prio $threadPriority -ctk q8_0 -np 2
+LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/unsloth_Qwen3.5-35B-A3B-GGUF_Qwen3.5-35B-A3B-Q8_0.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK --prio $threadPriority -ctk q8_0 --batch-size 1024 --ubatch-size 512 --ubatch-size 512 --parallel 2
