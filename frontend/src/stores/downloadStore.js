@@ -13,9 +13,33 @@ export const useDownloadStore = defineStore('downloads', () => {
     ...failedDownloads.value
   ]);
 
+  /**
+ * addDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+  /**
+ * addDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
   const addDownload = (download) => {
     activeDownloads.value.push(download);
   };
+
+  /**
+ * updateDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+  /**
+ * updateDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
 
   const updateDownload = (jobId, updates) => {
     const index = activeDownloads.value.findIndex(d => d.jobId === jobId);
@@ -36,6 +60,18 @@ export const useDownloadStore = defineStore('downloads', () => {
       }
     }
   };
+
+  /**
+ * removeDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+  /**
+ * removeDownload description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
 
   const removeDownload = (jobId) => {
     activeDownloads.value = activeDownloads.value.filter(d => d.jobId !== jobId);
@@ -71,3 +107,5 @@ export const useDownloadStore = defineStore('downloads', () => {
     pollDownloads
   };
 });
+
+

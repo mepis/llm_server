@@ -5,6 +5,18 @@ const configPath = path.join(process.env.HOME || '/home/jon', '.llm_server', 'co
 
 let config = null;
 
+/**
+ * loadConfig description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+/**
+ * loadConfig description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
 async function loadConfig() {
   if (config) return config;
 
@@ -33,6 +45,18 @@ async function loadConfig() {
   return config;
 }
 
+/**
+ * saveConfig description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+/**
+ * saveConfig description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
 async function saveConfig(newConfig) {
   await fs.mkdir(path.dirname(configPath), { recursive: true });
   await fs.writeFile(configPath, JSON.stringify(newConfig, null, 2));
@@ -43,3 +67,5 @@ module.exports = {
   loadConfig,
   saveConfig
 };
+
+

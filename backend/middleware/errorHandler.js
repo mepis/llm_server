@@ -1,3 +1,15 @@
+/**
+ * errorHandler description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+/**
+ * errorHandler description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
 const errorHandler = (err, req, res, next) => {
   console.error('Error:', err.message);
   
@@ -10,6 +22,18 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
+/**
+ * logger description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
+/**
+ * logger description.
+ * @param {...} args - Description of parameters.
+ * @returns {any} Description of return value.
+ */
+
 const logger = (req, res, next) => {
   const timestamp = new Date().toISOString();
   console.log(`${timestamp} ${req.method} ${req.path}`);
@@ -20,3 +44,5 @@ module.exports = {
   errorHandler,
   logger
 };
+
+
