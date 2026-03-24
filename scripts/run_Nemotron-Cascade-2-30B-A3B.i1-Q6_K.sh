@@ -28,6 +28,6 @@ modelDir=/home/jon/.llm_server/models/
 cd "${LLM_SERVER_HOME}"
 cd llama.cpp/build/bin/
 
-CUDA_SCALE_LAUNCH_QUEUES=16x LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK --prio $threadPriority -ctk q8_0 --batch-size 2048 --parallel 4
+CUDA_SCALE_LAUNCH_QUEUES=16x LLAMA_CACHE=$modelDir GGML_CUDA_FORCE_MMQ=true GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 ./llama-server -m /home/jon/.llm_server/models/Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf --port $port --host $host -c $context -ngl 99 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --threads $threads --top-k $topK --prio $threadPriority -ctk q8_0 --batch-size 4096 --parallel 6
 
 
