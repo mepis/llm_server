@@ -66,7 +66,14 @@
         "unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0": {
           "name": "unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0",
           "limit": {
-            "context": 262144, 
+            "context": 262144,
+            "output": 128000
+          }
+        },
+        "Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf": {
+          "name": "Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf",
+          "limit": {
+            "context": 262144,
             "output": 128000
           }
         }
