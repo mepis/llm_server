@@ -1,822 +1,554 @@
-# llama.cpp Flags and Configuration Reference
-
-Comprehensive documentation for build-time and runtime flags for [llama.cpp](https://github.com/ggml-org/llama.cpp), the upstream repository for ik_llama.cpp.
-
-## Table of Contents
-
-- [Build Configuration](#build-configuration)
-  - [CMake Build Options](#cmake-build-options)
-  - [GPU Backend Options](#gpu-backend-options)
-  - [CPU Backend Options](#cpu-backend-options)
-- [Runtime Flags](#runtime-flags)
-  - [llama-cli Parameters](#llama-cli-parameters)
-  - [llama-server Parameters](#llama-server-parameters)
-- [GPU Offload Configuration](#gpu-offload-configuration)
-- [Quantization](#quantization)
-- [Tools](#tools)
-- [Environment Variables](#environment-variables)
-- [Model-Specific Configuration](#model-specific-configuration)
-- [Troubleshooting](#troubleshooting)
-- [Differences from ik_llama.cpp](#differences-from-ik_llamacpp)
-
-## Build Configuration
-
-### CMake Build Options
-
-#### Basic Build Setup
-
-```bash
-# Create build directory
-mkdir -p build && cd build
-
-# Configure with CMake
-cmake ..
-
-# Build
-cmake --build . --config Release
-```
-
-#### Platform-Specific Presets
-
-```bash
-# macOS with Metal
-cmake --preset macos
-
-# Linux with CUDA
-cmake --preset cuda
-
-# Linux with ROCm
-cmake --preset rocm
-
-# Windows with CUDA
-cmake --preset windows-cuda
-
-# Windows with DirectML
-cmake --preset windows-directml
-```
-
-#### Manual CMake Configuration
-
-```bash
-cmake .. \
-  -DGGML_CUDA=ON \
-  -DGGML_CUBLAS=ON \
-  -DCMAKE_BUILD_TYPE=Release
-```
-
-### GPU Backend Options
-
-#### CUDA (NVIDIA GPUs)
-
-```bash
-cmake .. -DGGML_CUDA=ON -DGGML_CUBLAS=ON
-```
-
-**Environment Variables:**
-- `GGML_CUDA=ON` - Enable CUDA support
-- `GGML_CUDA_FORCE_MMQ=true` - Force use of MMQ instructions for older GPUs
-- `CUDA_ARCHITECTURES` - Target CUDA architecture (e.g., `86` for RTX 30xx)
-
-**Notes:**
-- Requires NVIDIA CUDA Toolkit (version 11.8+ recommended)
-- Supports all modern NVIDIA GPUs
-- Best performance on RTX 30xx/40xx series
-
-#### HIP/ROCm (AMD GPUs)
-
-```bash
-cmake .. -DGGML_HIP=ON -DGGML_ROCM=ON -DHIP_PATH=/opt/rocm
-```
-
-**Environment Variables:**
-- `GGML_HIP=ON` - Enable HIP support
-- `GGML_ROCM=ON` - Enable ROCm backend
-- `HIP_PATH` - ROCm installation path
-
-**Notes:**
-- Requires AMD ROCm toolkit (5.6+ recommended)
-- Supports RX 7000 series, MI250X, MI300X
-- Limited support for older AMD GPUs
-
-#### Vulkan
-
-```bash
-cmake .. -DGGML_VULKAN=ON
-```
-
-**Environment Variables:**
-- `GGML_VULKAN=ON` - Enable Vulkan support
-
-**Notes:**
-- Cross-platform GPU acceleration
-- Good for AMD and Intel integrated GPUs
-- Lower performance than CUDA/Metal
-
-#### Metal (macOS)
-
-```bash
-# Automatic on macOS, or explicitly:
-cmake --preset macos
-```
-
-**Environment Variables:**
-- `GGML_METAL=ON` - Enable Metal support (default on macOS)
-- `MPS_MEMORY_LIMIT` - Limit MPS memory usage
-
-**Notes:**
-- Built into macOS SDK
-- Optimized for Apple Silicon (M1/M2/M3)
-- Supports all Mac with Metal support
-
-#### SYCL (Intel GPUs)
-
-```bash
-cmake .. -DGGML_SYCL=ON -DSYCL_ARCH=xe2
-```
-
-**Environment Variables:**
-- `GGML_SYCL=ON` - Enable SYCL support
-- `SYCL_ARCH` - Target architecture (e.g., `xe2` for Battlemage)
-
-**Notes:**
-- Requires Intel oneAPI Base Toolkit
-- Supports Intel Arc GPUs
-- Supports CPU offload to Intel CPUs
-
-#### BLAS (CPU optimization)
-
-```bash
-cmake .. -DGGML_BLAS=ON -DBLAS_VENDOR=OpenBLAS
-```
-
-**BLAS Options:**
-- `OpenBLAS` - Open source BLAS library
-- `BLIS` - BLIS library
-- `System` - System BLAS
-- `Apple` - Apple Accelerate framework (macOS)
-- `MKL` - Intel MKL
-
-**Notes:**
-- Significant CPU performance improvement
-- Recommended for CPU-only builds
-
-### CPU Backend Options
-
-#### AVX/AVX2/AVX512 (x86-64)
-
-```bash
-cmake .. -DGGML_AVX=ON -DGGML_AVX2=ON -DGGML_AVX512=ON
-```
-
-**Environment Variables:**
-- `GGML_AVX` - Enable AVX
-- `GGML_AVX2` - Enable AVX2
-- `GGML_AVX512` - Enable AVX512
-
-**Notes:**
-- Enabled by default on x86-64
-- Progressive fallback for older CPUs
-
-#### NEON (ARM)
-
-```bash
-cmake .. -DGGML_NEON=ON
-```
-
-**Environment Variables:**
-- `GGML_NEON` - Enable NEON (default on ARM)
-
-**Notes:**
-- Built into ARM CPUs
-- Used by Apple Silicon, Raspberry Pi, Android
-
-## Runtime Flags
-
-### llama-cli Parameters
-
-#### Basic Inference
-
-```bash
-llama-cli -m <model.gguf> \
-  -p "<prompt>" \
-  -n <tokens> \
-  --temp <temperature> \
-  --top-k <k> \
-  --top-p <p> \
-  --repeat-last-n <n> \
-  --repeat-penalty <penalty>
-```
-
-**Core Parameters:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-m, --model <path>` | required | Path to model file |
-| `-p, --prompt <text>` | "" | Prompt for completion |
-| `-n, --n-tokens <n>` | 200 | Number of tokens to generate |
-| `-c, --ctx-size <n>` | 512 | Context size |
-| `-t, --threads <n>` | auto | Number of threads |
-| `-b, --batch-size <n>` | 512 | Batch size |
-| `-ngl, --n-gpu-layers <n>` | 0 | Layers to offload to GPU |
-| `-s, --seed <n>` | 42 | RNG seed |
-
-#### Sampling Parameters
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--temp <float>` | 0.8 | Temperature |
-| `--top-k <n>` | 40 | Top-k sampling |
-| `--top-p <float>` | 0.9 | Top-p (nucleus) sampling |
-| `--min-p <float>` | 0.05 | Min-p sampling |
-| `--typical-p <float>` | 1.0 | Locally typical sampling |
-| `--repeat-last-n <n>` | 64 | Last n tokens to consider for penalty |
-| `--repeat-penalty <float>` | 1.0 | Penalty for repeated tokens |
-| `--presence-penalty <float>` | 0.0 | Presence penalty |
-| `--frequency-penalty <float>` | 0.0 | Frequency penalty |
-| `--mirostat <n>` | 0 | Mirostat sampling (0=off, 1=classic, 2=2.0) |
-| `--mirostat-lr <float>` | 0.1 | Mirostat learning rate |
-| `--mirostat-ent <float>` | 5.0 | Mirostat target entropy |
-
-#### Model Loading
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--lora <path>` | "" | Path to LoRA adapter |
-| `--lora-scale <float>` | 1.0 | LoRA scale |
-| `--control-vector <path>` | "" | Control vector path |
-| `--control-vector-strength <float>` | 1.0 | Control vector strength |
-| `--mmproj <path>` | "" | Path to multimodal projector |
-
-#### Performance
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--cpu-mask <hex>` | "" | CPU affinity mask |
-| `--cpu-threads <n>` | auto | Number of CPU threads |
-| `--split-mode <mode>` | layer | Split mode (layer, row, none) |
-| `--tensor-split <ratio>` | auto | Split tensors across multiple GPUs |
-| `--no-mmap` | false | Disable memory mapping |
-| `--mlock` | false | Force model to stay in RAM |
-| `--no-kv-cache-eviction` | false | Disable KV cache eviction |
-
-#### Output
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-v, --verbose` | false | Verbose output |
-| `-c, --color` | auto | Colorize output |
-| `-r, --reverse-prompt` | "" | Reverse prompt to stop on |
-| `--log-file <path>` | "" | Log file path |
-| `--log-disable` | false | Disable logging |
-
-### llama-server Parameters
-
-#### Server Configuration
-
-```bash
-llama-server -m <model.gguf> \
-  --host <address> \
-  --port <port> \
-  --ctx-size <size> \
-  --threads <n> \
-  --n-gpu-layers <n>
-```
-
-**Server Parameters:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-m, --model <path>` | required | Path to model file |
-| `--host <address>` | 127.0.0.1 | Server host |
-| `--port <port>` | 8080 | Server port |
-| `-c, --ctx-size <n>` | 2048 | Context size |
-| `-t, --threads <n>` | auto | Number of threads |
-| `-b, --batch-size <n>` | 512 | Batch size |
-| `-ngl, --n-gpu-layers <n>` | 0 | Layers to offload to GPU |
-
-#### API Configuration
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--api-key <key>` | "" | API key for authentication |
-| `--api-log` | false | Log API requests |
-| `--api-cors` | false | Enable CORS |
-| `--api-prefix <path>` | / | API prefix |
-
-#### Chat and Completion
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--chat-file <path>` | "" | Chat template file |
-| `--completion-prompt <text>` | "" | Completion prompt template |
-| `--system-prompt <text>` | "" | System prompt |
-| `--jinja` | false | Use Jinja chat templates |
-
-#### Sampling (same as CLI)
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--temp <float>` | 0.8 | Temperature |
-| `--top-k <n>` | 40 | Top-k sampling |
-| `--top-p <float>` | 0.9 | Top-p sampling |
-| `--repeat-last-n <n>` | 64 | Repeat last N tokens |
-| `--repeat-penalty <float>` | 1.0 | Repeat penalty |
-
-#### Performance Tuning
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--tensor-split <ratio>` | auto | Tensor split across GPUs |
-| `--split-mode <mode>` | layer | Split mode |
-| `--numa <mode>` | false | NUMA optimization |
-| `--memory-f32` | false | Use f32 for key/value cache |
-| `--low-vram` | false | Low VRAM mode |
-| `--no-mmap` | false | Disable memory mapping |
-| `--mlock` | false | Lock model in RAM |
-
-#### Advanced Features
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--chat-template <path>` | "" | Custom chat template |
-| `--conversation` | false | Conversation mode |
-| `--slot-drain-step` | -1 | Slot drain step |
-| `--slot-save-period` | 0 | Slot save period |
-| `--cohere` | false | Cohere API mode |
-| `--embedding` | false | Embedding mode |
-| `--rtn` | false | Round to nearest |
-
-## GPU Offload Configuration
-
-### Layer Offload
-
-```bash
-# Offload all layers to GPU
--ngl 100
-
-# Offload specific number of layers
--ngl 32
-
-# Dynamic offload
--ngl auto
-```
-
-### Multi-GPU Setup
-
-```bash
-# Split layers across GPUs
---tensor-split 1,1  # Equal split for 2 GPUs
---tensor-split 2,1  # 2:1 ratio for 2 GPUs
-
-# Example with 4 GPUs
---tensor-split 1,1,1,1
-```
-
-### Split Modes
-
-```bash
-# Layer split (default) - splits by transformer layers
---split-mode layer
-
-# Row split - splits by row (better for attention)
---split-mode row
-
-# No split - use single GPU
---split-mode none
-```
-
-### GPU Memory Management
-
-```bash
-# Lock model in RAM (prevents swapping)
---mlock
-
-# Disable memory mapping
---no-mmap
-
-# Low VRAM mode (evicts unused layers)
---low-vram
-
-# Force MMQ for older GPUs
-GGML_CUDA_FORCE_MMQ=1
-```
-
-## Quantization
-
-### Quantization Tools
-
-```bash
-# Quantize a model
-llama-quantize <input.gguf> <output.gguf> <quantization>
-
-# List available quantizations
-llama-quantize --help
-```
-
-### Quantization Types
-
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `Q4_0` | 4-bit quantization | Balanced quality/size |
-| `Q4_1` | 4-bit with extra metadata | Better perplexity |
-| `Q5_0` | 5-bit quantization | Higher quality |
-| `Q5_1` | 5-bit with extra metadata | Best 5-bit |
-| `Q8_0` | 8-bit quantization | Near-original quality |
-| `Q2_K` | 2-bit K-quants | Smallest size |
-| `Q3_K_S` | 3-bit small K-quants | Small models |
-| `Q3_K_M` | 3-bit medium K-quants | Balanced |
-| `Q3_K_L` | 3-bit large K-quants | Better quality |
-| `Q4_K_S` | 4-bit small K-quants | Recommended |
-| `Q4_K_M` | 4-bit medium K-quants | Best balance |
-| `Q5_K_S` | 5-bit small K-quants | High quality |
-| `Q5_K_M` | 5-bit medium K-quants | Best 5-bit |
-| `Q6_K` | 6-bit K-quants | Very high quality |
-| `Q8_0` | 8-bit K-quants | Near lossless |
-
-### Quantization Examples
-
-```bash
-# Create balanced 4-bit model
-llama-quantize model-f16.gguf model-q4_k_m.gguf Q4_K_M
-
-# Create small 3-bit model
-llama-quantize model-f16.gguf model-q3_k_m.gguf Q3_K_M
-
-# Create high-quality 8-bit model
-llama-quantize model-f16.gguf model-q8_0.gguf Q8_0
-
-# Quantize with custom tokeniser
-llama-quantize --vocab-only model-f16.gguf vocab.gguf
-```
-
-### Quantization Parameters
-
-```bash
-# Quantize with specific method
-llama-quantize -q Q4_K_M input.gguf output.gguf
-
-# Skip quantizing certain layers
-llama-quantize --skip-quantize "attention.*|output.*" input.gguf output.gguf
-```
-
-## Tools
-
-### llama-cli
-
-**Purpose:** Command-line inference tool
-
-**Basic Usage:**
-```bash
-llama-cli -m model.gguf -p "Hello, how are you?" -n 256
-```
-
-**Interactive Mode:**
-```bash
-llama-cli -m model.gguf -c 2048 -t 4 --interactive
-```
-
-### llama-server
-
-**Purpose:** OpenAI-compatible API server
-
-**Basic Usage:**
-```bash
-llama-server -m model.gguf -p 8080 -c 2048
-```
-
-**Curl Example:**
-```bash
-curl http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "default",
-    "messages": [{"role": "user", "content": "Hello"}],
-    "temperature": 0.7
-  }'
-```
-
-### llama-bench
-
-**Purpose:** Performance benchmarking
-
-**Basic Usage:**
-```bash
-llama-bench -m model.gguf -t 4 -c 2048
-```
-
-**Benchmark Options:**
-```bash
-llama-bench --help
-```
-
-### llama-perplexity
-
-**Purpose:** Calculate model perplexity
-
-**Basic Usage:**
-```bash
-llama-perplexity -m model.gguf -f test.txt -c 2048 -t 4
-```
-
-### llama-simple
-
-**Purpose:** Simple inference tool
-
-**Basic Usage:**
-```bash
-llama-simple -m model.gguf -p "Hello"
-```
-
-### llama-quantize
-
-**Purpose:** Quantize models
-
-**Basic Usage:**
-```bash
-llama-quantize model-f16.gguf model-q4.gguf Q4_0
-```
-
-### llama-imatrix
-
-**Purpose:** Calculate importance matrix for quantization
-
-**Basic Usage:**
-```bash
-llama-imatrix -m model.gguf -f data.txt -o imatrix.gguf
-```
-
-### llama-export-lora
-
-**Purpose:** Export LoRA adapters
-
-**Basic Usage:**
-```bash
-llama-export-lora model.gguf lora.gguf 1.0
-```
-
-### llama-load-python
-
-**Purpose:** Python model loading
-
-**Basic Usage:**
-```bash
-llama-load-python -m model.gguf
-```
-
-## Environment Variables
-
-### General
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `LLAMA_CACHE` | `~/.cache/llama-cache` | Cache directory |
-| `LLAMA_LOG_LEVEL` | `info` | Log level (trace, debug, info, warn, error) |
-| `LLAMA_LOG_FILE` | "" | Log file path |
-| `LLAMA_BACKEND` | auto | Backend selection |
-
-### CUDA
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GGML_CUDA` | auto | Enable CUDA |
-| `GGML_CUDA_FORCE_MMQ` | false | Force MMQ instructions |
-| `CUDA_VISIBLE_DEVICES` | all | Visible CUDA devices |
-| `CUDA_DEVICE_ORDER` | PCI_BUS_ID | Device ordering |
-| `CUBLAS_WORKSPACE_CONFIG` | :4096:8 | CUBLAS workspace config |
-
-### ROCm
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GGML_HIP` | auto | Enable HIP |
-| `GGML_ROCM` | auto | Enable ROCm |
-| `HIP_VISIBLE_DEVICES` | all | Visible HIP devices |
-
-### Metal
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GGML_METAL` | auto | Enable Metal |
-| `MPS_MEMORY_LIMIT` | 0 | MPS memory limit (MB) |
-
-### Vulkan
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GGML_VULKAN` | auto | Enable Vulkan |
-| `VULKAN_DEVICE` | auto | Vulkan device index |
-
-### SYCL
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `GGML_SYCL` | auto | Enable SYCL |
-| `SYCL_DEVICE_FILTER` | auto | SYCL device filter |
-
-### Performance
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `OMP_NUM_THREADS` | auto | OpenMP threads |
-| `KMP_AFFINITY` | compact | Intel thread affinity |
-| `MKL_NUM_THREADS` | auto | MKL threads |
-
-## Model-Specific Configuration
-
-### LLaMA 3
-
-```bash
-llama-server -m llama-3-8b.gguf \
-  --chat-file chat-llama-3.json \
-  -c 8192 \
-  --temp 0.7
-```
-
-### Qwen
-
-```bash
-llama-server -m qwen2-7b.gguf \
-  --chat-template qwen \
-  -c 4096 \
-  --jinja
-```
-
-### DeepSeek
-
-```bash
-llama-server -m deepseek-llm-7b.gguf \
-  --flash-attn \
-  -c 4096
-```
-
-### Mistral
-
-```bash
-llama-server -m mistral-7b.gguf \
-  --chat-file chat-mistral.json \
-  -c 8192
-```
-
-### LLaVA (Multimodal)
-
-```bash
-llama-server -m llava-v1.5-7b.gguf \
-  --mmproj llava-v1.5-7b-projector.gguf \
-  -c 2048
-```
-
-## Troubleshooting
-
-### CUDA Issues
-
-**Problem:** CUDA out of memory
-**Solution:**
-```bash
-# Reduce GPU layers
--ngl 30
-
-# Enable low VRAM mode
---low-vram
-
-# Use smaller batch size
--b 256
-```
-
-**Problem:** CUDA startup failure
-**Solution:**
-```bash
-# Check CUDA version
-nvcc --version
-
-# Verify GPU drivers
-nvidia-smi
-
-# Try MMQ mode
-GGML_CUDA_FORCE_MMQ=1
-```
-
-### ROCm Issues
-
-**Problem:** ROCm not detected
-**Solution:**
-```bash
-# Check ROCm installation
-rocm-smi
-
-# Verify HIP path
-cmake .. -DHIP_PATH=/opt/rocm
-```
-
-### Metal Issues
-
-**Problem:** Metal memory limit
-**Solution:**
-```bash
-# Limit MPS memory
-export MPS_MEMORY_LIMIT=4096
-```
-
-### Performance Issues
-
-**Problem:** Slow inference
-**Solution:**
-```bash
-# Increase threads
--t 8
-
-# Use larger batch size
--b 512
-
-# Enable memory mapping
---mlock
-
-# Use BLAS
-cmake .. -DGGML_BLAS=ON
-```
-
-### Quantization Issues
-
-**Problem:** Poor quantization quality
-**Solution:**
-```bash
-# Use higher quantization
-Q4_K_M -> Q5_K_M
-
-# Use importance matrix
-llama-imatrix -m model.gguf -f data.txt
-llama-quantize --imatrix imatrix.gguf ...
-```
-
-## Differences from ik_llama.cpp
-
-### Features in ik_llama.cpp (Not in Upstream)
-
-1. **IQK Quantizations**
-   - IQ2_XXS, IQ2_XS, IQ3_XXS
-   - Advanced quantization methods
-
-2. **Trellis Quantizations**
-   - Trellis-specific quantization formats
-
-3. **FlashMLA for DeepSeek**
-   - Optimized attention for DeepSeek models
-
-4. **Graph Split Mode**
-   - Custom graph splitting for better performance
-
-5. **Custom Build Scripts**
-   - `scripts/build_qwen3.5-35-q8.sh`
-   - `scripts/build_qwen3.5-35-q6-k-s.sh`
-
-6. **IK-Specific Environment Variables**
-   - `IK_LLAMA_CPP_*` variables
-
-### Upstream Features (Not in ik_llama.cpp)
-
-1. **Native gpt-oss Support**
-   - MXFP4 format support
-
-2. **Enhanced Speculative Decoding**
-   - More draft model options
-
-3. **Updated Model Support**
-   - Latest model architectures
-
-4. **Improved Tool Calling**
-   - Enhanced function calling
-
-5. **WebGPU Support**
-   - Browser-based inference (in progress)
-
-### Version Differences
-
-| Feature | Upstream | ik_llama.cpp |
-|---------|----------|--------------|
-| IQK Quants | ❌ | ✅ |
-| Trellis Quants | ❌ | ✅ |
-| FlashMLA | ❌ | ✅ |
-| Graph Split | ❌ | ✅ |
-| gpt-oss | ✅ | ❌ |
-| Latest Models | ✅ | ⚠️ |
-
-## References
-
-- [llama.cpp GitHub](https://github.com/ggml-org/llama.cpp)
-- [llama.cpp Documentation](https://github.com/ggml-org/llama.cpp/tree/master/docs)
-- [llama.cpp Wiki](https://github.com/ggml-org/llama.cpp/wiki)
-- [Build Documentation](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md)
-- [Server Parameters](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
-- [CLI Parameters](https://github.com/ggml-org/llama.cpp/blob/master/tools/cli/README.md)
-
-## Contributing
-
-To contribute to llama.cpp:
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
-4. Ensure all tests pass
-5. Update documentation
-
-## License
-
-llama.cpp is licensed under the MIT License. See [LICENSE](https://github.com/ggml-org/llama.cpp/blob/master/LICENSE) for details.
+----- common params -----
+
+-h,    --help, --usage                  print usage and exit
+--version                               show version and build info
+--license                               show source code license and dependencies
+-cl,   --cache-list                     show list of models in cache
+--completion-bash                       print source-able bash completion script for llama.cpp
+-t,    --threads N                      number of CPU threads to use during generation (default: -1)
+                                        (env: LLAMA_ARG_THREADS)
+-tb,   --threads-batch N                number of threads to use during batch and prompt processing (default:
+                                        same as --threads)
+-C,    --cpu-mask M                     CPU affinity mask: arbitrarily long hex. Complements cpu-range
+                                        (default: "")
+-Cr,   --cpu-range lo-hi                range of CPUs for affinity. Complements --cpu-mask
+--cpu-strict <0|1>                      use strict CPU placement (default: 0)
+--prio N                                set process/thread priority : low(-1), normal(0), medium(1), high(2),
+                                        realtime(3) (default: 0)
+--poll <0...100>                        use polling level to wait for work (0 - no polling, default: 50)
+-Cb,   --cpu-mask-batch M               CPU affinity mask: arbitrarily long hex. Complements cpu-range-batch
+                                        (default: same as --cpu-mask)
+-Crb,  --cpu-range-batch lo-hi          ranges of CPUs for affinity. Complements --cpu-mask-batch
+--cpu-strict-batch <0|1>                use strict CPU placement (default: same as --cpu-strict)
+--prio-batch N                          set process/thread priority : 0-normal, 1-medium, 2-high, 3-realtime
+                                        (default: 0)
+--poll-batch <0|1>                      use polling to wait for work (default: same as --poll)
+-c,    --ctx-size N                     size of the prompt context (default: 0, 0 = loaded from model)
+                                        (env: LLAMA_ARG_CTX_SIZE)
+-n,    --predict, --n-predict N         number of tokens to predict (default: -1, -1 = infinity)
+                                        (env: LLAMA_ARG_N_PREDICT)
+-b,    --batch-size N                   logical maximum batch size (default: 2048)
+                                        (env: LLAMA_ARG_BATCH)
+-ub,   --ubatch-size N                  physical maximum batch size (default: 512)
+                                        (env: LLAMA_ARG_UBATCH)
+--keep N                                number of tokens to keep from the initial prompt (default: 0, -1 =
+                                        all)
+--swa-full                              use full-size SWA cache (default: false)
+                                        [(more
+                                        info)](https://github.com/ggml-org/llama.cpp/pull/13194#issuecomment-2868343055)
+                                        (env: LLAMA_ARG_SWA_FULL)
+-fa,   --flash-attn [on|off|auto]       set Flash Attention use ('on', 'off', or 'auto', default: 'auto')
+                                        (env: LLAMA_ARG_FLASH_ATTN)
+--perf, --no-perf                       whether to enable internal libllama performance timings (default:
+                                        false)
+                                        (env: LLAMA_ARG_PERF)
+-e,    --escape, --no-escape            whether to process escapes sequences (\n, \r, \t, \', \", \\)
+                                        (default: true)
+--rope-scaling {none,linear,yarn}       RoPE frequency scaling method, defaults to linear unless specified by
+                                        the model
+                                        (env: LLAMA_ARG_ROPE_SCALING_TYPE)
+--rope-scale N                          RoPE context scaling factor, expands context by a factor of N
+                                        (env: LLAMA_ARG_ROPE_SCALE)
+--rope-freq-base N                      RoPE base frequency, used by NTK-aware scaling (default: loaded from
+                                        model)
+                                        (env: LLAMA_ARG_ROPE_FREQ_BASE)
+--rope-freq-scale N                     RoPE frequency scaling factor, expands context by a factor of 1/N
+                                        (env: LLAMA_ARG_ROPE_FREQ_SCALE)
+--yarn-orig-ctx N                       YaRN: original context size of model (default: 0 = model training
+                                        context size)
+                                        (env: LLAMA_ARG_YARN_ORIG_CTX)
+--yarn-ext-factor N                     YaRN: extrapolation mix factor (default: -1.00, 0.0 = full
+                                        interpolation)
+                                        (env: LLAMA_ARG_YARN_EXT_FACTOR)
+--yarn-attn-factor N                    YaRN: scale sqrt(t) or attention magnitude (default: -1.00)
+                                        (env: LLAMA_ARG_YARN_ATTN_FACTOR)
+--yarn-beta-slow N                      YaRN: high correction dim or alpha (default: -1.00)
+                                        (env: LLAMA_ARG_YARN_BETA_SLOW)
+--yarn-beta-fast N                      YaRN: low correction dim or beta (default: -1.00)
+                                        (env: LLAMA_ARG_YARN_BETA_FAST)
+-kvo,  --kv-offload, -nkvo, --no-kv-offload
+                                        whether to enable KV cache offloading (default: enabled)
+                                        (env: LLAMA_ARG_KV_OFFLOAD)
+--repack, -nr, --no-repack              whether to enable weight repacking (default: enabled)
+                                        (env: LLAMA_ARG_REPACK)
+--no-host                               bypass host buffer allowing extra buffers to be used
+                                        (env: LLAMA_ARG_NO_HOST)
+-ctk,  --cache-type-k TYPE              KV cache data type for K
+                                        allowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1
+                                        (default: f16)
+                                        (env: LLAMA_ARG_CACHE_TYPE_K)
+-ctv,  --cache-type-v TYPE              KV cache data type for V
+                                        allowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1
+                                        (default: f16)
+                                        (env: LLAMA_ARG_CACHE_TYPE_V)
+-dt,   --defrag-thold N                 KV cache defragmentation threshold (DEPRECATED)
+                                        (env: LLAMA_ARG_DEFRAG_THOLD)
+--mlock                                 force system to keep model in RAM rather than swapping or compressing
+                                        (env: LLAMA_ARG_MLOCK)
+--mmap, --no-mmap                       whether to memory-map model. (if mmap disabled, slower load but may
+                                        reduce pageouts if not using mlock) (default: enabled)
+                                        (env: LLAMA_ARG_MMAP)
+-dio,  --direct-io, -ndio, --no-direct-io
+                                        use DirectIO if available. (default: disabled)
+                                        (env: LLAMA_ARG_DIO)
+--numa TYPE                             attempt optimizations that help on some NUMA systems
+                                        - distribute: spread execution evenly over all nodes
+                                        - isolate: only spawn threads on CPUs on the node that execution
+                                        started on
+                                        - numactl: use the CPU map provided by numactl
+                                        if run without this previously, it is recommended to drop the system
+                                        page cache before using this
+                                        see https://github.com/ggml-org/llama.cpp/issues/1437
+                                        (env: LLAMA_ARG_NUMA)
+-dev,  --device <dev1,dev2,..>          comma-separated list of devices to use for offloading (none = don't
+                                        offload)
+                                        use --list-devices to see a list of available devices
+                                        (env: LLAMA_ARG_DEVICE)
+--list-devices                          print list of available devices and exit
+-ot,   --override-tensor <tensor name pattern>=<buffer type>,...
+                                        override tensor buffer type
+                                        (env: LLAMA_ARG_OVERRIDE_TENSOR)
+-cmoe, --cpu-moe                        keep all Mixture of Experts (MoE) weights in the CPU
+                                        (env: LLAMA_ARG_CPU_MOE)
+-ncmoe, --n-cpu-moe N                   keep the Mixture of Experts (MoE) weights of the first N layers in the
+                                        CPU
+                                        (env: LLAMA_ARG_N_CPU_MOE)
+-ngl,  --gpu-layers, --n-gpu-layers N   max. number of layers to store in VRAM, either an exact number,
+                                        'auto', or 'all' (default: auto)
+                                        (env: LLAMA_ARG_N_GPU_LAYERS)
+-sm,   --split-mode {none,layer,row}    how to split the model across multiple GPUs, one of:
+                                        - none: use one GPU only
+                                        - layer (default): split layers and KV across GPUs
+                                        - row: split rows across GPUs
+                                        (env: LLAMA_ARG_SPLIT_MODE)
+-ts,   --tensor-split N0,N1,N2,...      fraction of the model to offload to each GPU, comma-separated list of
+                                        proportions, e.g. 3,1
+                                        (env: LLAMA_ARG_TENSOR_SPLIT)
+-mg,   --main-gpu INDEX                 the GPU to use for the model (with split-mode = none), or for
+                                        intermediate results and KV (with split-mode = row) (default: 0)
+                                        (env: LLAMA_ARG_MAIN_GPU)
+-fit,  --fit [on|off]                   whether to adjust unset arguments to fit in device memory ('on' or
+                                        'off', default: 'on')
+                                        (env: LLAMA_ARG_FIT)
+-fitt, --fit-target MiB0,MiB1,MiB2,...
+                                        target margin per device for --fit, comma-separated list of values,
+                                        single value is broadcast across all devices, default: 1024
+                                        (env: LLAMA_ARG_FIT_TARGET)
+-fitc, --fit-ctx N                      minimum ctx size that can be set by --fit option, default: 4096
+                                        (env: LLAMA_ARG_FIT_CTX)
+--check-tensors                         check model tensor data for invalid values (default: false)
+--override-kv KEY=TYPE:VALUE,...        advanced option to override model metadata by key. to specify multiple
+                                        overrides, either use comma-separated values.
+                                        types: int, float, bool, str. example: --override-kv
+                                        tokenizer.ggml.add_bos_token=bool:false,tokenizer.ggml.add_eos_token=bool:false
+--op-offload, --no-op-offload           whether to offload host tensor operations to device (default: true)
+--lora FNAME                            path to LoRA adapter (use comma-separated values to load multiple
+                                        adapters)
+--lora-scaled FNAME:SCALE,...           path to LoRA adapter with user defined scaling (format:
+                                        FNAME:SCALE,...)
+                                        note: use comma-separated values
+--control-vector FNAME                  add a control vector
+                                        note: use comma-separated values to add multiple control vectors
+--control-vector-scaled FNAME:SCALE,...
+                                        add a control vector with user defined scaling SCALE
+                                        note: use comma-separated values (format: FNAME:SCALE,...)
+--control-vector-layer-range START END
+                                        layer range to apply the control vector(s) to, start and end inclusive
+-m,    --model FNAME                    model path to load
+                                        (env: LLAMA_ARG_MODEL)
+-mu,   --model-url MODEL_URL            model download url (default: unused)
+                                        (env: LLAMA_ARG_MODEL_URL)
+-dr,   --docker-repo [<repo>/]<model>[:quant]
+                                        Docker Hub model repository. repo is optional, default to ai/. quant
+                                        is optional, default to :latest.
+                                        example: gemma3
+                                        (default: unused)
+                                        (env: LLAMA_ARG_DOCKER_REPO)
+-hf,   -hfr, --hf-repo <user>/<model>[:quant]
+                                        Hugging Face model repository; quant is optional, case-insensitive,
+                                        default to Q4_K_M, or falls back to the first file in the repo if
+                                        Q4_K_M doesn't exist.
+                                        mmproj is also downloaded automatically if available. to disable, add
+                                        --no-mmproj
+                                        example: ggml-org/GLM-4.7-Flash-GGUF:Q4_K_M
+                                        (default: unused)
+                                        (env: LLAMA_ARG_HF_REPO)
+-hfd,  -hfrd, --hf-repo-draft <user>/<model>[:quant]
+                                        Same as --hf-repo, but for the draft model (default: unused)
+                                        (env: LLAMA_ARG_HFD_REPO)
+-hff,  --hf-file FILE                   Hugging Face model file. If specified, it will override the quant in
+                                        --hf-repo (default: unused)
+                                        (env: LLAMA_ARG_HF_FILE)
+-hfv,  -hfrv, --hf-repo-v <user>/<model>[:quant]
+                                        Hugging Face model repository for the vocoder model (default: unused)
+                                        (env: LLAMA_ARG_HF_REPO_V)
+-hffv, --hf-file-v FILE                 Hugging Face model file for the vocoder model (default: unused)
+                                        (env: LLAMA_ARG_HF_FILE_V)
+-hft,  --hf-token TOKEN                 Hugging Face access token (default: value from HF_TOKEN environment
+                                        variable)
+                                        (env: HF_TOKEN)
+--log-disable                           Log disable
+--log-file FNAME                        Log to file
+                                        (env: LLAMA_LOG_FILE)
+--log-colors [on|off|auto]              Set colored logging ('on', 'off', or 'auto', default: 'auto')
+                                        'auto' enables colors when output is to a terminal
+                                        (env: LLAMA_LOG_COLORS)
+-v,    --verbose, --log-verbose         Set verbosity level to infinity (i.e. log all messages, useful for
+                                        debugging)
+--offline                               Offline mode: forces use of cache, prevents network access
+                                        (env: LLAMA_OFFLINE)
+-lv,   --verbosity, --log-verbosity N   Set the verbosity threshold. Messages with a higher verbosity will be
+                                        ignored. Values:
+                                         - 0: generic output
+                                         - 1: error
+                                         - 2: warning
+                                         - 3: info
+                                         - 4: debug
+                                        (default: 3)
+                                        
+                                        (env: LLAMA_LOG_VERBOSITY)
+--log-prefix                            Enable prefix in log messages
+                                        (env: LLAMA_LOG_PREFIX)
+--log-timestamps                        Enable timestamps in log messages
+                                        (env: LLAMA_LOG_TIMESTAMPS)
+-ctkd, --cache-type-k-draft TYPE        KV cache data type for K for the draft model
+                                        allowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1
+                                        (default: f16)
+                                        (env: LLAMA_ARG_CACHE_TYPE_K_DRAFT)
+-ctvd, --cache-type-v-draft TYPE        KV cache data type for V for the draft model
+                                        allowed values: f32, f16, bf16, q8_0, q4_0, q4_1, iq4_nl, q5_0, q5_1
+                                        (default: f16)
+                                        (env: LLAMA_ARG_CACHE_TYPE_V_DRAFT)
+
+
+---
+
+-- sampling params -----
+
+--samplers SAMPLERS samplers that will be used for generation in the order, separated by
+';'
+(default:
+penalties;dry;top_n_sigma;top_k;typ_p;top_p;min_p;xtc;temperature)
+-s, --seed SEED RNG seed (default: -1, use random seed for -1)
+--sampler-seq, --sampling-seq SEQUENCE
+simplified sequence for samplers that will be used (default:
+edskypmxt)
+--ignore-eos ignore end of stream token and continue generating (implies
+--logit-bias EOS-inf)
+--temp, --temperature N temperature (default: 0.80)
+--top-k N top-k sampling (default: 40, 0 = disabled)
+(env: LLAMA_ARG_TOP_K)
+--top-p N top-p sampling (default: 0.95, 1.0 = disabled)
+--min-p N min-p sampling (default: 0.05, 0.0 = disabled)
+--top-nsigma, --top-n-sigma N top-n-sigma sampling (default: -1.00, -1.0 = disabled)
+--xtc-probability N xtc probability (default: 0.00, 0.0 = disabled)
+--xtc-threshold N xtc threshold (default: 0.10, 1.0 = disabled)
+--typical, --typical-p N locally typical sampling, parameter p (default: 1.00, 1.0 = disabled)
+--repeat-last-n N last n tokens to consider for penalize (default: 64, 0 = disabled, -1
+= ctx_size)
+--repeat-penalty N penalize repeat sequence of tokens (default: 1.00, 1.0 = disabled)
+--presence-penalty N repeat alpha presence penalty (default: 0.00, 0.0 = disabled)
+--frequency-penalty N repeat alpha frequency penalty (default: 0.00, 0.0 = disabled)
+--dry-multiplier N set DRY sampling multiplier (default: 0.00, 0.0 = disabled)
+--dry-base N set DRY sampling base value (default: 1.75)
+--dry-allowed-length N set allowed length for DRY sampling (default: 2)
+--dry-penalty-last-n N set DRY penalty for the last n tokens (default: -1, 0 = disable, -1 =
+context size)
+--dry-sequence-breaker STRING add sequence breaker for DRY sampling, clearing out default breakers
+('\n', ':', '"', '\*') in the process; use "none" to not use any
+sequence breakers
+--adaptive-target N adaptive-p: select tokens near this probability (valid range 0.0 to
+1.0; negative = disabled) (default: -1.00)
+[(more info)](https://github.com/ggml-org/llama.cpp/pull/17927)
+--adaptive-decay N adaptive-p: decay rate for target adaptation over time. lower values
+are more reactive, higher values are more stable.
+(valid range 0.0 to 0.99) (default: 0.90)
+--dynatemp-range N dynamic temperature range (default: 0.00, 0.0 = disabled)
+--dynatemp-exp N dynamic temperature exponent (default: 1.00)
+--mirostat N use Mirostat sampling.
+Top K, Nucleus and Locally Typical samplers are ignored if used.
+(default: 0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0)
+--mirostat-lr N Mirostat learning rate, parameter eta (default: 0.10)
+--mirostat-ent N Mirostat target entropy, parameter tau (default: 5.00)
+-l, --logit-bias TOKEN_ID(+/-)BIAS modifies the likelihood of token appearing in the completion,
+i.e. `--logit-bias 15043+1` to increase likelihood of token ' Hello',
+or `--logit-bias 15043-1` to decrease likelihood of token ' Hello'
+--grammar GRAMMAR BNF-like grammar to constrain generations (see samples in grammars/
+dir)
+--grammar-file FNAME file to read grammar from
+-j, --json-schema SCHEMA JSON schema to constrain generations (https://json-schema.org/), e.g.
+`{}` for any JSON object
+For schemas w/ external $refs, use --grammar +
+example/json_schema_to_grammar.py instead
+-jf, --json-schema-file FILE File containing a JSON schema to constrain generations
+(https://json-schema.org/), e.g. `{}` for any JSON object
+For schemas w/ external $refs, use --grammar +
+example/json_schema_to_grammar.py instead
+-bs, --backend-sampling enable backend sampling (experimental) (default: disabled)
+(env: LLAMA_ARG_BACKEND_SAMPLING)
+
+----- example-specific params -----
+
+-lcs, --lookup-cache-static FNAME path to static lookup cache to use for lookup decoding (not updated by
+generation)
+-lcd, --lookup-cache-dynamic FNAME path to dynamic lookup cache to use for lookup decoding (updated by
+generation)
+-ctxcp, --ctx-checkpoints, --swa-checkpoints N
+max number of context checkpoints to create per slot (default: 32)[(more info)](https://github.com/ggml-org/llama.cpp/pull/15293)
+(env: LLAMA_ARG_CTX_CHECKPOINTS)
+-cpent, --checkpoint-every-n-tokens N create a checkpoint every n tokens during prefill (processing), -1 to
+disable (default: 8192)
+(env: LLAMA_ARG_CHECKPOINT_EVERY_NT)
+-cram, --cache-ram N set the maximum cache size in MiB (default: 8192, -1 - no limit, 0 -
+disable)[(more
+info)](https://github.com/ggml-org/llama.cpp/pull/16391)
+(env: LLAMA_ARG_CACHE_RAM)
+-kvu, --kv-unified, -no-kvu, --no-kv-unified
+use single unified KV buffer shared across all sequences (default:
+enabled if number of slots is auto)
+(env: LLAMA_ARG_KV_UNIFIED)
+--context-shift, --no-context-shift whether to use context shift on infinite text generation (default:
+disabled)
+(env: LLAMA_ARG_CONTEXT_SHIFT)
+-r, --reverse-prompt PROMPT halt generation at PROMPT, return control in interactive mode
+-sp, --special special tokens output enabled (default: false)
+--warmup, --no-warmup whether to perform warmup with an empty run (default: enabled)
+--spm-infill use Suffix/Prefix/Middle pattern for infill (instead of
+Prefix/Suffix/Middle) as some models prefer this. (default: disabled)
+--pooling {none,mean,cls,last,rank} pooling type for embeddings, use model default if unspecified
+(env: LLAMA_ARG_POOLING)
+-np, --parallel N number of server slots (default: -1, -1 = auto)
+(env: LLAMA_ARG_N_PARALLEL)
+-cb, --cont-batching, -nocb, --no-cont-batching
+whether to enable continuous batching (a.k.a dynamic batching)
+(default: enabled)
+(env: LLAMA_ARG_CONT_BATCHING)
+-mm, --mmproj FILE path to a multimodal projector file. see tools/mtmd/README.md
+note: if -hf is used, this argument can be omitted
+(env: LLAMA_ARG_MMPROJ)
+-mmu, --mmproj-url URL URL to a multimodal projector file. see tools/mtmd/README.md
+(env: LLAMA_ARG_MMPROJ_URL)
+--mmproj-auto, --no-mmproj, --no-mmproj-auto
+whether to use multimodal projector file (if available), useful when
+using -hf (default: enabled)
+(env: LLAMA_ARG_MMPROJ_AUTO)
+--mmproj-offload, --no-mmproj-offload whether to enable GPU offloading for multimodal projector (default:
+enabled)
+(env: LLAMA_ARG_MMPROJ_OFFLOAD)
+--image-min-tokens N minimum number of tokens each image can take, only used by vision
+models with dynamic resolution (default: read from model)
+(env: LLAMA_ARG_IMAGE_MIN_TOKENS)
+--image-max-tokens N maximum number of tokens each image can take, only used by vision
+models with dynamic resolution (default: read from model)
+(env: LLAMA_ARG_IMAGE_MAX_TOKENS)
+-otd, --override-tensor-draft <tensor name pattern>=<buffer type>,...
+override tensor buffer type for draft model
+-cmoed, --cpu-moe-draft keep all Mixture of Experts (MoE) weights in the CPU for the draft
+model
+(env: LLAMA_ARG_CPU_MOE_DRAFT)
+-ncmoed, --n-cpu-moe-draft N keep the Mixture of Experts (MoE) weights of the first N layers in the
+CPU for the draft model
+(env: LLAMA_ARG_N_CPU_MOE_DRAFT)
+-a, --alias STRING set model name aliases, comma-separated (to be used by API)
+(env: LLAMA_ARG_ALIAS)
+--tags STRING set model tags, comma-separated (informational, not used for routing)
+(env: LLAMA_ARG_TAGS)
+--host HOST ip address to listen, or bind to an UNIX socket if the address ends
+with .sock (default: 127.0.0.1)
+(env: LLAMA_ARG_HOST)
+--port PORT port to listen (default: 8080)
+(env: LLAMA_ARG_PORT)
+--path PATH path to serve static files from (default: )
+(env: LLAMA_ARG_STATIC_PATH)
+--api-prefix PREFIX prefix path the server serves from, without the trailing slash
+(default: )
+(env: LLAMA_ARG_API_PREFIX)
+--webui-config JSON JSON that provides default WebUI settings (overrides WebUI defaults)
+(env: LLAMA_ARG_WEBUI_CONFIG)
+--webui-config-file PATH JSON file that provides default WebUI settings (overrides WebUI
+defaults)
+(env: LLAMA_ARG_WEBUI_CONFIG_FILE)
+--webui-mcp-proxy, --no-webui-mcp-proxy
+experimental: whether to enable MCP CORS proxy - do not enable in
+untrusted environments (default: disabled)
+(env: LLAMA_ARG_WEBUI_MCP_PROXY)
+--tools TOOL1,TOOL2,... experimental: whether to enable built-in tools for AI agents - do not
+enable in untrusted environments (default: no tools)
+specify "all" to enable all tools
+available tools: read_file, file_glob_search, grep_search,
+exec_shell_command, write_file, edit_file, apply_diff
+(env: LLAMA_ARG_TOOLS)
+--webui, --no-webui whether to enable the Web UI (default: enabled)
+(env: LLAMA_ARG_WEBUI)
+--embedding, --embeddings restrict to only support embedding use case; use only with dedicated
+embedding models (default: disabled)
+(env: LLAMA_ARG_EMBEDDINGS)
+--rerank, --reranking enable reranking endpoint on server (default: disabled)
+(env: LLAMA_ARG_RERANKING)
+--api-key KEY API key to use for authentication, multiple keys can be provided as a
+comma-separated list (default: none)
+(env: LLAMA_API_KEY)
+--api-key-file FNAME path to file containing API keys (default: none)
+--ssl-key-file FNAME path to file a PEM-encoded SSL private key
+(env: LLAMA_ARG_SSL_KEY_FILE)
+--ssl-cert-file FNAME path to file a PEM-encoded SSL certificate
+(env: LLAMA_ARG_SSL_CERT_FILE)
+--chat-template-kwargs STRING sets additional params for the json template parser, must be a valid
+json object string, e.g. '{"key1":"value1","key2":"value2"}'
+(env: LLAMA_CHAT_TEMPLATE_KWARGS)
+-to, --timeout N server read/write timeout in seconds (default: 600)
+(env: LLAMA_ARG_TIMEOUT)
+--threads-http N number of threads used to process HTTP requests (default: -1)
+(env: LLAMA_ARG_THREADS_HTTP)
+--cache-prompt, --no-cache-prompt whether to enable prompt caching (default: enabled)
+(env: LLAMA_ARG_CACHE_PROMPT)
+--cache-reuse N min chunk size to attempt reusing from the cache via KV shifting,
+requires prompt caching to be enabled (default: 0)
+[(card)](https://ggml.ai/f0.png)
+(env: LLAMA_ARG_CACHE_REUSE)
+--metrics enable prometheus compatible metrics endpoint (default: disabled)
+(env: LLAMA_ARG_ENDPOINT_METRICS)
+--props enable changing global properties via POST /props (default: disabled)
+(env: LLAMA_ARG_ENDPOINT_PROPS)
+--slots, --no-slots expose slots monitoring endpoint (default: enabled)
+(env: LLAMA_ARG_ENDPOINT_SLOTS)
+--slot-save-path PATH path to save slot kv cache (default: disabled)
+--media-path PATH directory for loading local media files; files can be accessed via
+file:// URLs using relative paths (default: disabled)
+--models-dir PATH directory containing models for the router server (default: disabled)
+(env: LLAMA_ARG_MODELS_DIR)
+--models-preset PATH path to INI file containing model presets for the router server
+(default: disabled)
+(env: LLAMA_ARG_MODELS_PRESET)
+--models-max N for router server, maximum number of models to load simultaneously
+(default: 4, 0 = unlimited)
+(env: LLAMA_ARG_MODELS_MAX)
+--models-autoload, --no-models-autoload
+for router server, whether to automatically load models (default:
+enabled)
+(env: LLAMA_ARG_MODELS_AUTOLOAD)
+--jinja, --no-jinja whether to use jinja template engine for chat (default: enabled)
+(env: LLAMA_ARG_JINJA)
+--reasoning-format FORMAT controls whether thought tags are allowed and/or extracted from the
+response, and in which format they're returned; one of: - none: leaves thoughts unparsed in `message.content` - deepseek: puts thoughts in `message.reasoning_content` - deepseek-legacy: keeps `<think>` tags in `message.content` while
+also populating `message.reasoning_content`
+(default: auto)
+(env: LLAMA_ARG_THINK)
+-rea, --reasoning [on|off|auto] Use reasoning/thinking in the chat ('on', 'off', or 'auto', default:
+'auto' (detect from template))
+(env: LLAMA_ARG_REASONING)
+--reasoning-budget N token budget for thinking: -1 for unrestricted, 0 for immediate end,
+N>0 for token budget (default: -1)
+(env: LLAMA_ARG_THINK_BUDGET)
+--reasoning-budget-message MESSAGE message injected before the end-of-thinking tag when reasoning budget
+is exhausted (default: none)
+(env: LLAMA_ARG_THINK_BUDGET_MESSAGE)
+--chat-template JINJA_TEMPLATE set custom jinja chat template (default: template taken from model's
+metadata)
+if suffix/prefix are specified, template will be disabled
+only commonly used templates are accepted (unless --jinja is set
+before this flag):
+list of built-in templates:
+bailing, bailing-think, bailing2, chatglm3, chatglm4, chatml,
+command-r, deepseek, deepseek-ocr, deepseek2, deepseek3, exaone-moe,
+exaone3, exaone4, falcon3, gemma, gigachat, glmedge, gpt-oss, granite,
+grok-2, hunyuan-dense, hunyuan-moe, kimi-k2, llama2, llama2-sys,
+llama2-sys-bos, llama2-sys-strip, llama3, llama4, megrez, minicpm,
+mistral-v1, mistral-v3, mistral-v3-tekken, mistral-v7,
+mistral-v7-tekken, monarch, openchat, orion, pangu-embedded, phi3,
+phi4, rwkv-world, seed_oss, smolvlm, solar-open, vicuna, vicuna-orca,
+yandex, zephyr
+(env: LLAMA_ARG_CHAT_TEMPLATE)
+--chat-template-file JINJA_TEMPLATE_FILE
+set custom jinja chat template file (default: template taken from
+model's metadata)
+if suffix/prefix are specified, template will be disabled
+only commonly used templates are accepted (unless --jinja is set
+before this flag):
+list of built-in templates:
+bailing, bailing-think, bailing2, chatglm3, chatglm4, chatml,
+command-r, deepseek, deepseek-ocr, deepseek2, deepseek3, exaone-moe,
+exaone3, exaone4, falcon3, gemma, gigachat, glmedge, gpt-oss, granite,
+grok-2, hunyuan-dense, hunyuan-moe, kimi-k2, llama2, llama2-sys,
+llama2-sys-bos, llama2-sys-strip, llama3, llama4, megrez, minicpm,
+mistral-v1, mistral-v3, mistral-v3-tekken, mistral-v7,
+mistral-v7-tekken, monarch, openchat, orion, pangu-embedded, phi3,
+phi4, rwkv-world, seed_oss, smolvlm, solar-open, vicuna, vicuna-orca,
+yandex, zephyr
+(env: LLAMA_ARG_CHAT_TEMPLATE_FILE)
+--skip-chat-parsing, --no-skip-chat-parsing
+force a pure content parser, even if a Jinja template is specified;
+model will output everything in the content section, including any
+reasoning and/or tool calls (default: disabled)
+(env: LLAMA_ARG_SKIP_CHAT_PARSING)
+--prefill-assistant, --no-prefill-assistant
+whether to prefill the assistant's response if the last message is an
+assistant message (default: prefill enabled)
+when this flag is set, if the last message is an assistant message
+then it will be treated as a full message and not prefilled
+
+                                        (env: LLAMA_ARG_PREFILL_ASSISTANT)
+
+-sps, --slot-prompt-similarity SIMILARITY
+how much the prompt of a request must match the prompt of a slot in
+order to use that slot (default: 0.10, 0.0 = disabled)
+--lora-init-without-apply load LoRA adapters without applying them (apply later via POST
+/lora-adapters) (default: disabled)
+--sleep-idle-seconds SECONDS number of seconds of idleness after which the server will sleep
+(default: -1; -1 = disabled)
+-td, --threads-draft N number of threads to use during generation (default: same as
+--threads)
+-tbd, --threads-batch-draft N number of threads to use during batch and prompt processing (default:
+same as --threads-draft)
+--draft, --draft-n, --draft-max N number of tokens to draft for speculative decoding (default: 16)
+(env: LLAMA_ARG_DRAFT_MAX)
+--draft-min, --draft-n-min N minimum number of draft tokens to use for speculative decoding
+(default: 0)
+(env: LLAMA_ARG_DRAFT_MIN)
+--draft-p-min P minimum speculative decoding probability (greedy) (default: 0.75)
+(env: LLAMA_ARG_DRAFT_P_MIN)
+-cd, --ctx-size-draft N size of the prompt context for the draft model (default: 0, 0 = loaded
+from model)
+(env: LLAMA_ARG_CTX_SIZE_DRAFT)
+-devd, --device-draft <dev1,dev2,..> comma-separated list of devices to use for offloading the draft model
+(none = don't offload)
+use --list-devices to see a list of available devices
+-ngld, --gpu-layers-draft, --n-gpu-layers-draft N
+max. number of draft model layers to store in VRAM, either an exact
+number, 'auto', or 'all' (default: auto)
+(env: LLAMA_ARG_N_GPU_LAYERS_DRAFT)
+-md, --model-draft FNAME draft model for speculative decoding (default: unused)
+(env: LLAMA_ARG_MODEL_DRAFT)
+--spec-replace TARGET DRAFT translate the string in TARGET into DRAFT if the draft model and main
+model are not compatible
+--spec-type [none|ngram-cache|ngram-simple|ngram-map-k|ngram-map-k4v|ngram-mod]
+type of speculative decoding to use when no draft model is provided
+(default: none)
+
+                                        (env: LLAMA_ARG_SPEC_TYPE)
+
+--spec-ngram-size-n N ngram size N for ngram-simple/ngram-map speculative decoding, length
+of lookup n-gram (default: 12)
+--spec-ngram-size-m N ngram size M for ngram-simple/ngram-map speculative decoding, length
+of draft m-gram (default: 48)
+--spec-ngram-min-hits N minimum hits for ngram-map speculative decoding (default: 1)
+-mv, --model-vocoder FNAME vocoder model for audio generation (default: unused)
+--tts-use-guide-tokens Use guide tokens to improve TTS word recall
+--embd-gemma-default use default EmbeddingGemma model (note: can download weights from the
+internet)
+--fim-qwen-1.5b-default use default Qwen 2.5 Coder 1.5B (note: can download weights from the
+internet)
+--fim-qwen-3b-default use default Qwen 2.5 Coder 3B (note: can download weights from the
+internet)
+--fim-qwen-7b-default use default Qwen 2.5 Coder 7B (note: can download weights from the
+internet)
+--fim-qwen-7b-spec use Qwen 2.5 Coder 7B + 0.5B draft for speculative decoding (note: can
+download weights from the internet)
+--fim-qwen-14b-spec use Qwen 2.5 Coder 14B + 0.5B draft for speculative decoding (note:
+can download weights from the internet)
+--fim-qwen-30b-default use default Qwen 3 Coder 30B A3B Instruct (note: can download weights
+from the internet)
+--gpt-oss-20b-default use gpt-oss-20b (note: can download weights from the internet)
+--gpt-oss-120b-default use gpt-oss-120b (note: can download weights from the internet)
+--vision-gemma-4b-default use Gemma 3 4B QAT (note: can download weights from the internet)
+--vision-gemma-12b-default use Gemma 3 12B QAT (note: can download weights from the internet)
