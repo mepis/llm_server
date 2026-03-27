@@ -9,7 +9,6 @@ cudaBatchSize=512
 # update nvcc path if needed
 # which nvcc
 export CUDACXX=/usr/local/cuda/bin/nvcc
-
 export GGML_CCACHE=OFF
 
 cd $LLM_SERVER_HOME
