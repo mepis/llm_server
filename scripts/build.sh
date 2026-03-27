@@ -8,7 +8,7 @@ cudaBatchSize=512
 
 # update nvcc path if needed
 # which nvcc
-# export CUDACXX=/usr/bin/nvcc
+export CUDACXX=/usr/local/cuda/bin/nvcc
 
 export GGML_CCACHE=OFF
 
