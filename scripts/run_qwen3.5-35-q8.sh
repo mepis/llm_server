@@ -30,4 +30,4 @@ export CUDA_SCALE_LAUNCH_QUEUES=16x
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 
-./llama-server -m unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0 --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK -ctk q8_0
+./llama-server -hf unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0 --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK -ctk q8_0
