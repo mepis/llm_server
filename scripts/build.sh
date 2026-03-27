@@ -2,7 +2,7 @@
 
 LLM_SERVER_HOME=~/.llm_server
 
-cudav="86;89"
+cudav="86;120"
 cudaBatchSize=512
 
 
