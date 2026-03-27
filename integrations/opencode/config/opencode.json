@@ -20,7 +20,7 @@
     "webfetch": "allow",
     "todoread": "allow",
     "todowrite": "allow",
-    "skill": "allow",
+    "skill": { "*": "allow" },
     "edit": "allow",
     "lsp": "allow",
     "list": "allow",

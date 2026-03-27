@@ -13,8 +13,6 @@ if [[ $REPLY == "q" ]]; then
     exit 0
 fi
 
-
-
 # Install
 curl -fsSL https://opencode.ai/install | bash
 
