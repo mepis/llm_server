@@ -7,7 +7,11 @@ mkdir ~/.config/opencode/tools
 mkdir ~/.config/opencode/skills
 
 cp config/opencode.json ~/.config/opencode/opencode.json
-# cp -r skills/* ~/.config/opencode/skills
+cp -r skills/* ~/.config/opencode/skills
 cp tools/* ~/.config/opencode/tools/
+
+
+cd ~/.config/opencode/tools/
+npm install
 
 systemctl --user restart opencode-web.service 

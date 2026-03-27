@@ -29,6 +29,9 @@ cp skills ~/.config/opencode/
 cp services/opencode-web.service ~/.config/systemd/user/opencode-web.service
 cp tools/* ~/.config/opencode/tools/
 
+cd ~/.config/opencode/tools/
+npm install
+
 loginctl enable-linger $USER
 systemctl --user daemon-reload
 systemctl --user enable opencode-web.service
