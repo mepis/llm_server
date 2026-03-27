@@ -50,32 +50,11 @@
         "baseURL": "http://100.115.205.84:11434/v1"
       },
       "models": {
-        "unsloth/Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL": {
-          "name": "unsloth/Nemotron-3-Nano-30B-A3B-GGUF_Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL",
-          "limit": {
-            "context": 128000,
-            "output": 64000
-          }
-        },
-        "Qwen3.5-35B-A3B-UD-Q6_K_S.gguf": {
-          "name": "Qwen3.5-35B-A3B-UD-Q6_K_S.gguf",
-          "limit": {
-            "context": 128000,
-            "output": 64000
-          }
-        },
-        "unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0": {
-          "name": "unsloth/Qwen3.5-35B-A3B-GGUF:Q8_0",
+        "Qwen3.5-35B-A3B-Q8_0": {
+          "name": "Qwen3.5-35B-A3B-Q8_0",
           "limit": {
             "context": 262144,
-            "output": 262144
-          }
-        },
-        "Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf": {
-          "name": "Nemotron-Cascade-2-30B-A3B.i1-Q6_K.gguf",
-          "limit": {
-            "context": 262144,
-            "output": 262144
+            "output": 128000
           }
         }
       }
