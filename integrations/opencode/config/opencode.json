@@ -6,6 +6,7 @@
     "auto": true,
     "prune": true
   },
+  "plugin": [],
   "tools": {
     "search_the_web": true
   },

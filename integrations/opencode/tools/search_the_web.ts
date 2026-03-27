@@ -1,7 +1,7 @@
 import { tool } from "@opencode-ai/plugin";
 
 export default tool({
-  description: "Search the web",
+  description: "Use this tool to search the web or find information.",
   args: {
     query: tool.schema.string().describe("Search phrase used for web search"),
   },

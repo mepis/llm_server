@@ -1,18 +1,16 @@
 #!/bin/bash
 
-##################
-# Edit the service file before installing!
-##################
-
 echo ##################
-echo # Edit the service file before installing! It must be configured for the local system
+echo Edit the service file before installing! It must be configured for the local system
 echo ##################
 
-read -n 1 -s -r -p "Press 'q' to quit, any other key to continue..."
+read -n 1 -s -r -p "Press 'q' to quit, any other key to continue...
+"
 if [[ $REPLY == "q" ]]; then
+    echo  
     exit 0
 fi
-
+echo  
 cd ..
 mkdir -p ~/.config/systemd/user
 cp services/llama.service ~/.config/systemd/user/llama.service
