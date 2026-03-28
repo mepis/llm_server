@@ -25,7 +25,7 @@ wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCT
 echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | sudo tee /etc/apt/sources.list.d/oneAPI.list
 
 sudo apt update
-sudo apt-get install -y libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo libze-dev intel-ocloc libze-intel-gpu-raytracing intel-deep-learning-essentials intel-oneapi-base-toolkit
+sudo apt-get install -y libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo libze-dev intel-ocloc libze-intel-gpu-raytracing intel-deep-learning-essentials intel-oneapi-base-toolkit ninja-build
 
 # Nvidia Install
 cd /tmp
