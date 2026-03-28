@@ -55,6 +55,20 @@
             "context": 131072,
             "output": 131072
           }
+        },
+        "nvidia_Nemotron-Cascade-2-30B-A3B-Q6_K_L": {
+          "name": "nvidia_Nemotron-Cascade-2-30B-A3B-Q6_K_L",
+          "limit": {
+            "context": 131072,
+            "output": 131072
+          }
+        },
+        "Nemotron-3-Nano-30B-A3B-IQ4_NL": {
+          "name": "Nemotron-3-Nano-30B-A3B-IQ4_NL",
+          "limit": {
+            "context": 131072,
+            "output": 131072
+          }
         }
       }
     }
