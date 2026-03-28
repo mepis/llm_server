@@ -42,4 +42,4 @@ export GGML_CUDA_GRAPHS=on
 export GGML_NATIVE=on
 
 cmake -B build  
-cmake --build build --config Release -j nproc
+cmake --build build --config Release -j "${nproc}"
