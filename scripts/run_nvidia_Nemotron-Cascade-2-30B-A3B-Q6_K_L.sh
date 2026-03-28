@@ -32,4 +32,4 @@ export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=/usr/local/cuda/bin/nvcc
 
-./llama-server -m /home/jon/.llm_server/models/Qwen3.5-35B-A3B-Q8_0.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK -ctk q8_0 --threads $threads --prio 3
+./llama-server -m /home/jon/.llm_server/models/nvidia_Nemotron-Cascade-2-30B-A3B-Q6_K_L.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK -ctk q8_0 --threads $threads --prio 3
