@@ -23,7 +23,7 @@ cd llama.cpp
 git pull
 rm -r build
 cmake -B build -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA=ON -DGGML_CUDA_PEER_MAX_BATCH_SIZE=$cudaBatchSize -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS 
-cmake --build build --config Release -j 10 
+cmake --build build --config Release -j$(nproc)
 
 
 
