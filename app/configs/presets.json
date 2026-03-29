@@ -1,0 +1,48 @@
+{
+  "build": [
+    {
+      "id": "cuda-performance",
+      "name": "CUDA Performance Build",
+      "config": {
+        "buildSharedLibs": false,
+        "cmakeBuildType": "Release",
+        "ggmlCcache": true,
+        "ggmlLto": true,
+        "ggmlCuda": true,
+        "ggmlCudaPeerMaxBatchSize": 256,
+        "ggmlCudaFa": true,
+        "ggmlCudaGraphs": true
+      }
+    }
+  ],
+  "run": [
+    {
+      "id": "single-gpu-general",
+      "name": "Single GPU General",
+      "config": {
+        "modelPath": "./model.gguf",
+        "contextSize": 4096,
+        "gpuLayers": 99,
+        "threads": 8,
+        "temperature": 0.7,
+        "topP": 0.95,
+        "contBatching": true
+      }
+    },
+    {
+      "id": "multi-gpu-large-context",
+      "name": "Multi-GPU Large Context",
+      "config": {
+        "modelPath": "./model.gguf",
+        "contextSize": 131072,
+        "splitMode": "layer",
+        "tensorSplit": "16,12,12",
+        "gpuLayers": "all",
+        "threads": 16,
+        "temperature": 0.6,
+        "topP": 0.95,
+        "contBatching": true
+      }
+    }
+  ]
+}

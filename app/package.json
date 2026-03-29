@@ -1,0 +1,29 @@
+{
+  "name": "llama-manager",
+  "version": "1.0.0",
+  "description": "GUI Manager for llama.cpp build and runtime configurations",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "node server.js",
+    "dev:client": "vite",
+    "build": "vite build",
+    "preview": "node server.js",
+    "lint": "eslint src --ext .js,.vue"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "child_process": "^1.0.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "vite": "^5.0.0",
+    "vue": "^3.3.4",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.54.0",
+    "eslint-plugin-vue": "^9.18.1"
+  }
+}

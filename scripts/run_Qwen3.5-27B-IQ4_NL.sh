@@ -10,7 +10,7 @@ host=100.115.205.84
 mainGpu=0
 tensorSplit=16,12,12
 splitMode=layer
-threads=16
+threads=8
 
 ###############
 # Model Configs
@@ -19,8 +19,8 @@ threads=16
 context=131072
 temp=0.6
 topP=0.95
-minP=0.01
-topK=0.95
+minP=0.00
+topK=20
 
 modelDir=/home/jon/.llm_server/models/
 
