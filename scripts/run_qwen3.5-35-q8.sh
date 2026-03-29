@@ -27,6 +27,8 @@ modelDir=/home/jon/.llm_server/models/
 cd "${LLM_SERVER_HOME}"
 cd llama.cpp/build/bin/
 
+ls -la
+
 # export CUDA_SCALE_LAUNCH_QUEUES=8x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
