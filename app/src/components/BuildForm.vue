@@ -10,14 +10,10 @@
         v-model="form.cmakeBuildType"
         label="CMake Build Type"
         :options="cmakeBuildTypes"
-        tooltip={
-          {
-            title: 'CMAKE_BUILD_TYPE',
-            description: 'Specifies the build type for CMake',
-            recommended: 'Release for production, Debug for development',
-            example: '-DCMAKE_BUILD_TYPE=Release'
-          }
-        }
+        tooltip-title="CMAKE_BUILD_TYPE"
+        tooltip-description="Specifies the build type for CMake"
+        tooltip-recommended="Release for production, Debug for development"
+        tooltip-example="-DCMAKE_BUILD_TYPE=Release"
       />
       
       <ToggleSwitch v-model="form.ggmlCcache" name="Enable ccache" description="Use ccache for faster incremental builds" />
@@ -44,14 +40,10 @@
         v-model="form.ggmlBlastVendor"
         label="BLAS Vendor"
         :options="blasVendors"
-        tooltip={
-          {
-            title: 'GGML_BLAS_VENDOR',
-            description: 'Select the BLAS library vendor',
-            recommended: 'OpenBLAS for general use, MKL for Intel CPUs',
-            example: '-DGGML_BLAS_VENDOR=OpenBLAS'
-          }
-        }
+        tooltip-title="GGML_BLAS_VENDOR"
+        tooltip-description="Select the BLAS library vendor"
+        tooltip-recommended="OpenBLAS for general use, MKL for Intel CPUs"
+        tooltip-example="-DGGML_BLAS_VENDOR=OpenBLAS"
       />
       
       <ToggleSwitch v-model="form.ggmlCann" name="CANN Backend" description="Huawei Ascend NPU acceleration" />
@@ -69,14 +61,10 @@
         :min="0"
         :max="1024"
         hint="Multi-GPU peer access batch size"
-        tooltip={
-          {
-            title: 'GGML_CUDA_PEER_MAX_BATCH_SIZE',
-            description: 'Controls batch size for multi-GPU peer access',
-            recommended: '256 for 2 GPUs, 512 for 3+ GPUs',
-            example: '-DGGML_CUDA_PEER_MAX_BATCH_SIZE=256'
-          }
-        }
+        tooltip-title="GGML_CUDA_PEER_MAX_BATCH_SIZE"
+        tooltip-description="Controls batch size for multi-GPU peer access"
+        tooltip-recommended="256 for 2 GPUs, 512 for 3+ GPUs"
+        tooltip-example="-DGGML_CUDA_PEER_MAX_BATCH_SIZE=256"
       />
       
       <ToggleSwitch v-if="form.ggmlCuda" v-model="form.ggmlCudaFa" name="Flash Attention" description="Enable Flash Attention for faster attention" />
@@ -91,14 +79,10 @@
         label="NVCC Path"
         placeholder="/usr/local/cuda/bin/nvcc"
         hint="Path to NVIDIA CUDA compiler"
-        tooltip={
-          {
-            title: 'CUDACXX',
-            description: 'Path to the nvcc compiler',
-            recommended: '/usr/local/cuda/bin/nvcc',
-            example: 'export CUDACXX=/usr/local/cuda/bin/nvcc'
-          }
-        }
+        tooltip-title="CUDACXX"
+        tooltip-description="Path to the nvcc compiler"
+        tooltip-recommended="/usr/local/cuda/bin/nvcc"
+        tooltip-example="export CUDACXX=/usr/local/cuda/bin/nvcc"
       />
       
       <ToggleSwitch v-model="form.envVars.GGML_CUDA_ENABLE_UNIFIED_MEMORY" name="Unified Memory" description="Enable unified memory for CUDA" />
@@ -108,14 +92,10 @@
         label="OpenMP Threads"
         :min="1"
         hint="Number of CPU threads for OpenMP"
-        tooltip={
-          {
-            title: 'OMP_NUM_THREADS',
-            description: 'Controls number of CPU threads',
-            recommended: 'Number of physical cores',
-            example: 'export OMP_NUM_THREADS=8'
-          }
-        }
+        tooltip-title="OMP_NUM_THREADS"
+        tooltip-description="Controls number of CPU threads"
+        tooltip-recommended="Number of physical cores"
+        tooltip-example="export OMP_NUM_THREADS=8"
       />
       
       <NumberInput

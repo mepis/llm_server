@@ -3,11 +3,11 @@
     <label class="form-label">
       {{ label }}
       <Tooltip
-        v-if="tooltip"
-        :title="tooltip.title"
-        :description="tooltip.description"
-        :recommended="tooltip.recommended"
-        :example="tooltip.example"
+        v-if="tooltipTitle"
+        :title="tooltipTitle"
+        :description="tooltipDescription"
+        :recommended="tooltipRecommended"
+        :example="tooltipExample"
       />
     </label>
     <input
@@ -30,7 +30,10 @@ import Tooltip from '../Tooltip.vue'
 defineProps({
   modelValue: [Number, String],
   label: String,
-  tooltip: Object,
+  tooltipTitle: String,
+  tooltipDescription: String,
+  tooltipRecommended: String,
+  tooltipExample: String,
   min: [Number, String],
   max: [Number, String],
   step: [Number, String],
