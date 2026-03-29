@@ -538,6 +538,89 @@ app.post('/api/hardware/detect', async (req, res) => {
   })
 })
 
+app.get('/api/hardware/stats', async (req, res) => {
+  try {
+    const statContent = await fs.readFile('/proc/stat', 'utf-8')
+    const meminfoContent = await fs.readFile('/proc/meminfo', 'utf-8')
+    
+    const parseMeminfo = (key) => {
+      const match = meminfoContent.match(new RegExp(`${key}\\s+:(\\d+)\\s+kB`))
+      return match ? parseInt(match[1]) : 0
+    }
+    
+    const memTotal = parseMeminfo('MemTotal')
+    const memAvailable = parseMeminfo('MemAvailable')
+    const memUsed = memTotal - memAvailable
+    const swapTotal = parseMeminfo('SwapTotal')
+    const swapFree = parseMeminfo('SwapFree')
+    const swapUsed = swapTotal - swapFree
+    
+    const parseCpuLines = (lines) => {
+      const cpus = []
+      for (const line of lines) {
+        if (line.startsWith('cpu') && !line.startsWith('cpu ')) {
+          const parts = line.split(/\s+/)
+          cpus.push({
+            id: parts[0].replace('cpu', ''),
+            user: parseInt(parts[1]),
+            nice: parseInt(parts[2]),
+            system: parseInt(parts[3]),
+            idle: parseInt(parts[4])
+          })
+        }
+      }
+      return cpus
+    }
+    
+    const cpuLines = statContent.filter(line => line.startsWith('cpu'))
+    const cpuStats1 = parseCpuLines(cpuLines)
+    
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    const statContent2 = await fs.readFile('/proc/stat', 'utf-8')
+    const cpuLines2 = statContent2.filter(line => line.startsWith('cpu'))
+    const cpuStats2 = parseCpuLines(cpuLines2)
+    
+    const cpuUsage = cpuStats2.map((cpu, index) => {
+      const prev = cpuStats1[index]
+      const total1 = prev.user + prev.nice + prev.system + prev.idle
+      const total2 = cpu.user + cpu.nice + cpu.system + cpu.idle
+      const totalDiff = total2 - total1
+      const idleDiff = cpu.idle - prev.idle
+      const usage = totalDiff > 0 ? ((totalDiff - idleDiff) / totalDiff * 100) : 0
+      return {
+        id: cpu.id,
+        usage: Math.round(usage * 100) / 100
+      }
+    })
+    
+    const avgCpuUsage = cpuUsage.length > 0 
+      ? Math.round((cpuUsage.reduce((sum, cpu) => sum + cpu.usage, 0) / cpuUsage.length) * 100) / 100
+      : 0
+    
+    res.json({
+      cpu: {
+        cores: cpuUsage,
+        total: avgCpuUsage,
+        count: cpuUsage.length
+      },
+      memory: {
+        used: Math.round(memUsed / 1024 / 1024 * 100) / 100,
+        total: Math.round(memTotal / 1024 / 1024 * 100) / 100,
+        percent: memTotal > 0 ? Math.round((memUsed / memTotal) * 10000) / 100 : 0
+      },
+      swap: {
+        used: Math.round(swapUsed / 1024 / 1024 * 100) / 100,
+        total: Math.round(swapTotal / 1024 / 1024 * 100) / 100,
+        percent: swapTotal > 0 ? Math.round((swapUsed / swapTotal) * 10000) / 100 : 0
+      },
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 app.use((req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
