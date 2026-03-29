@@ -544,7 +544,7 @@ app.get('/api/hardware/stats', async (req, res) => {
     const meminfoContent = await fs.readFile('/proc/meminfo', 'utf-8')
     
     const parseMeminfo = (key) => {
-      const match = meminfoContent.match(new RegExp(`${key}\\s+:(\\d+)\\s+kB`))
+      const match = meminfoContent.match(new RegExp(`${key}:\\s+(\\d+)\\s+kB`))
       return match ? parseInt(match[1]) : 0
     }
     
@@ -572,13 +572,13 @@ app.get('/api/hardware/stats', async (req, res) => {
       return cpus
     }
     
-    const cpuLines = statContent.filter(line => line.startsWith('cpu'))
+    const cpuLines = statContent.split('\n').filter(line => line.startsWith('cpu'))
     const cpuStats1 = parseCpuLines(cpuLines)
     
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     const statContent2 = await fs.readFile('/proc/stat', 'utf-8')
-    const cpuLines2 = statContent2.filter(line => line.startsWith('cpu'))
+    const cpuLines2 = statContent2.split('\n').filter(line => line.startsWith('cpu'))
     const cpuStats2 = parseCpuLines(cpuLines2)
     
     const cpuUsage = cpuStats2.map((cpu, index) => {

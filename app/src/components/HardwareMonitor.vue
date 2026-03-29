@@ -257,10 +257,13 @@ onMounted(() => {
   })
 })
 
-onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval)
-  window.removeEventListener('resize', initCharts)
-})
+ onUnmounted(() => {
+    if (pollInterval) clearInterval(pollInterval)
+    window.removeEventListener('resize', () => {
+      initCharts()
+      updateCharts()
+    })
+  })
 </script>
 
 <style scoped>

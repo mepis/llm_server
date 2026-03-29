@@ -19,6 +19,11 @@
               Script Library
             </a>
           </li>
+          <li class="nav-item">
+            <a :class="{ active: currentView === 'hardware' }" class="nav-link" @click="currentView = 'hardware'">
+              Hardware Monitor
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>
@@ -27,21 +32,26 @@
       <div class="header">
         <h1 v-if="currentView === 'build'">Build Script Generator</h1>
         <h1 v-else-if="currentView === 'run'">Run Script Generator</h1>
-        <h1 v-else>Script Library</h1>
+        <h1 v-else-if="currentView === 'library'">Script Library</h1>
+        <h1 v-else>Hardware Monitor</h1>
         <p v-if="currentView === 'build'">
           Create build configurations for llama.cpp compilation
         </p>
         <p v-else-if="currentView === 'run'">
           Create runtime configurations for llama-server execution
         </p>
-        <p v-else>
+        <p v-else-if="currentView === 'library'">
           Browse and manage your saved scripts
+        </p>
+        <p v-else>
+          Real-time CPU, memory, and swap usage monitoring
         </p>
       </div>
       
       <BuildForm v-if="currentView === 'build'" @preview="showPreview" />
-      <RunForm v-else-if="currentView === 'run'" @preview="showPreview" />
-      <ScriptLibrary v-else @run-script="executeScript" />
+       <RunForm v-else-if="currentView === 'run'" @preview="showPreview" />
+       <ScriptLibrary v-else-if="currentView === 'library'" @run-script="executeScript" />
+       <HardwareMonitor v-else />
       
       <ScriptPreview
         v-if="showPreviewModal"
@@ -61,6 +71,7 @@ import BuildForm from './components/BuildForm.vue'
 import RunForm from './components/RunForm.vue'
 import ScriptLibrary from './components/ScriptLibrary.vue'
 import ScriptPreview from './components/ScriptPreview.vue'
+import HardwareMonitor from './components/HardwareMonitor.vue'
 
 const currentView = ref('build')
 const showPreviewModal = ref(false)
