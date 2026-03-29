@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LLM_SERVER_HOME=~/.llm_server
+LLM_SERVER_HOME=/home/jon/.llm_server
 
 cudav="86;120"
 
