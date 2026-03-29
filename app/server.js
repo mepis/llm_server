@@ -270,11 +270,12 @@ app.get('/api/health', (req, res) => {
 })
 
 app.get('/api/system-info', async (req, res) => {
+  const os = await import('node:os')
   res.json({
     nodeVersion: process.version,
     platform: process.platform,
     arch: process.arch,
-    cpus: require('os').cpus().length
+    cpus: os.cpus().length
   })
 })
 

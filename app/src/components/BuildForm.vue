@@ -20,10 +20,14 @@
       <ToggleSwitch v-model="form.ggmlLto" name="Enable LTO" description="Link-time optimization for better performance" />
       <ToggleSwitch v-model="form.ggmlNative" name="Optimize for native CPU" description="Enable -march=native and -mtune=native flags" />
       
-      <NumberInput
+    <NumberInput
         v-model="form.cmakeCudaArchitectures"
         label="CUDA Architectures"
         hint="Comma-separated list (e.g., 70, 75, 86)"
+        tooltip-title="CUDA Architectures"
+        tooltip-description="Comma-separated list of CUDA architectures to support"
+        tooltip-recommended="70, 75, 86 for modern GPUs"
+        tooltip-example="-DCMAKE_CUDA_ARCHITECTURES=70,75,86"
       />
     </CategorySection>
     

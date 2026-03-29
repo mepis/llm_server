@@ -9,28 +9,20 @@
         label="Model Path"
         placeholder="./models/model.gguf"
         hint="Path to the GGUF model file"
-        tooltip={
-          {
-            title: '-m, --model',
-            description: 'Path to the model file',
-            recommended: 'Use absolute path for reliability',
-            example: '-m ./models/qwen-7b.gguf'
-          }
-        }
+        tooltip-title="-m, --model"
+        tooltip-description="Path to the model file"
+        tooltip-recommended="Use absolute path for reliability"
+        tooltip-example="-m ./models/qwen-7b.gguf"
       />
       
       <NumberInput
         v-model="form.gpuLayers"
         label="GPU Layers"
         hint="Number of layers to offload to GPU (use 'all' for all)"
-        tooltip={
-          {
-            title: '-ngl, --gpu-layers',
-            description: 'Number of model layers to offload to GPU',
-            recommended: 'Use all for single GPU, or calculate based on VRAM',
-            example: '-ngl 99'
-          }
-        }
+        tooltip-title="-ngl, --gpu-layers"
+        tooltip-description="Number of model layers to offload to GPU"
+        tooltip-recommended="Use all for single GPU, or calculate based on VRAM"
+        tooltip-example="-ngl 99"
       />
       
       <ToggleSwitch v-model="form.mlock" name="Force Memory Lock" description="Force model into RAM" />
@@ -41,14 +33,10 @@
         v-model="form.numa"
         label="NUMA Mode"
         :options="numaModes"
-        tooltip={
-          {
-            title: '--numa',
-            description: 'NUMA optimization mode',
-            recommended: 'spread for multi-socket systems',
-            example: '--numa spread'
-          }
-        }
+        tooltip-title="--numa"
+        tooltip-description="NUMA optimization mode"
+        tooltip-recommended="spread for multi-socket systems"
+        tooltip-example="--numa spread"
       />
       
       <NumberInput
@@ -73,14 +61,10 @@
         :min="128"
         :max="262144"
         hint="Maximum context size (tokens)"
-        tooltip={
-          {
-            title: '-c, --ctx-size',
-            description: 'Size of the context window',
-            recommended: '4096 for general, 131072 for long context',
-            example: '-c 4096'
-          }
-        }
+        tooltip-title="-c, --ctx-size"
+        tooltip-description="Size of the context window"
+        tooltip-recommended="4096 for general, 131072 for long context"
+        tooltip-example="-c 4096"
       />
       
       <NumberInput
@@ -88,14 +72,10 @@
         label="CPU Threads"
         :min="1"
         hint="Number of CPU threads"
-        tooltip={
-          {
-            title: '-t, --threads',
-            description: 'Number of CPU threads to use',
-            recommended: 'Number of physical cores',
-            example: '-t 8'
-          }
-        }
+        tooltip-title="-t, --threads"
+        tooltip-description="Number of CPU threads to use"
+        tooltip-recommended="Number of physical cores"
+        tooltip-example="-t 8"
       />
       
       <NumberInput
@@ -110,14 +90,10 @@
         label="Batch Size"
         :min="1"
         hint="Logical batch size"
-        tooltip={
-          {
-            title: '-b, --batch-size',
-            description: 'Logical batch size for processing',
-            recommended: '512 for general use',
-            example: '-b 512'
-          }
-        }
+        tooltip-title="-b, --batch-size"
+        tooltip-description="Logical batch size for processing"
+        tooltip-recommended="512 for general use"
+        tooltip-example="-b 512"
       />
       
       <NumberInput
@@ -135,28 +111,20 @@
         v-model="form.cacheTypeK"
         label="KV Cache K Type"
         :options="cacheTypes"
-        tooltip={
-          {
-            title: '--cache-type-k',
-            description: 'Data type for K cache',
-            recommended: 'f16 for best quality, q8_0 for memory efficiency',
-            example: '--cache-type-k q8_0'
-          }
-        }
+        tooltip-title="--cache-type-k"
+        tooltip-description="Data type for K cache"
+        tooltip-recommended="f16 for best quality, q8_0 for memory efficiency"
+        tooltip-example="--cache-type-k q8_0"
       />
       
       <SelectDropdown
         v-model="form.cacheTypeV"
         label="KV Cache V Type"
         :options="cacheTypes"
-        tooltip={
-          {
-            title: '--cache-type-v',
-            description: 'Data type for V cache',
-            recommended: 'f16 for best quality, q8_0 for memory efficiency',
-            example: '--cache-type-v q8_0'
-          }
-        }
+        tooltip-title="--cache-type-v"
+        tooltip-description="Data type for V cache"
+        tooltip-recommended="f16 for best quality, q8_0 for memory efficiency"
+        tooltip-example="--cache-type-v q8_0"
       />
     </CategorySection>
     
@@ -165,28 +133,20 @@
         v-model="form.splitMode"
         label="Split Mode"
         :options="splitModes"
-        tooltip={
-          {
-            title: '--split-mode',
-            description: 'How to split model across GPUs',
-            recommended: 'layer for most cases, row for attention layers',
-            example: '--split-mode layer'
-          }
-        }
+        tooltip-title="--split-mode"
+        tooltip-description="How to split model across GPUs"
+        tooltip-recommended="layer for most cases, row for attention layers"
+        tooltip-example="--split-mode layer"
       />
       
       <NumberInput
         v-model="form.tensorSplit"
         label="Tensor Split"
         hint="Comma-separated ratios per GPU (e.g., 16,12,12)"
-        tooltip={
-          {
-            title: '--tensor-split',
-            description: 'Split ratios for each GPU',
-            recommended: 'Match GPU VRAM ratios',
-            example: '--tensor-split 16,12,12'
-          }
-        }
+        tooltip-title="--tensor-split"
+        tooltip-description="Split ratios for each GPU"
+        tooltip-recommended="Match GPU VRAM ratios"
+        tooltip-example="--tensor-split 16,12,12"
       />
       
       <NumberInput
@@ -194,14 +154,10 @@
         label="Main GPU"
         :min="0"
         hint="Index of main GPU"
-        tooltip={
-          {
-            title: '--main-gpu',
-            description: 'Main GPU for operations',
-            recommended: '0 for primary GPU',
-            example: '--main-gpu 0'
-          }
-        }
+        tooltip-title="--main-gpu"
+        tooltip-description="Main GPU for operations"
+        tooltip-recommended="0 for primary GPU"
+        tooltip-example="--main-gpu 0"
       />
     </CategorySection>
     
@@ -213,14 +169,10 @@
         :max="2"
         :step="0.01"
         hint="Controls randomness (lower = more deterministic)"
-        tooltip={
-          {
-            title: '--temp, --temperature',
-            description: 'Controls randomness of output',
-            recommended: '0.7 for general, 0.3 for factual',
-            example: '--temp 0.7'
-          }
-        }
+        tooltip-title="--temp, --temperature"
+        tooltip-description="Controls randomness of output"
+        tooltip-recommended="0.7 for general, 0.3 for factual"
+        tooltip-example="--temp 0.7"
       />
       
       <NumberInput
@@ -229,14 +181,10 @@
         :min="1"
         :max="100"
         hint="Limit sampling to top K tokens"
-        tooltip={
-          {
-            title: '--top-k',
-            description: 'Limit sampling to top K tokens',
-            recommended: '40 for general use',
-            example: '--top-k 40'
-          }
-        }
+        tooltip-title="--top-k"
+        tooltip-description="Limit sampling to top K tokens"
+        tooltip-recommended="40 for general use"
+        tooltip-example="--top-k 40"
       />
       
       <NumberInput
@@ -246,14 +194,10 @@
         :max="1"
         :step="0.01"
         hint="Nucleus sampling threshold"
-        tooltip={
-          {
-            title: '--top-p',
-            description: 'Nucleus sampling threshold',
-            recommended: '0.95 for balanced output',
-            example: '--top-p 0.95'
-          }
-        }
+        tooltip-title="--top-p"
+        tooltip-description="Nucleus sampling threshold"
+        tooltip-recommended="0.95 for balanced output"
+        tooltip-example="--top-p 0.95"
       />
       
       <NumberInput
@@ -279,14 +223,10 @@
         label="Repeat Last N"
         :min="0"
         hint="Window size for repeat penalty"
-        tooltip={
-          {
-            title: '--repeat-last-n',
-            description: 'Number of tokens to consider for repeat penalty',
-            recommended: '64 for most cases',
-            example: '--repeat-last-n 64'
-          }
-        }
+        tooltip-title="--repeat-last-n"
+        tooltip-description="Number of tokens to consider for repeat penalty"
+        tooltip-recommended="64 for most cases"
+        tooltip-example="--repeat-last-n 64"
       />
       
       <NumberInput
@@ -296,14 +236,10 @@
         :max="2"
         :step="0.01"
         hint="Penalty for repeated tokens"
-        tooltip={
-          {
-            title: '--repeat-penalty',
-            description: 'Penalty applied to repeated tokens',
-            recommended: '1.1 for slight penalty',
-            example: '--repeat-penalty 1.1'
-          }
-        }
+        tooltip-title="--repeat-penalty"
+        tooltip-description="Penalty applied to repeated tokens"
+        tooltip-recommended="1.1 for slight penalty"
+        tooltip-example="--repeat-penalty 1.1"
       />
       
       <NumberInput
@@ -328,14 +264,10 @@
         v-model="form.mirostat"
         label="Mirostat Mode"
         :options="mirostatModes"
-        tooltip={
-          {
-            title: '--mirostat',
-            description: 'Mirostat sampling mode',
-            recommended: '2 for best results',
-            example: '--mirostat 2'
-          }
-        }
+        tooltip-title="--mirostat"
+        tooltip-description="Mirostat sampling mode"
+        tooltip-recommended="2 for best results"
+        tooltip-example="--mirostat 2"
       />
       
       <NumberInput
@@ -359,14 +291,10 @@
         label="Host"
         placeholder="0.0.0.0"
         hint="Server bind address"
-        tooltip={
-          {
-            title: '--host',
-            description: 'Server bind address',
-            recommended: '0.0.0.0 for all interfaces',
-            example: '--host 0.0.0.0'
-          }
-        }
+        tooltip-title="--host"
+        tooltip-description="Server bind address"
+        tooltip-recommended="0.0.0.0 for all interfaces"
+        tooltip-example="--host 0.0.0.0"
       />
       
       <NumberInput
@@ -375,14 +303,10 @@
         :min="1"
         :max="65535"
         hint="Server port number"
-        tooltip={
-          {
-            title: '--port',
-            description: 'Server port',
-            recommended: '11434 for Ollama compatibility',
-            example: '--port 11434'
-          }
-        }
+        tooltip-title="--port"
+        tooltip-description="Server port"
+        tooltip-recommended="11434 for Ollama compatibility"
+        tooltip-example="--port 11434"
       />
       
       <NumberInput
@@ -390,14 +314,10 @@
         label="Parallel Slots"
         :min="1"
         hint="Number of parallel processing slots"
-        tooltip={
-          {
-            title: '--parallel',
-            description: 'Number of concurrent request slots',
-            recommended: '4 for general use',
-            example: '--parallel 4'
-          }
-        }
+        tooltip-title="--parallel"
+        tooltip-description="Number of concurrent request slots"
+        tooltip-recommended="4 for general use"
+        tooltip-example="--parallel 4"
       />
       
       <ToggleSwitch v-model="form.webui" name="Web UI" description="Enable built-in web interface" />
@@ -425,14 +345,10 @@
         label="Model Cache Directory"
         placeholder="./cache"
         hint="Directory for model caching"
-        tooltip={
-          {
-            title: 'LLAMA_CACHE',
-            description: 'Directory for KV cache',
-            recommended: './cache',
-            example: 'export LLAMA_CACHE=./cache'
-          }
-        }
+        tooltip-title="LLAMA_CACHE"
+        tooltip-description="Directory for KV cache"
+        tooltip-recommended="./cache"
+        tooltip-example="export LLAMA_CACHE=./cache"
       />
       
       <ToggleSwitch v-model="form.envVars.GGML_CUDA_ENABLE_UNIFIED_MEMORY" name="Unified Memory" description="Enable unified memory for CUDA" />

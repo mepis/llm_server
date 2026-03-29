@@ -22,7 +22,7 @@ rm -r build
 export CUDACXX=/usr/local/cuda/bin/nvcc
 
 
-cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_RPC=on -DBUILD_SHARED_LIBS=off -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=64 -DGGML_CUDA_GRAPHS=on -DGGML_NATIVE=on -DGGML_CPU=off -DGGML_CUDA_FORCE_MMQ=on
+cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DBUILD_SHARED_LIBS=off -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=64 -DGGML_CUDA_GRAPHS=on -DGGML_NATIVE=on -DGGML_CUDA_FORCE_MMQ=on
 cmake --build build --config Release -j "${nproc}" --clean-first
 
 # -DGGML_BLAS=off
