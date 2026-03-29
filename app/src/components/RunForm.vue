@@ -362,10 +362,23 @@
     </CategorySection>
     
     <div class="btn-group">
+      <button @click="detectHardware" class="btn btn-primary" style="background-color: var(--color-info);">
+        🔍 Detect Hardware
+      </button>
       <button @click="previewScript" class="btn btn-primary">Preview Script</button>
       <button @click="saveConfig" class="btn btn-secondary">Save Configuration</button>
       <button @click="resetForm" class="btn btn-secondary">Reset</button>
     </div>
+    
+    <HardwareRecommendationModal
+      v-if="showHardwareModal"
+      :recommendations="hardwareRecommendations"
+      :full-output="hardwareFullOutput"
+      :loading="hardwareLoading"
+      @close="showHardwareModal = false"
+      @apply="applyHardwareRecommendations"
+      @run-script="runDetectionScript"
+    />
   </div>
 </template>
 
@@ -375,11 +388,16 @@ import CategorySection from './common/CategorySection.vue'
 import ToggleSwitch from './common/ToggleSwitch.vue'
 import SelectDropdown from './common/SelectDropdown.vue'
 import NumberInput from './common/NumberInput.vue'
+import HardwareRecommendationModal from './HardwareRecommendationModal.vue'
 
 const emit = defineEmits(['preview', 'saved'])
 
 const error = ref('')
 const success = ref('')
+const showHardwareModal = ref(false)
+const hardwareLoading = ref(false)
+const hardwareRecommendations = ref(null)
+const hardwareFullOutput = ref('')
 
 const form = reactive({
   modelPath: './models/model.gguf',
@@ -499,56 +517,77 @@ async function saveConfig() {
   }
 }
 
-function resetForm() {
-  Object.assign(form, {
-    modelPath: './models/model.gguf',
-    gpuLayers: 99,
-    mlock: false,
-    mmap: true,
-    directIo: false,
-    numa: 'off',
-    loraPath: '',
-    mmprojPath: '',
-    contextSize: 4096,
-    threads: 8,
-    threadsBatch: '',
-    batchSize: 512,
-    ubatchSize: '',
-    contBatching: true,
-    kvUnified: false,
-    flashAttn: false,
-    cacheTypeK: 'f16',
-    cacheTypeV: 'f16',
-    splitMode: 'layer',
-    tensorSplit: '',
-    mainGpu: 0,
-    temperature: 0.7,
-    topK: 40,
-    topP: 0.95,
-    minP: 0.05,
-    typicalP: 1.0,
-    repeatLastN: 64,
-    repeatPenalty: 1.1,
-    presencePenalty: 0.0,
-    frequencyPenalty: 0.0,
-    mirostat: 2,
-    grammar: '',
-    jsonSchema: '',
-    host: '0.0.0.0',
-    port: 11434,
-    parallel: 4,
-    webui: false,
-    apiKey: '',
-    metrics: false,
-    timeout: 0,
-    envVars: {
-      LLAMA_CACHE: './cache',
-      GGML_CUDA_ENABLE_UNIFIED_MEMORY: true,
-      CUDA_VISIBLE_DEVICES: ''
+async function detectHardware() {
+  showHardwareModal.value = true
+  hardwareLoading.value = true
+  hardwareRecommendations.value = null
+  hardwareFullOutput.value = ''
+  
+  try {
+    const response = await fetch('/api/hardware/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to detect hardware')
     }
-  })
-  error.value = ''
-  success.value = ''
+    
+    const data = await response.json()
+    hardwareRecommendations.value = data.recommendations
+    hardwareFullOutput.value = data.fullOutput
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    hardwareLoading.value = false
+  }
+}
+
+function applyHardwareRecommendations() {
+  if (!hardwareRecommendations.value) return
+  
+  const run = hardwareRecommendations.value.run_recommendations
+  
+  form.gpuLayers = run.gpuLayers
+  form.splitMode = run.splitMode
+  form.tensorSplit = run.tensorSplit
+  form.contextSize = run.contextSize
+  form.threads = run.threads
+  form.batchSize = run.batchSize
+  form.temperature = run.temperature
+  form.topK = run.topK
+  form.topP = run.topP
+  form.contBatching = run.contBatching
+  
+  showHardwareModal.value = false
+  success.value = 'Hardware recommendations applied!'
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+async function runDetectionScript() {
+  showHardwareModal.value = false
+  
+  try {
+    const response = await fetch('/api/scripts/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scriptPath: '/home/jon/git/llm_server/app/scripts/generate-recommendations.sh'
+      })
+    })
+    
+    const result = await response.json()
+    if (result.success) {
+      alert('Hardware detection completed! Check the output below.')
+      showHardwareModal.value = true
+      hardwareRecommendations.value = JSON.parse(result.output.match(/\{[\s\S]*\}/)[0])
+      hardwareFullOutput.value = result.output
+    } else {
+      alert(`Error: ${result.error || result.stderr}`)
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`)
+  }
 }
 </script>
 

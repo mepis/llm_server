@@ -496,6 +496,48 @@ app.get('/api/presets', async (req, res) => {
   }
 })
 
+app.post('/api/hardware/detect', async (req, res) => {
+  const { exec } = await import('child_process')
+  
+  exec('chmod +x /home/jon/git/llm_server/app/scripts/generate-recommendations.sh', (err) => {
+    if (err) console.log('chmod warning:', err.message)
+  })
+  
+  exec('/home/jon/git/llm_server/app/scripts/generate-recommendations.sh', {
+    maxBuffer: 10 * 1024 * 1024
+  }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ 
+        error: error.message,
+        output: stdout || stderr
+      })
+    }
+    
+    try {
+      const jsonMatch = stdout.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const recommendations = JSON.parse(jsonMatch[0])
+        res.json({
+          success: true,
+          recommendations,
+          fullOutput: stdout
+        })
+      } else {
+        res.status(500).json({ 
+          error: 'Failed to parse recommendations',
+          output: stdout
+        })
+      }
+    } catch (parseError) {
+      res.status(500).json({ 
+        error: 'Failed to parse JSON',
+        output: stdout,
+        parseError: parseError.message
+      })
+    }
+  })
+})
+
 app.use((req, res) => {
   res.sendFile(join(__dirname, 'dist', 'index.html'))
 })

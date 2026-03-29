@@ -111,10 +111,23 @@
     </CategorySection>
     
     <div class="btn-group">
+      <button @click="detectHardware" class="btn btn-primary" style="background-color: var(--color-info);">
+        🔍 Detect Hardware
+      </button>
       <button @click="previewScript" class="btn btn-primary">Preview Script</button>
       <button @click="saveConfig" class="btn btn-secondary">Save Configuration</button>
       <button @click="resetForm" class="btn btn-secondary">Reset</button>
     </div>
+    
+    <HardwareRecommendationModal
+      v-if="showHardwareModal"
+      :recommendations="hardwareRecommendations"
+      :full-output="hardwareFullOutput"
+      :loading="hardwareLoading"
+      @close="showHardwareModal = false"
+      @apply="applyHardwareRecommendations"
+      @run-script="runDetectionScript"
+    />
   </div>
 </template>
 
@@ -124,11 +137,16 @@ import CategorySection from './common/CategorySection.vue'
 import ToggleSwitch from './common/ToggleSwitch.vue'
 import SelectDropdown from './common/SelectDropdown.vue'
 import NumberInput from './common/NumberInput.vue'
+import HardwareRecommendationModal from './HardwareRecommendationModal.vue'
 
 const emit = defineEmits(['preview', 'saved'])
 
 const error = ref('')
 const success = ref('')
+const showHardwareModal = ref(false)
+const hardwareLoading = ref(false)
+const hardwareRecommendations = ref(null)
+const hardwareFullOutput = ref('')
 
 const form = reactive({
   buildSharedLibs: false,
@@ -220,38 +238,79 @@ async function saveConfig() {
   }
 }
 
-function resetForm() {
-  Object.assign(form, {
-    buildSharedLibs: false,
-    cmakeBuildType: 'RelWithDebInfo',
-    ggmlCcache: true,
-    ggmlLto: true,
-    ggmlNative: true,
-    cmakeCudaArchitectures: '',
-    ggmlCuda: true,
-    ggmlHip: false,
-    ggmlVulkan: false,
-    ggmlMetal: false,
-    ggmlOpencl: false,
-    ggmlBlast: true,
-    ggmlBlastVendor: 'OpenBLAS',
-    ggmlCann: false,
-    ggmlZendnn: false,
-    ggmlKleidiai: false,
-    ggmlCudaPeerMaxBatchSize: 256,
-    ggmlCudaFa: true,
-    ggmlCudaGraphs: true,
-    ggmlCudaForceMmq: false,
-    ggmlCudaForceCublas: false,
-    envVars: {
-      CUDACXX: '/usr/local/cuda/bin/nvcc',
-      GGML_CUDA_ENABLE_UNIFIED_MEMORY: true,
-      OMP_NUM_THREADS: '',
-      CCACHE_DIR: ''
+async function detectHardware() {
+  showHardwareModal.value = true
+  hardwareLoading.value = true
+  hardwareRecommendations.value = null
+  hardwareFullOutput.value = ''
+  
+  try {
+    const response = await fetch('/api/hardware/detect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to detect hardware')
     }
-  })
-  error.value = ''
-  success.value = ''
+    
+    const data = await response.json()
+    hardwareRecommendations.value = data.recommendations
+    hardwareFullOutput.value = data.fullOutput
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    hardwareLoading.value = false
+  }
+}
+
+function applyHardwareRecommendations() {
+  if (!hardwareRecommendations.value) return
+  
+  const build = hardwareRecommendations.value.build_recommendations
+  const run = hardwareRecommendations.value.run_recommendations
+  
+  form.buildSharedLibs = build.buildSharedLibs
+  form.cmakeBuildType = build.cmakeBuildType
+  form.ggmlCcache = build.ggmlCcache
+  form.ggmlLto = build.ggmlLto
+  form.ggmlNative = build.ggmlNative
+  form.ggmlCuda = build.ggmlCuda
+  form.ggmlCudaPeerMaxBatchSize = build.ggmlCudaPeerMaxBatchSize || 256
+  form.ggmlCudaFa = build.ggmlCudaFa
+  form.ggmlCudaGraphs = build.ggmlCudaGraphs
+  form.ggmlBlast = build.ggmlBlast
+  form.ggmlBlastVendor = build.ggmlBlastVendor
+  
+  showHardwareModal.value = false
+  success.value = 'Hardware recommendations applied!'
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+async function runDetectionScript() {
+  showHardwareModal.value = false
+  
+  try {
+    const response = await fetch('/api/scripts/execute', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scriptPath: '/home/jon/git/llm_server/app/scripts/generate-recommendations.sh'
+      })
+    })
+    
+    const result = await response.json()
+    if (result.success) {
+      alert('Hardware detection completed! Check the output below.')
+      showHardwareModal.value = true
+      hardwareRecommendations.value = JSON.parse(result.output.match(/\{[\s\S]*\}/)[0])
+      hardwareFullOutput.value = result.output
+    } else {
+      alert(`Error: ${result.error || result.stderr}`)
+    }
+  } catch (err) {
+    alert(`Error: ${err.message}`)
+  }
 }
 </script>
 

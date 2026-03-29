@@ -16,7 +16,7 @@ threads=16
 # Model Configs
 ###############
 
-context=131072
+context=65536
 temp=0.6
 topP=0.95
 minP=0.01
