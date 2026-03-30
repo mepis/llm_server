@@ -23,4 +23,4 @@ sudo apt remove nginx
 sudo rm -r /etc/nginx 
 
 # clean up
-sudo apt autoremove
+sudo apt autoremove -y
