@@ -2,12 +2,7 @@
   <div class="hardware-monitor">
     <div v-if="error" class="error-message">{{ error }}</div>
     
-    <div v-if="loading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>Loading hardware stats...</p>
-    </div>
-    
-    <div v-else class="stats-container">
+    <div v-if="!error" class="stats-container">
       <div class="stats-section">
         <h2>CPU Usage</h2>
         <div class="stats-grid">
@@ -95,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 
 const stats = ref({
   cpu: { cores: [], total: 0, count: 0 },
@@ -166,22 +161,27 @@ const fetchStats = async () => {
   }
 }
 
-const createChart = (ctx, label, data, color) => {
+const createChart = (ctx, label, data, color, width, height) => {
   const chart = {
     ctx,
     data: [],
     label,
     color,
     max: 100,
-    width: 0,
-    height: 0
+    width,
+    height
   }
   
   const draw = () => {
     const { ctx, data, color, max, width, height } = chart
     ctx.clearRect(0, 0, width, height)
     
-    if (data.length < 2) return
+    if (data.length < 2) {
+      ctx.fillStyle = '#666'
+      ctx.font = '12px monospace'
+      ctx.fillText('Waiting for data...', 10, height / 2)
+      return
+    }
     
     ctx.strokeStyle = color
     ctx.lineWidth = 2
@@ -192,7 +192,7 @@ const createChart = (ctx, label, data, color) => {
     
     data.forEach((val, i) => {
       const x = i * stepX
-      const y = height - (val / maxVal) * height
+      const y = height - (val / maxVal) * height - 10
       if (i === 0) {
         ctx.moveTo(x, y)
       } else {
@@ -232,10 +232,12 @@ const initCharts = () => {
     
     const ctx = canvas.getContext('2d')
     const rect = canvas.parentElement.getBoundingClientRect()
-    canvas.width = rect.width - 30
-    canvas.height = 150
+    const width = Math.floor(rect.width - 30)
+    const height = 150
+    canvas.width = width
+    canvas.height = height
     
-    return createChart(ctx, label, [], color)
+    return createChart(ctx, label, [], color, width, height)
   }
   
   cpuChartInstance = initChart(cpuChart.value, 'CPU', '#10b981')
@@ -243,55 +245,45 @@ const initCharts = () => {
   swapChartInstance = initChart(swapChart.value, 'Swap', '#f59e0b')
 }
 
-onMounted(() => {
+const handleResize = () => {
+  updateChartDimensions()
+  updateCharts()
+}
+
+const updateChartDimensions = () => {
+  const updateChart = (chartInstance, canvas) => {
+    if (!chartInstance || !canvas) return
+    const rect = canvas.parentElement.getBoundingClientRect()
+    chartInstance.width = Math.floor(rect.width - 30)
+    chartInstance.height = 150
+    canvas.width = chartInstance.width
+    canvas.height = chartInstance.height
+  }
+  
+  updateChart(cpuChartInstance, cpuChart.value)
+  updateChart(memoryChartInstance, memoryChart.value)
+  updateChart(swapChartInstance, swapChart.value)
+}
+
+onMounted(async () => {
   fetchStats()
   pollInterval = setInterval(fetchStats, 5000)
   
-  setTimeout(() => {
-    initCharts()
-  }, 100)
+  await nextTick()
+  initCharts()
   
-  window.addEventListener('resize', () => {
-    initCharts()
-    updateCharts()
-  })
+  window.addEventListener('resize', handleResize)
 })
 
- onUnmounted(() => {
-    if (pollInterval) clearInterval(pollInterval)
-    window.removeEventListener('resize', () => {
-      initCharts()
-      updateCharts()
-    })
-  })
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
+  window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <style scoped>
 .hardware-monitor {
   width: 100%;
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--border-light);
-  border-top-color: var(--color-mint);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .stats-container {
@@ -415,6 +407,7 @@ onMounted(() => {
 .chart-container canvas {
   display: block;
   width: 100%;
+  height: 150px;
 }
 
 @media (max-width: 768px) {
