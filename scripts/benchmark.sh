@@ -19,8 +19,13 @@ ngen=128
 
 ls -l "${LLM_SERVER_HOME}"/models/*.gguf
 
-echo 
 echo ======================================
+echo Remember to update the configs before running. 
+echo If you have not, kill this script and update them now. 
+echo ======================================
+
+echo 
+echo 
 echo "Enter model:"
 read model
 
