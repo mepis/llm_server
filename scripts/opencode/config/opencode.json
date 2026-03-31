@@ -49,8 +49,8 @@
         "baseURL": "http://100.115.205.84:11434/v1"
       },
       "models": {
-        "Qwen3.5-35B-A3B-Q8_0": {
-          "name": "Qwen3.5-35B-A3B-Q8_0",
+        "Qwen3.5-9B-IQ4_NL.gguf": {
+          "name": "Qwen3.5-9B-IQ4_NL.gguf",
           "limit": {
             "context": 65536,
             "output": 32768

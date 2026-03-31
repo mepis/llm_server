@@ -13,13 +13,15 @@ sudo rm -r $HOME/.llm_server
 
 # remove searxng
 sudo userdel searxng
-sudo apt remove uwsgi -y
+sudo apt remove --purge uwsgi* -y
+sudo apt remove --purge valkey* -y
 sudo rm -r /usr/local/searxng
 sudo rm -r /etc/searxng/
 sudo rm -r /etc/uwsgi/
 
 # remove nginx
-sudo apt remove nginx
+sudo apt remove --purge nginx* -y
+
 sudo rm -r /etc/nginx 
 
 # clean up
