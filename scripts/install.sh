@@ -1,5 +1,8 @@
 #!/bin/bash
 
+if [ "$EUID" -ne 0 ]; then echo "Please run this script as root user"; exit 1; fi
+
+
 ############################
 # CONFIGS
 ############################
@@ -10,11 +13,21 @@ CURRENT_DIR=$(pwd)
 # USER CONSENT 
 ############################
 
+
 echo "
 
-PLEASE READ ME!
+#################
+# PLEASE READ ME!
+#################
+
+------------------------------
+This script must be run with sudo: sudo ./install.sh
+If not, things will fail.
+------------------------------
 
 DO NOT RUN THIS SCRIPT WITHOUT SOME KNOWLEDGE OF MANAGING LINUX. You are on you're own if something goes FUBAR.
+
+This script will take a while to complete. 
 
 Before proceeding, ensure the Nvidia 580+ Open drivers are installed. If they need to be installed, or you need to check, press 'q' now to exit. 
 
@@ -37,11 +50,15 @@ SearxNG: https://docs.searxng.org/admin/index.html
 OpenCode: https://opencode.ai/docs
 Llama.cpp: https://github.com/ggml-org/llama.cpp 
 
-PREREQUISITES: git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo libze-dev intel-ocloc libze-intel-gpu-raytracing intel-deep-learning-essentials intel-oneapi-base-toolkit ninja-build cuda-toolkit-13-2 python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc
+PREREQUISITES: git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit cuda-toolkit-13-2 nvidia-cuda-toolkit
+
+##################
+This script will request sudo access. This is expected.
+
+After installation is complete, the SearxNG page will be accesible within your local network. It is up to you to ensure port 80 is blocked on the system firewall or Nginx is updated to allow local access only. 
 
 The SearxNG install process will require user input. You must accept all inputs for SearxNG to install correctly. If SearxNG is not installed correctly, OpenCode will not be able to search the internet, which will impact agent performance. 
-
-This process will take a while to complete. 
+##################
 
 ## Additional Info ##
 Use the update.sh script to update OpenCode and Llama.cpp in the future. 
@@ -80,7 +97,7 @@ sudo cp /var/cuda-repo-ubuntu2404-13-2-local/cuda-*-keyring.gpg /usr/share/keyri
 sudo apt update
 sudo apt upgrade -y
 
-sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common libze-intel-gpu1 libze1 intel-metrics-discovery intel-opencl-icd clinfo intel-gsc intel-media-va-driver-non-free libmfx-gen1 libvpl2 libvpl-tools libva-glx2 va-driver-all vainfo libze-dev intel-ocloc libze-intel-gpu-raytracing intel-deep-learning-essentials intel-oneapi-base-toolkit ninja-build cuda-toolkit-13-2 python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc
+sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit nvidia-cuda-toolkit -y
 
 echo ######################################
 nvidia-smi
@@ -110,9 +127,9 @@ wget https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_
 
 cd $CURRENT_DIR
 curl -fsSL https://opencode.ai/install | bash
-cp opencode/skills $HOME/.config/opencode/
-cp opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service
-cp opencode/tools/* $HOME/.config/opencode/tools/
+cp -r opencode/skills $HOME/.config/opencode/
+cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service
+cp -r opencode/tools/* $HOME/.config/opencode/tools/
 
 cd $HOME/.config/opencode/tools/
 npm install
@@ -123,9 +140,9 @@ npm install
 
 cd $CURRENT_DIR
 cd searxng
-sudo ./install.sh
+sudo -H ./install.sh
 
-SEARXNG_SECRET_KEY=${openssl rand -base64 16}
+SEARXNG_SECRET_KEY= openssl rand -base64 16 
 sudo rm /etc/searxng/settings.yml 
 sudo echo -e "
 # SearXNG settings
@@ -162,7 +179,8 @@ cd $HOME/.llm_server/
 git clone https://github.com/ggml-org/llama.cpp 
 cd llama.cpp
 
-export CUDACXX=${which nvcc}
+NVCC_PATH= which nvcc 
+export CUDACXX=NVCC_PATH
 
 cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance
 
@@ -175,6 +193,8 @@ After=network.target
 
 [Service]
 Type=simple
+
+
 WorkingDirectory=%h
 # Edit the script path and name for the local system
 ExecStart=$HOME/llm_server/scripts/run.sh
@@ -198,9 +218,19 @@ systemctl --user start opencode-web.service
 systemctl --user enable llama.service
 systemctl --user start llama.service
 
-scho =========================
+echo =========================
 systemctl --user status opencode-web.service
-scho =========================
+echo =========================
 systemctl --user status llama.service
 
+echo "
+Documentation Links:
+SearxNG: https://docs.searxng.org/admin/index.html
+OpenCode: https://opencode.ai/docs
+Llama.cpp: https://github.com/ggml-org/llama.cpp 
+"
 
+echo Install is complete. You may want to reboot just to be safe. 
+echo OpenCode can be accessed at http://127.0.0.1:4096/
+echo
+echo Good luck, and thank you for all the fish!
