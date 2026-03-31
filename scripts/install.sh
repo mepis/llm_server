@@ -16,23 +16,21 @@ CURRENT_DIR=$(pwd)
 
 echo "
 
-#################
-# PLEASE READ ME!
-#################
+####################
+#  PLEASE READ ME! #
+####################
 
-------------------------------
-This script must be run with sudo: sudo ./install.sh
-If not, things will fail.
-------------------------------
+DO NOT RUN THIS SCRIPT WITHOUT SOME KNOWLEDGE OF MANAGING LINUX. 
+You are on you're own if something goes FUBAR.
 
-DO NOT RUN THIS SCRIPT WITHOUT SOME KNOWLEDGE OF MANAGING LINUX. You are on you're own if something goes FUBAR.
+-----
+This script takes time to complete and requires user input.
 
-This script will take a while to complete. 
-
+-----
 Before proceeding, ensure the Nvidia 580+ Open drivers are installed. If they need to be installed, or you need to check, press 'q' now to exit. 
 
 This script will install the following:
-- A lot of prerequisites
+- A lot of prerequisites (See below)
 - Nvidia Cuda toolkit 13.2
 - OpenCode
 - SearxNG + pre-reqs
@@ -45,22 +43,27 @@ The following changes will be made:
 - User services for llama.cpp and opencode will be created
 - Opencode configs, skills, and tools will be copied
 
-Documentation Links:
-SearxNG: https://docs.searxng.org/admin/index.html
-OpenCode: https://opencode.ai/docs
-Llama.cpp: https://github.com/ggml-org/llama.cpp 
-
 PREREQUISITES: git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit cuda-toolkit-13-2 nvidia-cuda-toolkit
 
-##################
-This script will request sudo access. This is expected.
+####################
+#     WARNING!!!   #
+####################
+Sudo access is required.
 
-After installation is complete, the SearxNG page will be accesible within your local network. It is up to you to ensure port 80 is blocked on the system firewall or Nginx is updated to allow local access only. 
+Nginx configs will be modified during this process. If you currently have Nginx installed and in use, please beware of this. 
+
+NGinx will be open on your local network. Please secure it after installation. 
 
 The SearxNG install process will require user input. You must accept all inputs for SearxNG to install correctly. If SearxNG is not installed correctly, OpenCode will not be able to search the internet, which will impact agent performance. 
-##################
+
+OpenCode is configued with lenient permissions with this install. Update permissions in the opencode/config/opencode.json file and run the update.sh script to change them.
+
+####################
+#    END WARNING   #
+####################
 
 ## Additional Info ##
+---------------------
 Use the update.sh script to update OpenCode and Llama.cpp in the future. 
 Use the uninstall.sh script to remove everything except for Cuda Toolkit and the prereq packages.
 
@@ -84,22 +87,22 @@ fi
 ############################
 # Stage Pre-reqs
 ############################
+echo
+echo
+echo Installing prerequisite packages
 
 # Install Nvidia cuda toolkit
 cd /tmp
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-ubuntu2404.pin
-sudo mv cuda-ubuntu2404.pin /etc/apt/preferences.d/cuda-repository-pin-600
-wget https://developer.download.nvidia.com/compute/cuda/13.2.0/local_installers/cuda-repo-ubuntu2404-13-2-local_13.2.0-595.45.04-1_amd64.deb
-sudo dpkg -i cuda-repo-ubuntu2404-13-2-local_13.2.0-595.45.04-1_amd64.deb
-sudo cp /var/cuda-repo-ubuntu2404-13-2-local/cuda-*-keyring.gpg /usr/share/keyrings/
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb > /dev/null 2>&1  
+sudo dpkg -i cuda-keyring_1.1-1_all.deb > /dev/null 2>&1  
 
 # Install pre-reqs
-sudo apt update
-sudo apt upgrade -y
+sudo apt update > /dev/null 2>&1  
+sudo apt upgrade -y > /dev/null 2>&1  
 
-sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit nvidia-cuda-toolkit -y
+sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc cuda-toolkit-13-2 -y > /dev/null 2>&1  
 
-echo ######################################
+echo
 nvidia-smi
 echo
 echo You should see Nvidia GPU info above. If you do not, restart the computer and then re-run this script. 
@@ -110,37 +113,42 @@ if [[ $REPLY == "q" ]]; then
 fi
 
 # Create dirs
-mkdir $HOME/.config/opencode
-mkdir $HOME/.config/opencode/tools
-mkdir -p $HOME/.config/systemd/user
-mkdir $HOME/.llm_server
-mkdir $HOME/.llm_server/logs
-mkdir $HOME/.llm_server/models
+echo
+echo Creating folders
+mkdir $HOME/.config/opencode > /dev/null 2>&1  
+mkdir $HOME/.config/opencode/tools > /dev/null 2>&1  
+mkdir -p $HOME/.config/systemd/user > /dev/null 2>&1  
+mkdir $HOME/.llm_server > /dev/null 2>&1  
+mkdir $HOME/.llm_server/logs > /dev/null 2>&1  
+mkdir $HOME/.llm_server/models > /dev/null 2>&1  
 
+echo Downloading LLM model
 cd $HOME/.llm_server/models
-wget https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_NL.gguf
+wget https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_NL.gguf > /dev/null 2>&1  
 
 
 ############################
 # Install OpenCode
 ############################
-
+echo
+echo Installing OpenCode
 cd $CURRENT_DIR
-curl -fsSL https://opencode.ai/install | bash
-cp -r opencode/skills $HOME/.config/opencode/
-cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service
-cp -r opencode/tools/* $HOME/.config/opencode/tools/
+curl -fsSL https://opencode.ai/install | bash > /dev/null 2>&1  
+cp -r opencode/skills $HOME/.config/opencode/ > /dev/null 2>&1  
+cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service > /dev/null 2>&1  
+cp -r opencode/tools/* $HOME/.config/opencode/tools/ > /dev/null 2>&1  
 
 cd $HOME/.config/opencode/tools/
-npm install
+npm install > /dev/null 2>&1  
 
 ############################
 # Install Searxng
 ############################
-
+echo
+echo Installing Searxng
 cd $CURRENT_DIR
 cd searxng
-sudo -H ./install.sh
+sudo -H ./install.sh > /dev/null 2>&1  
 
 SEARXNG_SECRET_KEY= openssl rand -base64 16 
 sudo rm /etc/searxng/settings.yml 
@@ -174,17 +182,18 @@ valkey:
 ############################
 # Install llama.cpp
 ############################
-
+echo 
+echo Installing Llama.cpp
 cd $HOME/.llm_server/
-git clone https://github.com/ggml-org/llama.cpp 
+git clone https://github.com/ggml-org/llama.cpp  > /dev/null 2>&1  
 cd llama.cpp
 
 NVCC_PATH= which nvcc 
 export CUDACXX=NVCC_PATH
 
-cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance
+cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance > /dev/null 2>&1  
 
-cmake --build build --config Release -j "${nproc}" --clean-first 
+cmake --build build --config Release -j "${nproc}" --clean-first  > /dev/null 2>&1  
 
 echo -e "
 [Unit]
@@ -208,7 +217,8 @@ WantedBy=default.target
 ############################
 # Start services
 ############################
-
+echo 
+echo Starting services
 loginctl enable-linger $USER
 systemctl --user daemon-reload
 
@@ -224,13 +234,21 @@ echo =========================
 systemctl --user status llama.service
 
 echo "
+
+---------------------------------------------------
 Documentation Links:
 SearxNG: https://docs.searxng.org/admin/index.html
 OpenCode: https://opencode.ai/docs
 Llama.cpp: https://github.com/ggml-org/llama.cpp 
+
+Install is complete. You may want to reboot just to be safe. 
+
+SearxNG: http://127.0.0.1/searxng
+OpenCode: http://127.0.0.1:4096/
+
+
+Good luck, and thank you for all the fish!
+---------------------------------------------------
+
 "
 
-echo Install is complete. You may want to reboot just to be safe. 
-echo OpenCode can be accessed at http://127.0.0.1:4096/
-echo
-echo Good luck, and thank you for all the fish!

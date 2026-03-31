@@ -1,3 +1,7 @@
+#!/bin/bash
+if [ "$EUID" -ne 0 ]; then echo "Please run this script as root user"; exit 1; fi
+
+
 # remove opencode
 systemctl --user stop opencode-web.service
 systemctl --user disable opencode-web.service
