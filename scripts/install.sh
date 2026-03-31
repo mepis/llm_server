@@ -93,14 +93,14 @@ echo Installing prerequisite packages
 
 # Install Nvidia cuda toolkit
 cd /tmp
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb > /dev/null 2>&1  
-sudo dpkg -i cuda-keyring_1.1-1_all.deb > /dev/null 2>&1  
+wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb 
+sudo dpkg -i cuda-keyring_1.1-1_all.deb > out.log 2> err.log 
 
 # Install pre-reqs
-sudo apt update > /dev/null 2>&1  
-sudo apt upgrade -y > /dev/null 2>&1  
+sudo apt update > out.log 2> err.log 
+sudo apt upgrade -y > out.log 2> err.log 
 
-sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc cuda-toolkit-13-2 -y > /dev/null 2>&1  
+sudo apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit cuda-toolkit-13-2 cuda-toolkit-13-2-config-common -y > out.log 2> err.log 
 
 echo
 nvidia-smi
@@ -114,17 +114,18 @@ fi
 
 # Create dirs
 echo
+echo
 echo Creating folders
-mkdir $HOME/.config/opencode > /dev/null 2>&1  
-mkdir $HOME/.config/opencode/tools > /dev/null 2>&1  
-mkdir -p $HOME/.config/systemd/user > /dev/null 2>&1  
-mkdir $HOME/.llm_server > /dev/null 2>&1  
-mkdir $HOME/.llm_server/logs > /dev/null 2>&1  
-mkdir $HOME/.llm_server/models > /dev/null 2>&1  
+mkdir $HOME/.config/opencode > out.log 2> err.log 
+mkdir $HOME/.config/opencode/tools > out.log 2> err.log 
+mkdir -p $HOME/.config/systemd/user > out.log 2> err.log 
+mkdir $HOME/.llm_server > out.log 2> err.log 
+mkdir $HOME/.llm_server/logs > out.log 2> err.log 
+mkdir $HOME/.llm_server/models > out.log 2> err.log 
 
 echo Downloading LLM model
 cd $HOME/.llm_server/models
-wget https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_NL.gguf > /dev/null 2>&1  
+wget -q https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_NL.gguf 
 
 
 ############################
@@ -133,13 +134,13 @@ wget https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-IQ4_
 echo
 echo Installing OpenCode
 cd $CURRENT_DIR
-curl -fsSL https://opencode.ai/install | bash > /dev/null 2>&1  
-cp -r opencode/skills $HOME/.config/opencode/ > /dev/null 2>&1  
-cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service > /dev/null 2>&1  
-cp -r opencode/tools/* $HOME/.config/opencode/tools/ > /dev/null 2>&1  
+curl -fsSL https://opencode.ai/install | bash > out.log 2> err.log 
+cp -r opencode/skills $HOME/.config/opencode/ > out.log 2> err.log 
+cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service > out.log 2> err.log 
+cp -r opencode/tools/* $HOME/.config/opencode/tools/ > out.log 2> err.log 
 
 cd $HOME/.config/opencode/tools/
-npm install > /dev/null 2>&1  
+npm install > out.log 2> err.log 
 
 ############################
 # Install Searxng
@@ -148,7 +149,7 @@ echo
 echo Installing Searxng
 cd $CURRENT_DIR
 cd searxng
-sudo -H ./install.sh > /dev/null 2>&1  
+sudo -H ./install.sh
 
 SEARXNG_SECRET_KEY= openssl rand -base64 16 
 sudo rm /etc/searxng/settings.yml 
@@ -185,15 +186,15 @@ valkey:
 echo 
 echo Installing Llama.cpp
 cd $HOME/.llm_server/
-git clone https://github.com/ggml-org/llama.cpp  > /dev/null 2>&1  
+git clone https://github.com/ggml-org/llama.cpp  > out.log 2> err.log 
 cd llama.cpp
 
 NVCC_PATH= which nvcc 
-export CUDACXX=NVCC_PATH
+export CUDACXX=$NVCC_PATH
 
-cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance > /dev/null 2>&1  
+cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance 
 
-cmake --build build --config Release -j "${nproc}" --clean-first  > /dev/null 2>&1  
+cmake --build build --config Release -j "${nproc}" --clean-first  
 
 echo -e "
 [Unit]
