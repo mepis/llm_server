@@ -126,7 +126,7 @@ Type=simple
 
 WorkingDirectory=%h
 # Edit the script path and name for the local system
-ExecStart=$HOME/llm_server/scripts/run.sh
+ExecStart=$HOME/git/llm_server/scripts/run.sh
 Restart=on-failure
 RestartSec=5
 
