@@ -8,6 +8,7 @@ This script will re-run the OpenCode installer to update OpenCode, pull the late
 This process may take some time. 
 
 "
+echo
 
 read -n 1 -s -r -p "Press 'q' to quit, any other key to continue..."
 if [[ $REPLY == "q" ]]; then
@@ -26,13 +27,25 @@ npm install
 
 curl -fsSL https://opencode.ai/install | bash
 
-cd $HOME/.llm_server/llama.cpp
+############################
+# Install llama.cpp
+############################
+echo 
+echo Installing Llama.cpp
+cd $HOME/.llm_server/
+rm -r llama.cpp
+git clone https://github.com/ggml-org/llama.cpp  
+cd llama.cpp
 
-export CUDACXX=${which nvcc}
 
-cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance
 
-cmake --build build --config Release -j "${nproc}" --clean-first 
+NVCC_PATH=$(which nvcc) 
+export CUDACXX=$NVCC_PATH
+
+cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=balance 
+
+# Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
+cmake --build build --config Release -j 4 --clean-first  
 
 systemctl --user stop llama.service
 systemctl --user start llama.service
