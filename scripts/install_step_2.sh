@@ -71,12 +71,12 @@ Llama.cpp is configured to enable Nvidia Unified Memory. VRAM usage will spill t
 echo
 echo
 echo Creating folders
-mkdir $HOME/.config/opencode > out.log 2> err.log 
-mkdir $HOME/.config/opencode/tools > out.log 2> err.log 
-mkdir -p $HOME/.config/systemd/user > out.log 2> err.log 
-mkdir $HOME/.llm_server > out.log 2> err.log 
-mkdir $HOME/.llm_server/logs > out.log 2> err.log 
-mkdir $HOME/.llm_server/models > out.log 2> err.log 
+mkdir $HOME/.config/opencode 
+mkdir $HOME/.config/opencode/tools 
+mkdir -p $HOME/.config/systemd/user 
+mkdir $HOME/.llm_server 
+mkdir $HOME/.llm_server/logs 
+mkdir $HOME/.llm_server/models 
 
 echo Downloading LLM model
 cd $HOME/.llm_server/models
@@ -89,13 +89,14 @@ wget -q https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-I
 echo
 echo Installing OpenCode
 cd $CURRENT_DIR
-sudo --user=$SUDO_USER curl -fsSL https://opencode.ai/install | bash 
-cp -r opencode/skills $HOME/.config/opencode/ > out.log 2> err.log 
-cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service > out.log 2> err.log 
-cp -r opencode/tools/* $HOME/.config/opencode/tools/ > out.log 2> err.log 
+curl -fsSL https://opencode.ai/install | bash 
+cp -r opencode/config/opencode.json $HOME/.config/opencode/opencode.json
+cp -r opencode/skills $HOME/.config/opencode/ 
+cp -r opencode/services/opencode-web.service $HOME/.config/systemd/user/opencode-web.service 
+cp -r opencode/tools/* $HOME/.config/opencode/tools/ 
 
 cd $HOME/.config/opencode/tools/
-npm install > out.log 2> err.log 
+npm install 
 
 ############################
 # Install llama.cpp
@@ -103,7 +104,7 @@ npm install > out.log 2> err.log
 echo 
 echo Installing Llama.cpp
 cd $HOME/.llm_server/
-git clone https://github.com/ggml-org/llama.cpp  > out.log 2> err.log 
+git clone https://github.com/ggml-org/llama.cpp  
 cd llama.cpp
 
 NVCC_PATH= which nvcc 
@@ -133,20 +134,17 @@ RestartSec=5
 WantedBy=default.target
 " >> $HOME/.config/systemd/user/llama.service
 
+loginctl enable-linger $USER
+systemctl --user enable llama.service
+systemctl --user start llama.service
+systemctl --user enable opencode-web.service
+systemctl --user start opencode-web.service
 
 echo "
 
 #########################################
 
 Install is complete. You may want to reboot just to be safe. 
-
-But first, run these commands manually: 
-
-loginctl enable-linger $USER
-systemctl --user enable llama.service
-systemctl --user start llama.service
-systemctl --user enable opencode-web.service
-systemctl --user start opencode-web.service
 
 #########################################
 

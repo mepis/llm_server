@@ -16,6 +16,7 @@ fi
 
 git pull
 
+cp opencode/config/opencode.json $HOME/.config/opencode/opencode.json
 cp opencode/skills/* $HOME/.config/opencode/
 cp opencode/tools/* $HOME/.config/opencode/tools/
 
