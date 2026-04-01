@@ -16,9 +16,9 @@ fi
 
 git pull
 
-cp opencode/config/opencode.json $HOME/.config/opencode/opencode.json
-cp opencode/skills/* $HOME/.config/opencode/
-cp opencode/tools/* $HOME/.config/opencode/tools/
+cp -r opencode/config/opencode.json $HOME/.config/opencode/opencode.json
+cp -r opencode/skills/* $HOME/.config/opencode/
+cp -r opencode/tools/* $HOME/.config/opencode/tools/
 
 cd $HOME/.config/opencode/tools/
 npm install
