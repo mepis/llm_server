@@ -33,7 +33,7 @@ curl -fsSL https://opencode.ai/install | bash
 echo 
 echo Installing Llama.cpp
 cd $HOME/.llm_server/
-rm -r llama.cpp
+sudo rm -r llama.cpp
 git clone https://github.com/ggml-org/llama.cpp  
 cd llama.cpp
 
