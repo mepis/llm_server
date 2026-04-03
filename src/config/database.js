@@ -1,0 +1,38 @@
+require('dotenv').config();
+
+module.exports = {
+  port: process.env.PORT || 3000,
+  env: process.env.NODE_ENV || 'development',
+  
+  mongodb: {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/llm_server',
+    options: {
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 10000
+    }
+  },
+  
+  jwt: {
+    secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+    expiresin: process.env.JWT_EXPIRES_IN || '7d'
+  },
+  
+  llama: {
+    url: process.env.LLAMA_SERVER_URL || 'http://localhost:8082',
+    timeout: parseInt(process.env.LLAMA_TIMEOUT) || 30000
+  },
+  
+  matrix: {
+    homeserver: process.env.MATRIX_HOMESERVER || 'https://matrix.org',
+    accessToken: process.env.MATRIX_ACCESS_TOKEN || null,
+    userId: process.env.MATRIX_USER_ID || null
+  },
+  
+  logging: {
+    level: process.env.LOG_LEVEL || 'info',
+    format: process.env.LOG_FORMAT || 'combined'
+  },
+  
+  sessionTimeout: parseInt(process.env.SESSION_TIMEOUT) || 86400000,
+  maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760
+};

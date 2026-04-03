@@ -4,7 +4,7 @@ const axios = require("axios");
 const https = require("https");
 https.globalAgent = new https.Agent({ rejectUnauthorized: false });
 
-const SEARXNG_URL = "http://localhost/searxng/";
+const SEARXNG_URL = "http://100.88.172.119/searxng/";
 
 // Parse command line argument
 const query = process.argv[2];

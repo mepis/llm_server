@@ -1,0 +1,37 @@
+{
+  "name": "llm_server",
+  "version": "1.0.0",
+  "description": "Comprehensive Llama.cpp-based chat system with RBAC, RAG, and Matrix integration",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "worker": "node src/workers/worker.js",
+    "seed-admin": "node src/scripts/createAdmin.js",
+    "test": "node src/tests/testAll.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.1",
+    "mongoose": "^8.8.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "express-validator": "^7.2.0",
+    "winston": "^3.17.0",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "multer": "^2.0.0",
+    "fastestsmallesttextencoderdecoder": "^1.0.22",
+    "node-argon2": "^0.4.3",
+    "piscina": "^4.7.0",
+    "matrix-js-sdk": "^0.0.0-dev.2024112601",
+    "form-data": "^4.0.0",
+    "axios": "^1.7.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  },
+  "engines": {
+    "node": ">=24.12.0"
+  }
+}
