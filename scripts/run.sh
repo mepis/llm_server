@@ -11,4 +11,4 @@ model=run_gemma-4-26B-A4B-it-MXFP4_MOE.sh
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 
-$CURRENT_DIR/models/./$model
+$CURRENT_DIR/.llm_server/models/./$model
