@@ -1,3 +1,4 @@
+const ChatSession = require('../models/ChatSession');
 const chatService = require('../services/chatService');
 const logger = require('../utils/logger');
 
@@ -6,14 +7,12 @@ const createSession = async (req, res) => {
     const userId = req.user.user_id;
     const { session_name, model, temperature, max_tokens, top_p, rag_enabled, rag_document_ids } = req.body;
     
-    const result = await chatService.createSession(userId, {
-      session_name,
+    const result = await chatService.createChatSession(userId, session_name, {
       model,
       temperature,
-      max_tokens,
-      top_p,
-      rag_enabled,
-      rag_document_ids
+      maxTokens: max_tokens,
+      enableRAG: rag_enabled,
+      ragDocuments: rag_document_ids || []
     });
     
     res.status(201).json({
@@ -33,7 +32,7 @@ const getUserSessions = async (req, res) => {
   try {
     const userId = req.user.user_id;
     
-    const result = await chatService.getUserSessions(userId);
+    const result = await chatService.getSessionsByUser(userId);
     
     res.json({
       success: true,
@@ -53,11 +52,18 @@ const getSession = async (req, res) => {
     const userId = req.user.user_id;
     const sessionId = req.params.sessionId;
     
-    const result = await chatService.getSession(sessionId, userId);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
     
     res.json({
       success: true,
-      data: result.data
+      data: session
     });
   } catch (error) {
     logger.error('Get session failed:', error.message);
@@ -74,11 +80,21 @@ const updateSession = async (req, res) => {
     const sessionId = req.params.sessionId;
     const updateData = req.body;
     
-    const result = await chatService.updateSession(sessionId, userId, updateData);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+    
+    Object.assign(session, updateData);
+    await session.save();
     
     res.json({
       success: true,
-      data: result.data
+      data: session
     });
   } catch (error) {
     logger.error('Update session failed:', error.message);
@@ -94,7 +110,16 @@ const deleteSession = async (req, res) => {
     const userId = req.user.user_id;
     const sessionId = req.params.sessionId;
     
-    await chatService.deleteSession(sessionId, userId);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+    
+    await chatService.deleteSession(sessionId);
     
     res.json({ success: true });
   } catch (error) {
@@ -119,7 +144,7 @@ const addMessage = async (req, res) => {
       });
     }
     
-    const result = await chatService.addMessage(sessionId, userId, role, content, metadata);
+    const result = await chatService.addMessageToSession(sessionId, role, content);
     
     res.status(201).json({
       success: true,
@@ -139,11 +164,18 @@ const getMessages = async (req, res) => {
     const userId = req.user.user_id;
     const sessionId = req.params.sessionId;
     
-    const result = await chatService.getMessages(sessionId, userId);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
     
     res.json({
       success: true,
-      data: result.data
+      data: session.messages
     });
   } catch (error) {
     logger.error('Get messages failed:', error.message);
@@ -160,12 +192,19 @@ const sendToLLM = async (req, res) => {
     const sessionId = req.params.sessionId;
     const { message, model, temperature, max_tokens, top_p, use_rag } = req.body;
     
-    const result = await chatService.sendToLLM(sessionId, userId, message, {
-      model,
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+    
+    const result = await chatService.chatWithLLM(sessionId, message, {
       temperature,
       max_tokens,
-      top_p,
-      use_rag
+      top_p
     });
     
     res.json({
@@ -186,7 +225,16 @@ const clearMessages = async (req, res) => {
     const userId = req.user.user_id;
     const sessionId = req.params.sessionId;
     
-    await chatService.clearMessages(sessionId, userId);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+    
+    await chatService.clearSessionMessages(sessionId);
     
     res.json({ success: true });
   } catch (error) {
@@ -204,7 +252,16 @@ const updateMemory = async (req, res) => {
     const sessionId = req.params.sessionId;
     const memoryData = req.body;
     
-    const result = await chatService.updateMemory(sessionId, userId, memoryData);
+    const session = await ChatSession.findById(sessionId);
+    
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+    
+    const result = await chatService.updateSessionMemory(sessionId, memoryData);
     
     res.json({
       success: true,
