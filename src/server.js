@@ -25,6 +25,11 @@ app.use(cookieParser());
 app.use(rateLimiter.apiLimiter);
 
 app.use('/api', require('./routes/api'));
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => {

@@ -28,22 +28,26 @@
         </nav>
       </div>
       <div class="sidebar-section">
-        <h3 class="section-title">Management</h3>
-        <nav class="nav-links">
-          <router-link to="/prompts" class="nav-link">
-            <i class="pi pi-font"></i>
-            <span>Prompts</span>
-          </router-link>
-          <router-link to="/tools" class="nav-link">
-            <i class="pi pi-wrench"></i>
-            <span>Tools</span>
-          </router-link>
-          <router-link to="/logs" class="nav-link">
-            <i class="pi pi-list"></i>
-            <span>Logs</span>
-          </router-link>
-        </nav>
-      </div>
+         <h3 class="section-title">Management</h3>
+         <nav class="nav-links">
+           <router-link to="/prompts" class="nav-link">
+             <i class="pi pi-font"></i>
+             <span>Prompts</span>
+           </router-link>
+           <router-link to="/tools" class="nav-link">
+             <i class="pi pi-wrench"></i>
+             <span>Tools</span>
+           </router-link>
+           <router-link to="/logs" class="nav-link">
+             <i class="pi pi-list"></i>
+             <span>Logs</span>
+           </router-link>
+           <router-link to="/monitor" class="nav-link">
+             <i class="pi pi-chart-bar"></i>
+             <span>Monitor</span>
+           </router-link>
+         </nav>
+       </div>
       <div v-if="user?.role === 'admin' || user?.role === 'system'" class="sidebar-section">
         <h3 class="section-title">Admin</h3>
         <nav class="nav-links">

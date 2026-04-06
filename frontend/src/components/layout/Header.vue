@@ -5,14 +5,15 @@
         <h1>LLM Server</h1>
       </div>
       <div class="header-nav">
-        <nav class="nav-links">
-          <router-link to="/chat" class="nav-link">Chat</router-link>
-          <router-link to="/rag" class="nav-link">RAG</router-link>
-          <router-link to="/prompts" class="nav-link">Prompts</router-link>
-          <router-link to="/tools" class="nav-link">Tools</router-link>
-          <router-link to="/logs" class="nav-link">Logs</router-link>
-        </nav>
-      </div>
+         <nav class="nav-links">
+           <router-link to="/chat" class="nav-link">Chat</router-link>
+           <router-link to="/rag" class="nav-link">RAG</router-link>
+           <router-link to="/prompts" class="nav-link">Prompts</router-link>
+           <router-link to="/tools" class="nav-link">Tools</router-link>
+           <router-link to="/logs" class="nav-link">Logs</router-link>
+           <router-link to="/monitor" class="nav-link">Monitor</router-link>
+         </nav>
+       </div>
       <div class="header-actions">
         <div class="user-info">
           <span class="username">{{ user?.username || 'User' }}</span>

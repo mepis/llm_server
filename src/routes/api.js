@@ -12,18 +12,17 @@ const toolRoutes = require('./tool');
 const logRoutes = require('./log');
 const matrixRoutes = require('./matrix');
 const llamaRoutes = require('./llama');
+const monitorRoutes = require('./monitor');
 
 router.use('/users', userRoutes);
 router.use('/chat', chatRoutes);
+router.use('/chats', chatRoutes);
 router.use('/rag', ragRoutes);
 router.use('/prompts', promptRoutes);
 router.use('/tools', toolRoutes);
 router.use('/logs', logRoutes);
 router.use('/matrix', matrixRoutes);
 router.use('/llama', llamaRoutes);
-
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+router.use('/monitor', monitorRoutes);
 
 module.exports = router;

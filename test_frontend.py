@@ -66,7 +66,7 @@ def test_app():
         print("TEST 5: Backend API Connectivity")
         print("=" * 60)
         try:
-            response = page.goto('http://127.0.0.1:3000/health')
+            response = page.goto('http://127.0.0.1:3000/api/health')
             print(f"✓ Backend health check: {response.status}")
         except Exception as e:
             print(f"✗ Backend health check failed: {e}")

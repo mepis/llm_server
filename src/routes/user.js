@@ -15,9 +15,13 @@ router.delete('/me', authMiddleware, userController.deleteProfile);
 router.use(authMiddleware, rbac.requireAdmin);
 
 router.get('/', userController.getAllUsers);
+router.get('/:id', userController.getUserById);
 router.get('/:userId', userController.getUserById);
+router.put('/:id', userController.updateUser);
 router.put('/:userId', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
 router.delete('/:userId', userController.deleteUser);
+router.patch('/:id/role', userController.updateUserRole);
 router.patch('/:userId/role', userController.updateUserRole);
 
 module.exports = router;

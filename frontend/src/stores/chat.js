@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080/api'
+const API_URL = 'http://127.0.0.1:3000/api'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
     sessions: [],
-    currentSession: null,
-    messages: [],
+    currentChat: null,
     loading: false,
     error: null
   }),
@@ -17,7 +16,7 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/chat/sessions`, { name })
+        const response = await axios.post(`${API_URL}/chats`, { session_name: name })
         this.sessions.unshift(response.data)
         return response.data
       } catch (error) {
@@ -32,9 +31,9 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/chat/sessions`)
-        this.sessions = response.data
-        return response.data
+        const response = await axios.get(`${API_URL}/chats`)
+        this.sessions = response.data || []
+        return this.sessions
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list sessions'
         throw error
@@ -43,28 +42,49 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async getMessages(sessionId) {
+    async loadChat(chatId) {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/chat/sessions/${sessionId}/messages`)
-        this.currentSession = sessionId
-        this.messages = response.data
+        const response = await axios.get(`${API_URL}/chats/${chatId}`)
+        this.currentChat = response.data
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to get messages'
+        this.error = error.response?.data?.message || 'Failed to load chat'
         throw error
       } finally {
         this.loading = false
       }
     },
 
-    async sendMessage(sessionId, content) {
+    async addMessage(content) {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/chat/sessions/${sessionId}/messages`, { content })
-        this.messages.push(response.data)
+        if (!this.currentChat) {
+          const newChat = await this.createSession()
+          this.currentChat = newChat
+        }
+        
+        const response = await axios.post(`${API_URL}/chats/${this.currentChat.chat_id}/messages`, { content })
+        
+        const userMessage = {
+          role: 'user',
+          content,
+          timestamp: new Date().toISOString()
+        }
+        
+        const assistantMessage = {
+          role: 'assistant',
+          content: response.data.content,
+          timestamp: new Date().toISOString()
+        }
+        
+        if (!this.currentChat.messages) {
+          this.currentChat.messages = []
+        }
+        
+        this.currentChat.messages.push(userMessage, assistantMessage)
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to send message'
@@ -74,14 +94,17 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async deleteSession(sessionId) {
+    async deleteChat(chatId) {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/chat/sessions/${sessionId}`)
-        this.sessions = this.sessions.filter(s => s._id !== sessionId)
+        await axios.delete(`${API_URL}/chats/${chatId}`)
+        this.sessions = this.sessions.filter(s => s.chat_id !== chatId)
+        if (this.currentChat?.chat_id === chatId) {
+          this.currentChat = null
+        }
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to delete session'
+        this.error = error.response?.data?.message || 'Failed to delete chat'
         throw error
       } finally {
         this.loading = false

@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = 'http://localhost:8080/api'
+const API_URL = 'http://127.0.0.1:3000/api'
 
-export const useRagStore = defineStore('rag', {
+export const useRAGStore = defineStore('rag', {
   state: () => ({
     documents: [],
     currentDocument: null,
@@ -72,6 +72,24 @@ export const useRagStore = defineStore('rag', {
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to query knowledge base'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async searchDocuments(query, topK = 5, minScore = 0.7) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await axios.post(`${API_URL}/rag/search`, {
+          query,
+          top_k: topK,
+          min_score: minScore
+        })
+        return response.data || []
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Search failed'
         throw error
       } finally {
         this.loading = false
