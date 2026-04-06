@@ -44,7 +44,7 @@
     },
     "llama.cpp_local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "local",
+      "name": "llm server",
       "options": {
         "baseURL": "http://100.115.205.84:11434/v1"
       },
@@ -60,9 +60,9 @@
     },
     "llama.cpp_server": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llm server",
+      "name": "local",
       "options": {
-        "baseURL": "http://100.88.172.119:11434/v1"
+        "baseURL": "http://100.111.101.124:11434/v1"
       },
       "models": {
         "Qwen3.5-9B-IQ4_NL.gguf": {
