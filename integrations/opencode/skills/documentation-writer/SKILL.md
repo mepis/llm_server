@@ -16,9 +16,11 @@ Use this when creating documentation.
 
 ## Instructions
 
-Create documentation for this project.
+Create documentation for this project. Do not stop to ask questions. Keep working until all documentation is created. After all documentation is created, check each page to ensure the documentation page is correct.
 
 **Target audience:** Developers, technical engineers
+
+When completed, run the /init skill. Then, update the AGENTS.md file with references to the design docs.
 
 ## Requirements
 
