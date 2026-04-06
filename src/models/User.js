@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const argon2 = require('argon2');
+const argon2 = require('node-argon2');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -57,8 +57,6 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-userSchema.index({ username: 1 });
-userSchema.index({ email: 1 });
 userSchema.index({ created_at: -1 });
 
 userSchema.statics.hashPassword = async function(password) {

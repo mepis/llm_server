@@ -134,7 +134,7 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
   }
 };
 
-const streamChatResponse = async (sessionId, messages, options) => {
+const streamChatResponse = async function*(sessionId, messages, options) {
   const session = await ChatSession.findById(sessionId);
   
   const controller = new AbortController();

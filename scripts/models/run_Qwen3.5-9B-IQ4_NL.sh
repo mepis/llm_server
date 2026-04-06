@@ -7,7 +7,7 @@ LLM_SERVER_HOME=/home/jon/.llm_server/
 
 # Host Configs
 port=11434
-host=100.88.172.119
+host=100.111.101.124
 
 # Hardware Configs
 mainGpu=0
@@ -19,7 +19,7 @@ threads=8
 # Model Configs
 ###############
 
-context=131072
+context=262144
 temp=0.6
 topP=0.95
 minP=0.00

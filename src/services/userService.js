@@ -1,4 +1,4 @@
-const argon2 = require('argon2');
+const argon2 = require('node-argon2');
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');

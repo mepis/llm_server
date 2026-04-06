@@ -26,7 +26,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useAuthStore } from '../../stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import Button from 'primevue/button'
 import { useRouter } from 'vue-router'
 
