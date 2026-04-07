@@ -58,7 +58,7 @@ dpkg -i cuda-keyring_1.1-1_all.deb > /dev/null 2> /dev/null
 apt update > /dev/null 2> /dev/null
 apt upgrade -y > /dev/null 2> /dev/null
 
-apt install git build-essential cmake ccache libopenblas-dev pkg-config libssl-dev libopenblas64-dev nvtop libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit cuda-toolkit-13-2 cuda-toolkit-13-2-config-common -y > /dev/null 2> /dev/null
+apt install git build-essential cmake ccache pkg-config libssl-dev libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build python3-dev python3-babel python3-venv python-is-python3 uwsgi uwsgi-plugin-python3 libxslt-dev zlib1g-dev libffi-dev nginx nginx-common fcgiwrap nginx-doc nvidia-cuda-toolkit cuda-toolkit-13-2 cuda-toolkit-13-2-config-common -y > /dev/null 2> /dev/null
 
 ############################
 # Install Searxng

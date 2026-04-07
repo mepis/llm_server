@@ -13,6 +13,7 @@ allowed-tools:
   - edit
   - task
   - webfetch
+  - search_the_web
 ---
 
 # Deep Research Skill
@@ -41,14 +42,15 @@ Perform comprehensive, multi-source research on any topic. This skill follows a 
 **Goal**: Create structured research plan
 
 **Steps**:
+
 1. User provides research topic
 2. AI generates comprehensive outline with research questions
-3. **USER APPROVAL**: User must approve outline before research begins
-4. Outline is saved for persistence
+3. Outline is saved for persistence
 
 **Output**: Structured markdown outline with sections and research questions
 
 **Approval Prompt Template**:
+
 ```
 I've created a research outline for "{{topic}}". Does this cover what you need?
 
@@ -64,24 +66,34 @@ Please approve or request changes.
 **Goal**: Execute parallel research across 5 paths using multiple source types
 
 **Sources Supported**:
-- **Web**: exa web search, webfetch tool
+
+- **Web**: 'search_the_web' tool web search, webfetch tool
 - **Database**: Direct database queries
 - **API**: HTTP requests to APIs
 - **Files**: Local file analysis
 
 **Steps**:
+
 1. For each outline section, identify best source type
 2. Execute parallel research (5 concurrent paths)
 3. Collect findings with source citations
-4. **USER REVIEW**: User can review progress and request additions
+4. Review the information gathered thus far and update the outline with additional information to research when appropriate.
 
 **Research Template per Section**:
+
 ```
 Section: {{section title}}
 Source Type: web/database/api/file
 Query: {{specific search terms}}
 Findings: {{key insights with citations}}
 ```
+
+#### Parallel Execution
+
+- Use ThreadPoolExecutor for concurrent research
+- Maximum 5 parallel operations per path
+- Handle errors gracefully
+- Log progress for state persistence
 
 ---
 
@@ -90,6 +102,7 @@ Findings: {{key insights with citations}}
 **Goal**: Synthesize findings into comprehensive markdown report
 
 **Steps**:
+
 1. Gather all research findings from Phase 2
 2. Organize by outline structure
 3. Add executive summary
@@ -97,24 +110,31 @@ Findings: {{key insights with citations}}
 5. **USER APPROVAL**: User must approve draft before finalization
 
 **Report Structure**:
+
 ```markdown
 # Research Report: {{topic}}
 
 ## Executive Summary
+
 Brief overview of key findings
 
 ## Sections
+
 ### Section 1: {{title}}
+
 **Findings**: {{summary}}
 **Sources**: {{list of citations}}
 
 ### Section 2: {{title}}
+
 ...
 
 ## Conclusion
+
 Key takeaways and implications
 
 ## References
+
 Full citation list
 ```
 
@@ -125,12 +145,14 @@ Full citation list
 **Goal**: Iterate based on user feedback
 
 **Steps**:
+
 1. User requests additions/revisions
 2. AI performs targeted additional research
 3. Updates report with new findings
 4. Final approval and saving
 
 **Common Refinements**:
+
 - Expand on specific sections
 - Add new sources
 - Clarify findings
@@ -142,9 +164,10 @@ Full citation list
 
 Research state is saved between sessions for long-running topics.
 
-**State Location**: `~/.local/share/opencode/deep-research/`
+**State Location**: Save the state in a folder called 'deep_research' in the docs folder of the current repository. If a docs folder does not exist, create one.
 
 **State Includes**:
+
 - Research topic and timestamp
 - Approved outline
 - Collected findings with source metadata
@@ -152,6 +175,7 @@ Research state is saved between sessions for long-running topics.
 - Session history for resumption
 
 **Resuming Research**:
+
 - Use `/deep-research resume` command
 - State files are auto-saved after each phase
 
@@ -159,40 +183,46 @@ Research state is saved between sessions for long-running topics.
 
 ## Helper Scripts
 
+Use the 'search_the_web' tool to perform web searches. This should be your primary tool for performing research activities.
+
 The following Python scripts are available in `scripts/`:
 
 ### web_research.py
-Execute parallel web searches using exa:
+
+Execute parallel web searches using 'search_the_web' tool:
+
 ```bash
 python scripts/web_research.py --query "search terms" --num-results 5
 ```
 
 ### database_research.py
+
 Query databases directly:
+
 ```bash
 python scripts/database_research.py --query "SQL statement" --db-type postgresql
 ```
 
-### api_research.py
-Fetch data from APIs:
-```bash
-python scripts/api_research.py --url "https://api.example.com/data" --method GET
-```
-
 ### file_analysis.py
+
 Analyze local files:
+
 ```bash
 python scripts/file_analysis.py --path "/path/to/file" --type markdown
 ```
 
 ### report_generator.py
+
 Synthesize findings into report:
+
 ```bash
 python scripts/report_generator.py --input "findings.json" --output "report.md"
 ```
 
 ### state_manager.py
+
 Manage research state:
+
 ```bash
 python scripts/state_manager.py --save --topic "my research"
 python scripts/state_manager.py --resume --id "research-20260403-123456"
@@ -207,13 +237,14 @@ python scripts/state_manager.py --resume --id "research-20260403-123456"
 **User**: "Research modern JavaScript performance optimization techniques"
 
 **Phase 1 Output**: Outline with sections:
+
 - JavaScript Engine Optimization
 - Memory Management
 - Async Performance
 - Bundler Optimization
 - Runtime Performance
 
-**Phase 2 Output**: Parallel research findings with exa queries
+**Phase 2 Output**: Parallel research findings with 'search_the_web' tool queries
 
 **Phase 3 Output**: Markdown report with 10+ source citations
 
@@ -224,7 +255,8 @@ python scripts/state_manager.py --resume --id "research-20260403-123456"
 **User**: "Analyze climate change impacts on agriculture using recent studies and government data"
 
 **Source Mix**:
-- Web: exa searches for recent academic papers
+
+- Web: 'search_the_web' tool searches for recent academic papers
 - Database: Government climate databases
 - API: Weather/agriculture data APIs
 - Files: Local PDF reports if available
@@ -255,21 +287,25 @@ python scripts/state_manager.py --resume --id "research-20260403-123456"
 ## Troubleshooting
 
 **No Results Found**:
+
 - Try broader search terms
 - Check source availability
 - Switch to different source type
 
 **Outdated Information**:
+
 - Add date filters to web searches
 - Check source publication dates
 - Request recent alternatives
 
 **Conflicting Sources**:
+
 - Note discrepancies in report
 - Seek additional authoritative sources
 - Present balanced view with context
 
 **Research Hangs**:
+
 - Check network/API connectivity
 - Verify database credentials
 - Review file permissions

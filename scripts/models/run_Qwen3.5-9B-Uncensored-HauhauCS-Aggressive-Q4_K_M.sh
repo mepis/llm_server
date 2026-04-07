@@ -32,4 +32,5 @@ export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=/usr/local/cuda/bin/nvcc
 
-./llama-server -m /home/jon/.llm_server/models/Qwen3.5-9B-IQ4_NL.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 3 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q4_0 --cache-type-v q4_0 --batch-size 4096 --ubatch-size 1024 --webui
+./llama-server -m /home/jon/.llm_server/models/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 3 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q4_0 --cache-type-v q4_0 --batch-size 4096 --ubatch-size 1024 --webui
+

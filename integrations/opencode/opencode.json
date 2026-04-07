@@ -11,7 +11,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "0.0.0.0",
+    "hostname": "100.105.94.63",
     "mdns": true,
     "cors": ["*"]
   },
@@ -44,7 +44,7 @@
     },
     "llama.cpp_local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "llm server",
+      "name": "betty",
       "options": {
         "baseURL": "http://100.115.205.84:11434/v1"
       },
@@ -62,13 +62,13 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "local",
       "options": {
-        "baseURL": "http://100.111.101.124:11434/v1"
+        "baseURL": "http://100.105.94.63:11434/v1"
       },
       "models": {
         "Qwen3.5-9B-IQ4_NL.gguf": {
           "name": "Qwen3.5-9B-IQ4_NL.gguf",
           "limit": {
-            "context": 262144,
+            "context": 131072,
             "output": 32768
           }
         }

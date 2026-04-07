@@ -13,14 +13,6 @@ if [[ $REPLY == "q" ]]; then
     exit 0
 fi
 
-
-# Install SearxNG
-mkdir ~/git
-cd ~/git
-git clone https://github.com/searxng/searxng.git searxng
-cd searxng
-sudo -H ./utils/searxng.sh install all
-
 # Install OpenCode
 curl -fsSL https://opencode.ai/install | bash
 
