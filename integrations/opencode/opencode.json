@@ -11,7 +11,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.105.94.63",
+    "hostname": "100.120.132.78",
     "mdns": true,
     "cors": ["*"]
   },
@@ -62,7 +62,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "local",
       "options": {
-        "baseURL": "http://100.105.94.63:11434/v1"
+        "baseURL": "http://100.120.132.78:11434/v1"
       },
       "models": {
         "Qwen3.5-9B-IQ4_NL.gguf": {
