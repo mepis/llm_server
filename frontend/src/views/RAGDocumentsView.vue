@@ -271,4 +271,37 @@ onMounted(() => {
   display: flex;
   gap: 0.5rem;
 }
+
+@media (max-width: 768px) {
+  .documents-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .documents-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .documents-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .documents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .doc-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
 </style>

@@ -235,4 +235,29 @@ onMounted(() => {
   color: #6b7280;
   margin: 0;
 }
+
+@media (max-width: 768px) {
+  .monitor-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .monitor-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .monitor-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-value {
+    font-size: 2rem;
+  }
+}
 </style>

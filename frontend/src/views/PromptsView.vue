@@ -314,4 +314,25 @@ onMounted(() => {
   outline: none;
   border-color: #2d6a4f;
 }
+
+@media (max-width: 768px) {
+  .prompts-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .prompts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .prompts-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .prompts-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

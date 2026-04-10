@@ -214,4 +214,38 @@ onMounted(() => {
 .log-row.log-level-error {
   background: rgba(239, 68, 68, 0.05);
 }
+
+@media (max-width: 768px) {
+  .logs-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .logs-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .logs-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .filter-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .filter-select {
+    width: 100% !important;
+  }
+
+  .logs-table-container {
+    overflow-x: auto;
+  }
+
+  .logs-table {
+    min-width: 600px;
+  }
+}
 </style>

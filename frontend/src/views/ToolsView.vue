@@ -389,4 +389,25 @@ onMounted(() => {
   overflow-x: auto;
   font-size: 0.875rem;
 }
+
+@media (max-width: 768px) {
+  .tools-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .tools-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .tools-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

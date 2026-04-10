@@ -24,5 +24,13 @@ import Sidebar from '../components/layout/Sidebar.vue'
   padding: 2rem;
   background: #f3f4f6;
   margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1rem;
+  }
 }
 </style>

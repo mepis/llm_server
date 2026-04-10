@@ -205,4 +205,32 @@ onMounted(() => {
   font-size: 0.75rem;
   color: #9ca3af;
 }
+
+@media (max-width: 768px) {
+  .history-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .history-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .chat-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .chat-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
 </style>

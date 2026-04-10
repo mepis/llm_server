@@ -40,6 +40,7 @@
         <button type="submit" class="btn-primary" :disabled="loading">
           {{ loading ? 'Creating account...' : 'Create Account' }}
         </button>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       </form>
       <p class="auth-footer">
         Already have an account? <router-link to="/login" class="auth-link">Login</router-link>
@@ -56,6 +57,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const authStore = useAuthStore()
 const loading = ref(false)
+const errorMessage = ref('')
 
 const form = ref({
   username: '',
@@ -65,11 +67,13 @@ const form = ref({
 
 const handleRegister = async () => {
   loading.value = true
+  errorMessage.value = ''
   try {
     await authStore.register(form.value)
     router.push('/login')
   } catch (error) {
     console.error('Registration failed:', error)
+    errorMessage.value = error.response?.data?.error || 'Registration failed. Please try again.'
   } finally {
     loading.value = false
   }
@@ -172,5 +176,12 @@ const handleRegister = async () => {
 
 .auth-link:hover {
   text-decoration: underline;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  text-align: center;
+  margin-top: 1rem;
 }
 </style>

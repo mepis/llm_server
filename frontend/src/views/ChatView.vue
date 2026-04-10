@@ -103,6 +103,7 @@ const sendMessage = async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: margin-left 0.3s ease;
 }
 
 .chat-messages {
@@ -265,5 +266,61 @@ const sendMessage = async () => {
 
 .send-button i {
   font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .chat-main {
+    margin-left: 0;
+  }
+
+  .chat-messages {
+    padding: 1rem;
+  }
+
+  .empty-state h2 {
+    font-size: 1.25rem;
+  }
+
+  .message {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  .message-content {
+    max-width: 100%;
+  }
+
+  .chat-input-container {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .chat-input-container textarea {
+    font-size: 0.9rem;
+    padding: 0.625rem;
+  }
+
+  .send-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-input-container {
+    flex-direction: column;
+  }
+
+  .send-button {
+    width: 100%;
+    height: 48px;
+    border-radius: 8px;
+  }
 }
 </style>

@@ -187,4 +187,33 @@ const performSearch = async () => {
   font-size: 0.75rem;
   color: #9ca3af;
 }
+
+@media (max-width: 768px) {
+  .queries-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .queries-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .search-box {
+    flex-direction: column;
+  }
+
+  .result-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .result-rank {
+    align-self: flex-start;
+  }
+
+  .result-meta {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
 </style>
