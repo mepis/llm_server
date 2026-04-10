@@ -7,28 +7,28 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/LoginView.vue')
+      component: () => import('../views/auth/LoginView.vue')
     },
     {
       path: '/register',
       name: 'register',
-      component: () => import('../views/RegisterView.vue')
+      component: () => import('../views/auth/RegisterView.vue')
     },
     {
       path: '/',
       name: 'home',
-      component: () => import('../views/HomeView.vue')
+      component: () => import('../views/home/HomeView.vue')
     },
     {
       path: '/chat',
       name: 'chat',
-      component: () => import('../views/ChatView.vue'),
+      component: () => import('../views/chat/ChatView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/chat/history',
       name: 'chat-history',
-      component: () => import('../views/ChatHistoryView.vue'),
+      component: () => import('../views/chat/ChatHistoryView.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -39,37 +39,37 @@ const router = createRouter({
     {
       path: '/rag/documents',
       name: 'rag-documents',
-      component: () => import('../views/RAGDocumentsView.vue'),
+      component: () => import('../views/rag/RAGDocumentsView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/rag/queries',
       name: 'rag-queries',
-      component: () => import('../views/RAGQueriesView.vue'),
+      component: () => import('../views/rag/RAGQueriesView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/prompts',
       name: 'prompts',
-      component: () => import('../views/PromptsView.vue'),
+      component: () => import('../views/prompts/PromptsView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/tools',
       name: 'tools',
-      component: () => import('../views/ToolsView.vue'),
+      component: () => import('../views/tools/ToolsView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/logs',
       name: 'logs',
-      component: () => import('../views/LogsView.vue'),
+      component: () => import('../views/logs/LogsView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/monitor',
       name: 'monitor',
-      component: () => import('../views/SystemMonitorView.vue'),
+      component: () => import('../views/monitor/SystemMonitorView.vue'),
       meta: { requiresAuth: true }
     }
   ]

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = 'http://127.0.0.1:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -66,7 +66,7 @@ export const useChatStore = defineStore('chat', {
           this.currentChat = newChat
         }
         
-        const response = await axios.post(`${API_URL}/chats/${this.currentChat.chat_id}/messages`, { content })
+        const response = await axios.post(`${API_URL}/chats/${this.currentChat.chat_id}/llm`, { message: content })
         
         const userMessage = {
           role: 'user',
@@ -76,7 +76,7 @@ export const useChatStore = defineStore('chat', {
         
         const assistantMessage = {
           role: 'assistant',
-          content: response.data.content,
+          content: response.data.data,
           timestamp: new Date().toISOString()
         }
         

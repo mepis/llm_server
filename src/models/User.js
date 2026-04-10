@@ -60,11 +60,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ created_at: -1 });
 
 userSchema.statics.hashPassword = async function(password) {
-  return await argon2.hash(password, {
-    memoryCost: 65536,
-    timeCost: 3,
-    parallelism: 1
-  });
+  return await argon2.hash(password);
 };
 
 userSchema.statics.verifyPassword = async function(hash, password) {

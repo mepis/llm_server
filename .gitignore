@@ -36,7 +36,11 @@ htmlcov/
 .env.*.secret
 
 # Logs
-*.log
+logs/*.log
+logs/archive/*.log
+
+# Test results
+test-results/*.png
 
 # Temporary files
 .tmp
@@ -49,5 +53,10 @@ models/*
 
 # Node.js dependencies
 **/node_modules/
-llama.cpp
-llama.cpp
+
+# Virtual environment
+venv/
+.venv/
+
+# Frontend build
+frontend/dist/

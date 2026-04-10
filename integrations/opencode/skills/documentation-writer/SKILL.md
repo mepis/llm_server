@@ -18,6 +18,12 @@ Use this when creating documentation.
 
 Create documentation for this project. Do not stop to ask questions. Keep working until all documentation is created. After all documentation is created, check each page to ensure the documentation page is correct.
 
+### State Management
+- Skills must be designed to interact with the persistent context or session state.
+- **Context Injection**: Utilize OpenAI/OpenCode plugins, such as a CompactionPlugin, to inject relevant state (e.g., 'User Profile', 'Current Task Status') directly into the prompt before execution.
+- **Session Lifecycle**: State persists across tool calls via the Session mechanism; skills implicitly use this via the active session ID.
+- **Guidance**: Always design your skill to either RETURN a new state object or ACCEPT state data as an input parameter for execution.
+
 **Target audience:** Developers, technical engineers
 
 When completed, run the /init skill. Then, update the AGENTS.md file with references to the design docs.

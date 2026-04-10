@@ -1,19 +1,10 @@
-const mongoose = require('mongoose');
 const config = require('./database');
-const logger = require('../utils/logger');
 
 let dbConnection = null;
 
 const connectDB = async () => {
   try {
-    const opts = {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      ...config.mongodb.options
-    };
-
-    await mongoose.connect(config.mongodb.uri, opts);
+    await mongoose.connect(config.mongodb.uri, config.mongodb.options);
     dbConnection = mongoose.connection;
     
     dbConnection.on('error', (err) => {

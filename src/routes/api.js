@@ -15,6 +15,7 @@ const llamaRoutes = require('./llama');
 const monitorRoutes = require('./monitor');
 
 router.use('/users', userRoutes);
+router.use('/auth', userRoutes);
 router.use('/chat', chatRoutes);
 router.use('/chats', chatRoutes);
 router.use('/rag', ragRoutes);

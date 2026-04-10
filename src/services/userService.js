@@ -1,61 +1,59 @@
-const argon2 = require('node-argon2');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
 
 const registerUser = async (username, email, password) => {
-  try {
-    const existingUser = await User.findOne({
-      $or: [{ username }, { email }]
-    });
-    
-    if (existingUser) {
-      throw new Error('Username or email already exists');
-    }
-    
-    const passwordHash = await argon2.hash(password, {
-      memoryCost: 65536,
-      timeCost: 3,
-      parallelism: 1
-    });
-    
-    const user = await User.create({
-      username,
-      email,
-      password_hash: passwordHash,
-      roles: ['user']
-    });
-    
-    logger.info(`User registered: ${user.username} (${user.email})`);
-    
-    return {
-      success: true,
-      data: {
-        user_id: user._id,
-        username: user.username,
-        email: user.email,
-        roles: user.roles
+    try {
+      const existingUser = await User.findOne({
+        $or: [{ username }, { email }]
+      });
+      
+      if (existingUser) {
+        throw new Error('Username or email already exists');
       }
-    };
-  } catch (error) {
-    logger.error('User registration failed:', error.message);
-    throw error;
-  }
-};
+      
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      const user = await User.create({
+        username,
+        email,
+        password_hash: passwordHash,
+        roles: ['user']
+      });
+      
+      logger.info(`User registered: ${user.username} (${user.email})`);
+      
+      return {
+        success: true,
+        data: {
+          user_id: user._id,
+          username: user.username,
+          email: user.email,
+          roles: user.roles
+        }
+      };
+    } catch (error) {
+      logger.error('User registration failed:', error.message);
+      throw error;
+    }
+  };
 
-const loginUser = async (username, password) => {
-  try {
-    const user = await User.findOne({ username });
-    
-    if (!user) {
-      throw new Error('Invalid credentials');
-    }
-    
-    const isValidPassword = await argon2.verify(user.password_hash, password);
-    
-    if (!isValidPassword) {
-      throw new Error('Invalid credentials');
-    }
+ const loginUser = async (username, password) => {
+    try {
+      const user = await User.findOne({ username });
+      
+      if (!user) {
+        throw new Error('Invalid credentials');
+      }
+      
+      const isValidPassword = await bcrypt.compare(password, user.password_hash);
+      
+      logger.debug(`Password verification for ${username}: ${isValidPassword}`);
+      
+      if (!isValidPassword) {
+        throw new Error('Invalid credentials');
+      }
     
     if (!user.is_active) {
       throw new Error('Account is inactive');

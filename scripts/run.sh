@@ -8,6 +8,7 @@
 # model=run_Qwen3.5-9B-IQ4_NL.sh
 # model=run_gemma-4-26B-A4B-it-MXFP4_MOE.sh
 model=run_Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
+# model=run_Gemma-4-E4B-Uncensored-HauhauCS-Aggressive-Q6_K_P.gguf.sh
 
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR

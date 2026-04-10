@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_URL = 'http://127.0.0.1:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -18,13 +18,21 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       try {
         const response = await axios.post(`${API_URL}/auth/login`, credentials)
-        this.token = response.data.token
-        this.user = response.data.user
+        const data = response.data.data
+        this.token = data.token
+        this.user = data.user
         this.isAuthenticated = true
-        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('token', data.token)
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Login failed'
+        if (error.response) {
+          this.error = error.response.data?.error || error.response.data?.message || 'Login failed'
+        } else if (error.request) {
+          this.error = 'Network error. Please check your connection and try again.'
+        } else {
+          this.error = 'Login failed. Please try again.'
+        }
+        error.message = this.error
         throw error
       } finally {
         this.loading = false
@@ -38,7 +46,14 @@ export const useAuthStore = defineStore('auth', {
         const response = await axios.post(`${API_URL}/auth/register`, userData)
         return response.data
       } catch (error) {
-        this.error = error.response?.data?.message || 'Registration failed'
+        if (error.response) {
+          this.error = error.response.data?.error || error.response.data?.message || 'Registration failed'
+        } else if (error.request) {
+          this.error = 'Network error. Please check your connection and try again.'
+        } else {
+          this.error = 'Registration failed. Please try again.'
+        }
+        error.message = this.error
         throw error
       } finally {
         this.loading = false

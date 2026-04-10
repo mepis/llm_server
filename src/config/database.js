@@ -1,5 +1,9 @@
 require('dotenv').config();
 
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
+
+// Configuration settings
 module.exports = {
   port: process.env.PORT || 3000,
   env: process.env.NODE_ENV || 'development',
@@ -7,8 +11,9 @@ module.exports = {
   mongodb: {
     uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/llm_server',
     options: {
-      socketTimeoutMS: 30000,
-      connectTimeoutMS: 10000
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000
     }
   },
   
