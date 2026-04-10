@@ -4,6 +4,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const rbac = require('../middleware/rbac');
 
+const authRoutes = require('./auth');
 const userRoutes = require('./user');
 const chatRoutes = require('./chat');
 const ragRoutes = require('./rag');
@@ -14,8 +15,8 @@ const matrixRoutes = require('./matrix');
 const llamaRoutes = require('./llama');
 const monitorRoutes = require('./monitor');
 
+router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
-router.use('/auth', userRoutes);
 router.use('/chat', chatRoutes);
 router.use('/chats', chatRoutes);
 router.use('/rag', ragRoutes);

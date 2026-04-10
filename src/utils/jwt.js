@@ -41,7 +41,7 @@ const validateToken = (token) => {
 };
 
 // Crypto Utility Functions
-const generateToken = (length = 32) => {
+const generateRandomString = (length = 32) => {
   return crypto.randomBytes(length).toString('hex');
 };
 
@@ -61,5 +61,9 @@ module.exports = {
   generateToken,
   verifyToken,
   decodeToken,
-  validateToken
+  validateToken,
+  generateRandomString,
+  generateJWTSecret,
+  generateId,
+  hashFile
 };

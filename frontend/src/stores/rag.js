@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useRAGStore = defineStore('rag', {
   state: () => ({
@@ -21,7 +19,7 @@ export const useRAGStore = defineStore('rag', {
         formData.append('file', file)
         formData.append('metadata', JSON.stringify(metadata))
 
-        const response = await axios.post(`${API_URL}/rag/documents`, formData, {
+        const response = await apiClient.post('/rag/documents', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
         this.documents.unshift(response.data)
@@ -38,7 +36,7 @@ export const useRAGStore = defineStore('rag', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/rag/documents`)
+        const response = await apiClient.get('/rag/documents')
         this.documents = response.data
         return response.data
       } catch (error) {
@@ -53,7 +51,7 @@ export const useRAGStore = defineStore('rag', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/rag/documents/${documentId}`)
+        await apiClient.delete(`/rag/documents/${documentId}`)
         this.documents = this.documents.filter(d => d._id !== documentId)
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete document'
@@ -67,7 +65,7 @@ export const useRAGStore = defineStore('rag', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/rag/query`, { query, documentIds })
+        const response = await apiClient.post('/rag/query', { query, documentIds })
         this.queries.unshift(response.data)
         return response.data
       } catch (error) {
@@ -82,7 +80,7 @@ export const useRAGStore = defineStore('rag', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/rag/search`, {
+        const response = await apiClient.post('/rag/search', {
           query,
           top_k: topK,
           min_score: minScore

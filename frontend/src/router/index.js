@@ -67,12 +67,18 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/monitor',
-      name: 'monitor',
-      component: () => import('../views/monitor/SystemMonitorView.vue'),
-      meta: { requiresAuth: true }
-    }
-  ]
+       path: '/monitor',
+       name: 'monitor',
+       component: () => import('../views/monitor/SystemMonitorView.vue'),
+       meta: { requiresAuth: true }
+     },
+     {
+       path: '/debug',
+       name: 'debug',
+       component: () => import('../views/debug/DebugView.vue'),
+       meta: { requiresAuth: true }
+     }
+   ]
 })
 
 router.beforeEach((to, from, next) => {

@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const mongoose = require('mongoose');
-const logger = require('../utils/logger');
 
 // Configuration settings
 module.exports = {
@@ -31,11 +30,6 @@ module.exports = {
     homeserver: process.env.MATRIX_HOMESERVER || 'https://matrix.org',
     accessToken: process.env.MATRIX_ACCESS_TOKEN || null,
     userId: process.env.MATRIX_USER_ID || null
-  },
-  
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    format: process.env.LOG_FORMAT || 'combined'
   },
   
   sessionTimeout: parseInt(process.env.SESSION_TIMEOUT) || 86400000,

@@ -48,12 +48,16 @@
              <i class="pi pi-list"></i>
              <span>Logs</span>
            </router-link>
-           <router-link to="/monitor" class="nav-link" @click="closeAfterNav">
-             <i class="pi pi-chart-bar"></i>
-             <span>Monitor</span>
-           </router-link>
-         </nav>
-       </div>
+         <router-link to="/monitor" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-chart-bar"></i>
+              <span>Monitor</span>
+            </router-link>
+            <router-link v-if="debugMenuEnabled" to="/debug" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-bug"></i>
+              <span>Debug</span>
+            </router-link>
+          </nav>
+        </div>
       <div v-if="user?.role === 'admin' || user?.role === 'system'" class="sidebar-section">
         <h3 class="section-title">Admin</h3>
         <nav class="nav-links">
@@ -81,6 +85,7 @@ const authStore = useAuthStore()
 const { isMobile, sidebarOpen, closeSidebar } = useSidebar()
 
 const user = computed(() => authStore.user)
+const debugMenuEnabled = import.meta.env.VITE_DEBUG_MENU_ENABLED === 'true'
 
 const closeAfterNav = () => {
   if (isMobile.value) {

@@ -6,13 +6,6 @@ const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Username, email, and password are required'
-      });
-    }
-    
     const result = await userService.registerUser(username, email, password);
     
     res.status(201).json({
@@ -31,13 +24,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'Username and password are required'
-      });
-    }
     
     const result = await userService.loginUser(username, password);
     
@@ -204,13 +190,6 @@ const updateUserRole = async (req, res) => {
   try {
     const userId = req.params.userId;
     const { role } = req.body;
-    
-    if (!role) {
-      return res.status(400).json({
-        success: false,
-        error: 'Role is required'
-      });
-    }
     
     const result = await require('../services/userService').setUserRole(userId, role);
     

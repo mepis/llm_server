@@ -53,6 +53,18 @@ const form = ref({
   password: ''
 })
 
+const getErrorMessage = (error) => {
+  if (error.response && error.response.data) {
+    return error.response.data.error || 
+           error.response.data.message || 
+           'Authentication failed'
+  }
+  if (error.message) {
+    return error.message
+  }
+  return 'An unexpected error occurred during login'
+}
+
 const handleLogin = async () => {
   loading.value = true
   errorMessage.value = ''
@@ -61,7 +73,7 @@ const handleLogin = async () => {
     router.push('/chat')
   } catch (error) {
     console.error('Login failed:', error)
-    errorMessage.value = error.response?.data?.error || 'Login failed. Please check your credentials.'
+    errorMessage.value = getErrorMessage(error)
   } finally {
     loading.value = false
   }

@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useLogStore = defineStore('log', {
   state: () => ({
@@ -16,7 +14,7 @@ export const useLogStore = defineStore('log', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/logs`, { params: options })
+        const response = await apiClient.get('/logs', { params: options })
         this.logs = response.data
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const useLogStore = defineStore('log', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/logs/stats`)
+        const response = await apiClient.get('/logs/stats')
         this.stats = response.data
         return response.data
       } catch (error) {

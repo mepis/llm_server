@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useLlamaStore = defineStore('llama', {
   state: () => ({
@@ -17,7 +15,7 @@ export const useLlamaStore = defineStore('llama', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/llama/models`)
+        const response = await apiClient.get('/llama/models')
         this.models = response.data
         return response.data
       } catch (error) {
@@ -32,7 +30,7 @@ export const useLlamaStore = defineStore('llama', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/llama/models/${modelId}`)
+        const response = await apiClient.get(`/llama/models/${modelId}`)
         this.currentModel = response.data
         return response.data
       } catch (error) {
@@ -47,7 +45,7 @@ export const useLlamaStore = defineStore('llama', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/llama/status`)
+        const response = await apiClient.get('/llama/status')
         this.status = response.data
         return response.data
       } catch (error) {

@@ -7,10 +7,12 @@ import axios from 'axios'
 import './style.css'
 import App from './App.vue'
 import router from './router'
+import { initConsoleInterceptor } from './utils/consoleInterceptor'
 
 const app = createApp(App)
 
-// Configure axios to send auth token with every request
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
+
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -35,5 +37,9 @@ app.use(PrimeVue, {
     }
   }
 })
+
+if (import.meta.env.DEV) {
+  initConsoleInterceptor()
+}
 
 app.mount('#app')

@@ -9,8 +9,8 @@
 </template>
 
 <script setup>
-import Header from '../components/layout/Header.vue'
-import Sidebar from '../components/layout/Sidebar.vue'
+import Header from '@/components/layout/Header.vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
 </script>
 
 <style scoped>

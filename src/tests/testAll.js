@@ -5,6 +5,19 @@ const db = require('../config/db');
 
 console.log('Running backend tests...');
 
+const cleanupIds = [];
+const testUserId = new mongoose.Types.ObjectId();
+
+const cleanupTestData = async () => {
+  for (const item of cleanupIds) {
+    try {
+      await item.model.findByIdAndDelete(item.id);
+    } catch (error) {
+      console.log(`  Warning: Failed to clean up ${item.model.modelName} ${item.id}:`, error.message);
+    }
+  }
+};
+
 const runTests = async () => {
   let passed = 0;
   let failed = 0;
@@ -26,17 +39,15 @@ const runTests = async () => {
     try {
       const User = require('../models/User');
       const user = new User({
-        username: 'test_user',
-        email: 'test@example.com',
-        password: 'hashed_password',
+        username: 'test_user_' + Date.now(),
+        email: 'test' + Date.now() + '@example.com',
+        password_hash: 'hashed_password',
         roles: ['user']
       });
       await user.save();
+      cleanupIds.push({ model: User, id: user._id });
       console.log('✓ User created successfully');
       passed++;
-      
-      // Clean up
-      await User.findByIdAndDelete(user._id);
     } catch (error) {
       console.log('✗ User model test failed:', error.message);
       failed++;
@@ -47,15 +58,14 @@ const runTests = async () => {
     try {
       const ChatSession = require('../models/ChatSession');
       const session = new ChatSession({
-        title: 'Test Session',
+        session_name: 'Test Session',
+        user_id: testUserId,
         messages: []
       });
       await session.save();
+      cleanupIds.push({ model: ChatSession, id: session._id });
       console.log('✓ ChatSession created successfully');
       passed++;
-      
-      // Clean up
-      await ChatSession.findByIdAndDelete(session._id);
     } catch (error) {
       console.log('✗ ChatSession model test failed:', error.message);
       failed++;
@@ -66,16 +76,18 @@ const runTests = async () => {
     try {
       const RAGDocument = require('../models/RAGDocument');
       const doc = new RAGDocument({
-        name: 'Test Document',
+        filename: 'test.txt',
+        file_path: '/tmp/test.txt',
+        file_size: 1024,
+        file_type: 'txt',
+        user_id: testUserId,
         content: 'Test content',
         metadata: {}
       });
       await doc.save();
+      cleanupIds.push({ model: RAGDocument, id: doc._id });
       console.log('✓ RAGDocument created successfully');
       passed++;
-      
-      // Clean up
-      await RAGDocument.findByIdAndDelete(doc._id);
     } catch (error) {
       console.log('✗ RAGDocument model test failed:', error.message);
       failed++;
@@ -87,14 +99,13 @@ const runTests = async () => {
       const Prompt = require('../models/Prompt');
       const prompt = new Prompt({
         name: 'Test Prompt',
-        template: 'Test template'
+        content: 'Test template',
+        user_id: testUserId
       });
       await prompt.save();
+      cleanupIds.push({ model: Prompt, id: prompt._id });
       console.log('✓ Prompt created successfully');
       passed++;
-      
-      // Clean up
-      await Prompt.findByIdAndDelete(prompt._id);
     } catch (error) {
       console.log('✗ Prompt model test failed:', error.message);
       failed++;
@@ -107,14 +118,14 @@ const runTests = async () => {
       const tool = new Tool({
         name: 'Test Tool',
         description: 'Test tool description',
+        code: 'console.log("test")',
+        user_id: testUserId,
         config: {}
       });
       await tool.save();
+      cleanupIds.push({ model: Tool, id: tool._id });
       console.log('✓ Tool created successfully');
       passed++;
-      
-      // Clean up
-      await Tool.findByIdAndDelete(tool._id);
     } catch (error) {
       console.log('✗ Tool model test failed:', error.message);
       failed++;
@@ -148,6 +159,8 @@ const runTests = async () => {
       failed++;
     }
     
+    console.log('\nCleaning up test data...');
+    await cleanupTestData();
     await db.disconnectDB();
     
     // Summary

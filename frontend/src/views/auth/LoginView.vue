@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import LoginKeypad from '../components/auth/LoginKeypad.vue'
+import LoginKeypad from '@/components/auth/LoginKeypad.vue'
 </script>
 
 <style scoped>

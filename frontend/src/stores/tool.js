@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useToolStore = defineStore('tool', {
   state: () => ({
@@ -16,7 +14,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/tools`, data)
+        const response = await apiClient.post('/tools', data)
         this.tools.unshift(response.data)
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/tools`)
+        const response = await apiClient.get('/tools')
         this.tools = response.data
         return response.data
       } catch (error) {
@@ -46,7 +44,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/tools/${toolId}`)
+        const response = await apiClient.get(`/tools/${toolId}`)
         this.currentTool = response.data
         return response.data
       } catch (error) {
@@ -61,7 +59,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.put(`${API_URL}/tools/${toolId}`, data)
+        const response = await apiClient.put(`/tools/${toolId}`, data)
         const index = this.tools.findIndex(t => t._id === toolId)
         if (index !== -1) {
           this.tools[index] = response.data
@@ -79,7 +77,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/tools/${toolId}`)
+        await apiClient.delete(`/tools/${toolId}`)
         this.tools = this.tools.filter(t => t._id !== toolId)
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete tool'
@@ -93,7 +91,7 @@ export const useToolStore = defineStore('tool', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/tools/${toolId}/execute`, params)
+        const response = await apiClient.post(`/tools/${toolId}/execute`, params)
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to execute tool'

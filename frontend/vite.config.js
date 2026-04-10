@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
+const backendUrl = process.env.VITE_API_BASE_URL || 'http://localhost:3000'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
@@ -14,9 +16,12 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: backendUrl,
         changeOrigin: true
       }
     }
+  },
+  define: {
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(backendUrl)
   }
 })

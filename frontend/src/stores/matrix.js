@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useMatrixStore = defineStore('matrix', {
   state: () => ({
@@ -16,7 +14,7 @@ export const useMatrixStore = defineStore('matrix', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/matrix/messages`)
+        const response = await apiClient.get('/matrix/messages')
         this.messages = response.data
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const useMatrixStore = defineStore('matrix', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/matrix/rooms`)
+        const response = await apiClient.get('/matrix/rooms')
         this.rooms = response.data
         return response.data
       } catch (error) {
@@ -46,7 +44,7 @@ export const useMatrixStore = defineStore('matrix', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/matrix/rooms/${roomId}/messages`, { content })
+        const response = await apiClient.post(`/matrix/rooms/${roomId}/messages`, { content })
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to send message'

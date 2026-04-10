@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -16,7 +14,7 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/users`)
+        const response = await apiClient.get('/users')
         this.users = response.data
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/users/${userId}`)
+        const response = await apiClient.get(`/users/${userId}`)
         this.currentUser = response.data
         return response.data
       } catch (error) {
@@ -46,7 +44,7 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.put(`${API_URL}/users/${userId}`, data)
+        const response = await apiClient.put(`/users/${userId}`, data)
         const index = this.users.findIndex(u => u._id === userId)
         if (index !== -1) {
           this.users[index] = response.data
@@ -64,7 +62,7 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/users/${userId}`)
+        await apiClient.delete(`/users/${userId}`)
         this.users = this.users.filter(u => u._id !== userId)
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete user'

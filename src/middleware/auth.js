@@ -1,4 +1,4 @@
-const rbac = require('./rbac');
+const { verifyToken } = require('../utils/jwt');
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -21,7 +21,7 @@ const authenticate = (req, res, next) => {
   const token = parts[1];
   
   try {
-    const decoded = rbac.jwt.verifyToken(token);
+    const decoded = verifyToken(token);
     req.user = decoded;
     next();
   } catch (error) {

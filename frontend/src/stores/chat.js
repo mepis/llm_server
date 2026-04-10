@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -16,7 +14,7 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/chats`, { session_name: name })
+        const response = await apiClient.post('/chats', { session_name: name })
         this.sessions.unshift(response.data)
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/chats`)
+        const response = await apiClient.get('/chats')
         this.sessions = response.data || []
         return this.sessions
       } catch (error) {
@@ -46,7 +44,7 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/chats/${chatId}`)
+        const response = await apiClient.get(`/chats/${chatId}`)
         this.currentChat = response.data
         return response.data
       } catch (error) {
@@ -66,7 +64,7 @@ export const useChatStore = defineStore('chat', {
           this.currentChat = newChat
         }
         
-        const response = await axios.post(`${API_URL}/chats/${this.currentChat.chat_id}/llm`, { message: content })
+        const response = await apiClient.post(`/chats/${this.currentChat.chat_id}/llm`, { message: content })
         
         const userMessage = {
           role: 'user',
@@ -98,7 +96,7 @@ export const useChatStore = defineStore('chat', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/chats/${chatId}`)
+        await apiClient.delete(`/chats/${chatId}`)
         this.sessions = this.sessions.filter(s => s.chat_id !== chatId)
         if (this.currentChat?.chat_id === chatId) {
           this.currentChat = null

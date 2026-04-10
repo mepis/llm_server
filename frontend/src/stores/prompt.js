@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || '/api'
+import apiClient from '@/axios'
 
 export const usePromptStore = defineStore('prompt', {
   state: () => ({
@@ -16,7 +14,7 @@ export const usePromptStore = defineStore('prompt', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.post(`${API_URL}/prompts`, data)
+        const response = await apiClient.post('/prompts', data)
         this.prompts.unshift(response.data)
         return response.data
       } catch (error) {
@@ -31,7 +29,7 @@ export const usePromptStore = defineStore('prompt', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/prompts`)
+        const response = await apiClient.get('/prompts')
         this.prompts = response.data
         return response.data
       } catch (error) {
@@ -46,7 +44,7 @@ export const usePromptStore = defineStore('prompt', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.get(`${API_URL}/prompts/${promptId}`)
+        const response = await apiClient.get(`/prompts/${promptId}`)
         this.currentPrompt = response.data
         return response.data
       } catch (error) {
@@ -61,7 +59,7 @@ export const usePromptStore = defineStore('prompt', {
       this.loading = true
       this.error = null
       try {
-        const response = await axios.put(`${API_URL}/prompts/${promptId}`, data)
+        const response = await apiClient.put(`/prompts/${promptId}`, data)
         const index = this.prompts.findIndex(p => p._id === promptId)
         if (index !== -1) {
           this.prompts[index] = response.data
@@ -79,7 +77,7 @@ export const usePromptStore = defineStore('prompt', {
       this.loading = true
       this.error = null
       try {
-        await axios.delete(`${API_URL}/prompts/${promptId}`)
+        await apiClient.delete(`/prompts/${promptId}`)
         this.prompts = this.prompts.filter(p => p._id !== promptId)
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete prompt'
