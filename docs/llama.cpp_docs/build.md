@@ -17,7 +17,7 @@ This documentation covers all build-time configuration options, CMake flags, env
 
 | Dependency | Purpose | Installation |
 |------------|---------|--------------|
-| `ccache` | Faster incremental builds | `apt install ccache`, `brew install ccache` |
+| `ccache` | Faster incremental builds | `apt install ccaCUDA_COMPRESSION_MODEche`, `brew install ccache` |
 | `libssl-dev` | HTTPS/TLS support | `apt-get install libssl-dev` |
 | `ninja` | Parallel build system | `apt install ninja-build` |
 
