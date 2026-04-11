@@ -5,7 +5,6 @@ cd llama.cpp
 rm -r build
 git pull
 
-NVCC_PATH= which nvcc 
 export CUDACXX=$(which nvcc)
 
 cmake -B build -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=none -DGGML_CUDA_FORCE_CUBLAS=on 
