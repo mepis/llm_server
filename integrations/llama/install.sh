@@ -1,3 +1,5 @@
+#!/bin/bash
+
 CURRENT_DIR=$(pwd)
 
 git clone https://github.com/ggml-org/llama.cpp 
