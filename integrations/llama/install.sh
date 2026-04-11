@@ -4,14 +4,14 @@ cd llama.cpp
 git pull
 
 NVCC_PATH= which nvcc 
-export CUDACXX= $NVCC_PATH
+export CUDACXX=$NVCC_PATH
 
-cmake -B build -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=none -DGGML_CUDA_FORCE_CUBLAS=on 
+CUDACXX=$NVCC_PATH cmake -B build -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=none -DGGML_CUDA_FORCE_CUBLAS=on 
 
 # -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on 
 
 # Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
-cmake --build build --config Release -j 8 --clean-first  
+CUDACXX=$NVCC_PATH cmake --build build --config Release -j 8 --clean-first  
 
 systemctl --user stop llama.service
 systemctl --user start llama.service
