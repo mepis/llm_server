@@ -1,8 +1,8 @@
-
-git clone https://github.com/ggml-org/llama.cpp  $HOME/.llama.cpp
-
 cd $HOME
-cd .llama.cpp
+
+git clone https://github.com/ggml-org/llama.cpp 
+
+cd llama.cpp
 rm -r build
 git pull
 
