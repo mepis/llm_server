@@ -1,3 +1,4 @@
+CURRENT_DIR=$(pwd)
 
 git clone https://github.com/ggml-org/llama.cpp 
 
@@ -14,6 +15,7 @@ cmake -B build -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA
 # Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
 cmake --build build --config Release -j 8 --clean-first  
 
+rm $HOME/.config/systemd/user/llama.service
 echo -e "
 [Unit]
 Description=Lamma Server
@@ -34,6 +36,6 @@ WantedBy=default.target
 " >> $HOME/.config/systemd/user/llama.service
 
 loginctl enable-linger $USER
-systemctl daemon-reload
+systemctl --user daemon-reload
 systemctl --user enable llama.service
 systemctl --user start llama.service
