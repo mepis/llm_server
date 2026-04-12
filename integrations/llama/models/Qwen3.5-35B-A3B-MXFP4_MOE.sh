@@ -1,5 +1,5 @@
 #!/bin/bash
-model=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf
+model=Qwen3.5-35B-A3B-MXFP4_MOE.gguf
 
 # Host Configs
 port=11434
