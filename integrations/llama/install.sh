@@ -1,5 +1,4 @@
 #!/bin/bash
-
 CURRENT_DIR=$(pwd)
 
 systemctl --user stop llama.service
@@ -7,8 +6,7 @@ systemctl --user disable llama.service
 rm $HOME/.config/systemd/user/llama.service
 rm run.sh
 
-echo -e "
-#!/bin/bash
+echo -e "#!/bin/bash
 
 # model=Qwen3.5-27B-IQ4_NL.sh
 model=gemma-4-26B-A4B-it-MXFP4_MOE.sh
