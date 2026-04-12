@@ -44,7 +44,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=%h
-ExecStart=$CURRENT_DIR/./run.sh
+ExecStart=$CURRENT_DIR/run.sh
 Restart=on-failure
 RestartSec=5
 
