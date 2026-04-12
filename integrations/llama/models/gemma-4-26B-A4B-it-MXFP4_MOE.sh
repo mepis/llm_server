@@ -32,6 +32,12 @@ export CUDACXX=$(which nvcc)
 ./llama-server -m $model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 3 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 4096 --ubatch-size 1024 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1 --repeat-penalty 1
 
 
-# NCCL_DEBUG=INFO ./llama-server -m /home/jon/llm_server/integrations/llama/models/gemma-4-26B-A4B-it-MXFP4_MOE.gguf --port 11434 --host 100.115.205.84 -c 131072 -ngl 999 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --temp 1 --top-p 0.95 --cont-batching --min-p 0.0 --top-k 64 --threads 8 --prio 3 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 4096 --ubatch-size 1024 
+# NCCL_DEBUG=INFO ./llama-server -m /home/jon/llm_server/integrations/llama/models/Qwen3.5-27B-IQ4_NL.gguf --port 11434 --host 100.115.205.84 -c 131072 -ngl 999 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --temp 1 --top-p 0.95 --cont-batching --min-p 0.0 --top-k 64 --threads 8 --prio 3 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 4096 --ubatch-size 1024 
 
 # --chat-template-kwargs '{"enable_thinking":true}'  --presence-penalty 1 --repeat-penalty 1
+
+# -rw-rw-r-- 1 jon jon 15687894944 Mar 29 01:19 Qwen3.5-27B-IQ4_NL.gguf
+# -rwxrwxr-x 1 jon jon         936 Apr 12 02:30 Qwen3.5-27B-IQ4_NL.sh
+# -rwxrwxr-x 1 jon jon         966 Apr 12 02:30 Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
+# -rw-rw-r-- 1 jon jon 16685083392 Apr  2 22:55 gemma-4-26B-A4B-it-MXFP4_MOE.gguf
+# -rwxrwxr-x 1 jon jon        1475 Apr 12 12:55 gemma-4-26B-A4B-it-MXFP4_MOE.sh
