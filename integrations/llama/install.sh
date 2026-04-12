@@ -43,7 +43,7 @@ Type=simple
 
 WorkingDirectory=%h
 # Edit the script path and name for the local system
-ExecStart=$CURRENT_DIR/run.sh
+ExecStart=$CURRENT_DIR/./run.sh
 Restart=on-failure
 RestartSec=5
 
