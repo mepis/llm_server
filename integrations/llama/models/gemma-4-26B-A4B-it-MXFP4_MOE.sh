@@ -21,6 +21,7 @@ topK=64
 ####################
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
+cd ..
 cd llama.cpp/build/bin/
 
 # export CUDA_SCALE_LAUNCH_QUEUES=8x 
