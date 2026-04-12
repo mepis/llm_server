@@ -21,7 +21,6 @@ topK=64
 ####################
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
-cd ..
 ls -ls
 cd llama.cpp/build/bin/
 

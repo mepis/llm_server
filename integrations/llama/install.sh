@@ -19,6 +19,8 @@ cd $CURRENT_DIR
 $CURRENT_DIR/models/./$MODEL
 
 " >> $CURRENT_DIR/run.sh
+chmod 755 run.sh
+
 
 git clone https://github.com/ggml-org/llama.cpp 
 
@@ -51,7 +53,6 @@ RestartSec=5
 WantedBy=default.target
 " >> $HOME/.config/systemd/user/llama.service
 
-chmod 755 run.sh
 
 loginctl enable-linger $USER
 systemctl --user daemon-reload
