@@ -51,9 +51,6 @@ RestartSec=5
 WantedBy=default.target
 " >> $HOME/.config/systemd/user/llama.service
 
-
-cd ..
-
 chmod 755 run.sh
 
 loginctl enable-linger $USER
