@@ -2,6 +2,7 @@
 
 CURRENT_DIR=$(pwd)
 
+rm run.sh
 echo -e "
 #!/bin/bash
 
