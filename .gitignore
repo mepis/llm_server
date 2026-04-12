@@ -9,6 +9,7 @@ CMakeFiles/
 *.so
 *.d
 *.out
+*.gguf
 
 # Editor/IDE files
 .vscode/
