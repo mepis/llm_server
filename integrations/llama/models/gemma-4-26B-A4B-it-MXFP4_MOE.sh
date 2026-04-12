@@ -24,7 +24,7 @@ cd $CURRENT_DIR
 ls -ls
 cd llama.cpp/build/bin/
 
-# export CUDA_SCALE_LAUNCH_QUEUES=8x 
+export CUDA_SCALE_LAUNCH_QUEUES=8x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 # export CUDACXX=$(which nvcc)
