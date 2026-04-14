@@ -2,10 +2,14 @@
 CURRENT_DIR=$(pwd)
 
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
-MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
+MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
+# Nemotron-3-Nano-30B-A3B-Q8_0.sh
 
+###############################################################
+
+mkdir ~/.llm_models
 systemctl --user stop llama.service
 systemctl --user disable llama.service
 rm $HOME/.config/systemd/user/llama.service
@@ -31,7 +35,7 @@ git pull
 
 # export CUDACXX=$(which nvcc)
 
-cmake -B build -DGGML_CCACHE=off -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;89"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=speed
+cmake -B build -DGGML_CCACHE=off -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;89"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=speed -DLLAMA_CURL=ON 
 
 # -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on  
 

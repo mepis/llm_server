@@ -1,4 +1,7 @@
 #!/bin/bash
+systemctl --user stop opencode-web.service
+systemctl --user disable opencode-web.service
+rm $HOME/.config/systemd/user/opencode-web.service
 
 curl -fsSL https://opencode.ai/install | bash
 
@@ -8,10 +11,12 @@ mkdir $HOME/.config/opencode
 mkdir $HOME/.config/opencode/tools
 mkdir -p $HOME/.config/systemd/user
 
-cp skills $HOME/.config/opencode/
-cp tools/* $HOME/.config/opencode/tools/
+cp -r skills $HOME/.config/opencode/
+cp -r tools/* $HOME/.config/opencode/tools/
+cp opencode.json $HOME/.config/opencode/opencode.json
 
-cd $HOME/.config/opencode/tools/
+cd $HOME
+cd .config/opencode/tools/
 npm install
 
 echo -e "

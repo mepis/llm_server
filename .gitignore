@@ -9,7 +9,6 @@ CMakeFiles/
 *.so
 *.d
 *.out
-*.gguf
 
 # Editor/IDE files
 .vscode/
@@ -37,11 +36,7 @@ htmlcov/
 .env.*.secret
 
 # Logs
-logs/*.log
-logs/archive/*.log
-
-# Test results
-test-results/*.png
+*.log
 
 # Temporary files
 .tmp
@@ -54,10 +49,5 @@ models/*
 
 # Node.js dependencies
 **/node_modules/
-
-# Virtual environment
-venv/
-.venv/
-
-# Frontend build
-frontend/dist/
+llama.cpp
+llama.cpp

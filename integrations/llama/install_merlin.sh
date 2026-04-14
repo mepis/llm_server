@@ -4,10 +4,13 @@ CURRENT_DIR=$(pwd)
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
 # MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
-MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M_laptop.sh
+# MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M_laptop.sh
+MODEL=Qwen3.5-122B-A10B-MXFP4_MOE.sh
 
-systemctl --user stop llama.service
-systemctl --user disable llama.service
+###############################################################
+
+systemctl stop llama.service
+systemctl disable llama.service
 rm $HOME/.config/systemd/user/llama.service
 rm run.sh
 
@@ -31,12 +34,12 @@ git pull
 
 # export CUDACXX=$(which nvcc)
 
-cmake -B build -DGGML_CCACHE=off -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="89"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=speed
+cmake -B build -DGGML_CCACHE=off -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="89" -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_COMPRESSION_MODE=speed
 
-# -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on  
+# -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on 
 
 # Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
-cmake --build build --config Release -j 8 --clean-first  
+cmake --build build --config Release -j 8 --clean-first 
 
 echo -e "
 [Unit]
@@ -52,10 +55,10 @@ RestartSec=5
 
 [Install]
 WantedBy=default.target
-" >> $HOME/.config/systemd/user/llama.service
+" >> /etc/systemd/system/llama.service
 
 
 loginctl enable-linger $USER
-systemctl --user daemon-reload
-systemctl --user enable llama.service
-systemctl --user start llama.service
+systemctl daemon-reload
+systemctl enable llama.service
+systemctl start llama.service

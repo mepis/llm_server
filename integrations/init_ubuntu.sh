@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Install pre-reqs
 sudo apt update 
 sudo apt upgrade -y 

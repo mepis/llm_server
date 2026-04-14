@@ -1,6 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "opencode",
   "autoupdate": true,
   "compaction": {
     "auto": true,
@@ -20,19 +19,22 @@
     "webfetch": "allow",
     "todoread": "allow",
     "todowrite": "allow",
-    "skill": { "*": "allow" },
+    "skill": {
+      "*": "allow"
+    },
     "edit": "allow",
     "lsp": "allow",
     "list": "allow",
     "glob": "allow",
     "grep": "allow",
     "read": "allow",
-    "bash": "allow"
+    "bash": "allow",
+    "playwright": "allow"
   },
   "provider": {
-    "ollama": {
+    "Merlin": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama",
+      "name": "Merlin",
       "options": {
         "baseURL": "http://10.16.2.209:11434/v1"
       },
@@ -42,15 +44,15 @@
         }
       }
     },
-    "llama.cpp_local": {
+    "Betty": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "betty",
+      "name": "Betty",
       "options": {
         "baseURL": "http://100.115.205.84:11434/v1"
       },
       "models": {
-        "Qwen3.5-9B-IQ4_NL.gguf": {
-          "name": "run_Qwen3.5-27B-IQ4_NL.sh",
+        "Qwen3.5-35B": {
+          "name": "Qwen3.5-35B",
           "limit": {
             "context": 262144,
             "output": 32768
@@ -58,15 +60,15 @@
         }
       }
     },
-    "llama.cpp_server": {
+    "Local": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "local",
+      "name": "Local",
       "options": {
         "baseURL": "http://100.120.132.78:11434/v1"
       },
       "models": {
-        "Qwen3.5-9B-IQ4_NL.gguf": {
-          "name": "Qwen3.5-9B-IQ4_NL.gguf",
+        "OmniCoder": {
+          "name": "OmniCoder",
           "limit": {
             "context": 131072,
             "output": 32768
