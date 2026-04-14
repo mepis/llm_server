@@ -6,13 +6,16 @@
     "prune": true
   },
   "tools": {
-    "search_the_web": true
+    "search_the_web": true,
+    "playwright": true
   },
   "server": {
     "port": 4096,
     "hostname": "100.120.132.78",
     "mdns": true,
-    "cors": ["*"]
+    "cors": [
+      "*"
+    ]
   },
   "permission": {
     "question": "allow",
@@ -28,8 +31,7 @@
     "glob": "allow",
     "grep": "allow",
     "read": "allow",
-    "bash": "allow",
-    "playwright": "allow"
+    "bash": "allow"
   },
   "provider": {
     "Merlin": {
