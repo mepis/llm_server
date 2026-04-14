@@ -1,6 +1,6 @@
 import { tool } from "@opencode-ai/plugin";
 import fetch from "node-fetch";
-import configs from "./configs.json"
+import configs from "../../../opencode/tools/configs.json"
 
 const API_BASE_URL = configs.API_URL || "http://localhost:4000";
 
