@@ -5,10 +5,7 @@
     "auto": true,
     "prune": true
   },
-  "tools": {
-    "search_the_web": true,
-    "playwright": true
-  },
+  "tools": {},
   "server": {
     "port": 4096,
     "hostname": "100.120.132.78",
