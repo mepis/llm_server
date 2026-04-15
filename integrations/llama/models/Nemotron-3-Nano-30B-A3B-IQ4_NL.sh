@@ -1,5 +1,5 @@
 #!/bin/bash
-model=Nemotron-3-Nano-30B-A3B-IQ4_NL.ggu
+model=Nemotron-3-Nano-30B-A3B-IQ4_NL.gguf
 
 # Host Configs
 port=11434
