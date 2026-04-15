@@ -2,10 +2,10 @@
 CURRENT_DIR=$(pwd)
 
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
-MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
+# MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
 # MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
-# MODEL=Nemotron-3-Nano-30B-A3B-IQ4_NL.sh
+MODEL=Nemotron-3-Nano-30B-A3B-IQ4_NL.sh
 # MODEL=Qwen3.5-122B-A10B-UD-IQ2_XXS.sh
 
 ###############################################################
