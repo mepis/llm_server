@@ -55,7 +55,7 @@
         "Qwen3.5-35B": {
           "name": "Qwen3.5-35B",
           "limit": {
-            "context": 262144,
+            "context": 524288,
             "output": 32768
           }
         }

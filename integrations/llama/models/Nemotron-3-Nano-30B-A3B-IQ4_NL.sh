@@ -8,7 +8,7 @@ host=100.115.205.84
 # Hardware Configs
 mainGpu=0
 tensorSplit=8
-splitMode=layer
+splitMode=tensor
 threads=8
 
 # Model Configs
