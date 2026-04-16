@@ -49,13 +49,13 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.115.205.84:11434/v1"
+        "baseURL": "http://100.106.131.63:11434/v1"
       },
       "models": {
         "Qwen3.5-35B": {
           "name": "Qwen3.5-35B",
           "limit": {
-            "context": 524288,
+            "context": 262144,
             "output": 32768
           }
         }

@@ -5,7 +5,7 @@ model=Qwen3.5-27B-IQ4_NL.gguf
 
 # Host Configs
 port=11434
-host=100.115.205.84
+host=100.106.131.63
 
 # Hardware Configs
 mainGpu=0
