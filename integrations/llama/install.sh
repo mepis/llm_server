@@ -32,20 +32,27 @@ $CURRENT_DIR/models/./$MODEL
 chmod 755 run.sh
 
 
-git clone https://github.com/ggml-org/llama.cpp 
+read -p "Do you want to compile llama.cpp? (y/n): " choice
 
-cd llama.cpp
-rm -r build
-git pull
+if [ "$choice" == "y" ]; then
+    
+  git clone https://github.com/ggml-org/llama.cpp 
 
-export CUDACXX=$(which nvcc)
+  cd llama.cpp
+  rm -r build
+  git pull
 
-cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;120"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
+  export CUDACXX=$(which nvcc)
 
-# -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on  
+  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;120"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
 
-# Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
-cmake --build build --config Release -j 8 --clean-first  
+  # -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CPU=off -DGGML_CUDA_COMPRESSION_MODE=off -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_CCACHE=on  
+
+  # Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
+  cmake --build build --config Release -j "${nproc}" --clean-first  
+
+fi
+
 
 echo -e "
 [Unit]
