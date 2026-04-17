@@ -6,15 +6,13 @@
     "prune": true
   },
   "tools": {
-    "search_the_web": true
+    "search_the_web": false
   },
   "server": {
     "port": 4096,
-    "hostname": "100.120.132.78",
+    "hostname": "100.106.131.63",
     "mdns": true,
-    "cors": [
-      "*"
-    ]
+    "cors": ["*"]
   },
   "permission": {
     "question": "allow",
