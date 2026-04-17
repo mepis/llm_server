@@ -33,7 +33,6 @@ chmod 755 run.sh
 
 
 read -p "Do you want to compile llama.cpp? (y/n): " choice
-
 if [ "$choice" == "y" ]; then
     
   git clone https://github.com/ggml-org/llama.cpp 

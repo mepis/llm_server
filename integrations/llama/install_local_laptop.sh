@@ -29,6 +29,8 @@ $CURRENT_DIR/models/./$MODEL
 " >> $CURRENT_DIR/run.sh
 chmod 755 run.sh
 
+read -p "Do you want to compile llama.cpp? (y/n): " choice
+if [ "$choice" == "y" ]; then
 
 git clone https://github.com/ggml-org/llama.cpp 
 
@@ -44,6 +46,8 @@ cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARC
 
 # Add -j "${nproc}" or -j 4 parameters to make compile faster with risk of running out of memory
 cmake --build build --config Release -j 8 --clean-first  
+
+fi 
 
 echo -e "
 [Unit]

@@ -1,7 +1,7 @@
 Qwen3.6-35B-A3B-MXFP4_MOE
 
 #!/bin/bash
-model=Qwen3.5-27B-IQ4_NL.gguf
+model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 
 # Host Configs
 port=11434
