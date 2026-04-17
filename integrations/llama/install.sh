@@ -11,7 +11,10 @@ MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 
 ###############################################################
 
+mkdir $HOME/.config/systemd
+mkdir $HOME/.config/systemd/user
 mkdir ~/.llm_models
+
 systemctl --user stop llama.service
 systemctl --user disable llama.service
 rm $HOME/.config/systemd/user/llama.service
