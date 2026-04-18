@@ -8,6 +8,11 @@ allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
 
 ALWAYS use this skill for performing web searches. Search the web with Chrome with Playwright using the Playwright CLI.
 
+## Requirements
+
+- ALWAYS add the '--headed' parameter when using the 'playwright-cli open' command.
+- If a webpage presents a captcha, attempt to solve it.
+
 ## Quick start
 
 ```bash
