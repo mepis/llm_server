@@ -16,8 +16,8 @@ cp -r tools/* $HOME/.config/opencode/tools/
 cp opencode.json $HOME/.config/opencode/opencode.json
 
 sudo npm install -g @playwright/cli@latest
-sudo npx playwright install-deps
 sudo npx playwright install
+sudo npx playwright install-deps
 sudo npx playwright install chrome
 
 cd $HOME

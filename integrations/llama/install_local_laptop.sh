@@ -4,8 +4,8 @@ CURRENT_DIR=$(pwd)
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
 # MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
-# MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M_laptop.sh
-MODEL=Tesslate_OmniCoder-9B-IQ4_NL.sh
+MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M_laptop.sh
+# MODEL=Tesslate_OmniCoder-9B-IQ4_NL.sh
 
 ###############################################################
 

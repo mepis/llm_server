@@ -3,7 +3,7 @@ model=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.gguf
 
 # Host Configs
 port=11434
-host=100.120.132.78
+host=100.78.136.115
 
 # Hardware Configs
 mainGpu=0

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 
-CURRENT_DIR=/home/jon/git/support_services/src/core/core_llm/integrations/llama
-cd /home/jon/git/support_services/src/core/core_llm/integrations/llama
+CURRENT_DIR=/home/jon/git/llm_server/integrations/llama
+cd /home/jon/git/llm_server/integrations/llama
 
-/home/jon/git/support_services/src/core/core_llm/integrations/llama/models/./Tesslate_OmniCoder-9B-IQ4_NL.sh
+/home/jon/git/llm_server/integrations/llama/models/./Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M_laptop.sh
 
 
