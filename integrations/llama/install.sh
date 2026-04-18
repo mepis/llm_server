@@ -11,6 +11,8 @@ MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 
 ###############################################################
 
+export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+
 mkdir $HOME/.config/systemd
 mkdir $HOME/.config/systemd/user
 mkdir ~/.llm_models
@@ -40,8 +42,6 @@ if [ "$choice" == "y" ]; then
   cd llama.cpp
   rm -r build
   git pull
-
-  export CUDACXX=$(which nvcc)
 
   cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;120"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
 
