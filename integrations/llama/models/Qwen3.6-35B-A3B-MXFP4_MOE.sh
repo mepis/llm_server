@@ -1,5 +1,3 @@
-Qwen3.6-35B-A3B-MXFP4_MOE
-
 #!/bin/bash
 model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 
