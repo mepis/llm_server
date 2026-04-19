@@ -6,7 +6,7 @@ batch_size=1024,2048,4096,8192
 ubatch_size=256,512,1024,2048
 
 threads=8
-fit=on
+fit=1
 mlock=1
 # mmap=0
 
