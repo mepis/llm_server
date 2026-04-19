@@ -50,7 +50,7 @@ const uploadDocument = async (req, res) => {
       });
     }
     
-    const result = await ragService.uploadDocument(userId, file);
+    const result = await ragService.uploadDocument(userId, file.buffer, file.originalname);
     
     res.status(201).json({
       success: true,
@@ -69,7 +69,7 @@ const getUserDocuments = async (req, res) => {
   try {
     const userId = req.user.user_id;
     
-    const result = await ragService.getUserDocuments(userId);
+    const result = await ragService.getDocumentsByUser(userId);
     
     res.json({
       success: true,
@@ -86,10 +86,9 @@ const getUserDocuments = async (req, res) => {
 
 const getDocument = async (req, res) => {
   try {
-    const userId = req.user.user_id;
     const documentId = req.params.documentId;
     
-    const result = await ragService.getDocument(documentId, userId);
+    const result = await ragService.getDocumentById(documentId);
     
     res.json({
       success: true,
@@ -106,10 +105,9 @@ const getDocument = async (req, res) => {
 
 const deleteDocument = async (req, res) => {
   try {
-    const userId = req.user.user_id;
     const documentId = req.params.documentId;
     
-    await ragService.deleteDocument(documentId, userId);
+    await ragService.deleteDocument(documentId);
     
     res.json({ success: true });
   } catch (error) {
@@ -123,11 +121,9 @@ const deleteDocument = async (req, res) => {
 
 const processDocument = async (req, res) => {
   try {
-    const userId = req.user.user_id;
     const documentId = req.params.documentId;
-    const { chunk_size, chunk_overlap } = req.body;
     
-    const result = await ragService.processDocument(documentId, userId, { chunk_size, chunk_overlap });
+    const result = await ragService.processDocument(documentId);
     
     res.json({
       success: true,
@@ -154,7 +150,7 @@ const searchDocuments = async (req, res) => {
       });
     }
     
-    const result = await ragService.searchDocuments(userId, query, { top_k, filter_document_ids });
+    const result = await ragService.searchDocuments(userId, query, top_k || 10);
     
     res.json({
       success: true,

@@ -117,3 +117,64 @@ All stores were storing `response.data` (the full API response `{ success: true,
 ### Agent Instructions
 
 - **Modified**: `AGENTS.md` - Added "Commit & Push" section requiring changelog update before every commit and push operation.
+
+## [Documentation Update] - 2026-04-19
+
+### Documentation Improvements
+
+- **Added**: Comprehensive diagrams to all documentation pages including architecture, features, components, API, technical, and QA pages
+- **Added**: Wiki-style cross-references between all documentation pages
+- **Added**: Tag system with 40+ tags organized by categories (authentication, security, features, integration, infrastructure, technical, error handling, QA, workflow)
+- **Added**: `docs/tags-index.md` - Comprehensive tag-based navigation index organized by categories
+- **Added**: Feature-based and role-based tag cross-reference diagrams
+- **Added**: Quick navigation guides for different developer roles (auth, chat, RAG, frontend, DevOps, QA, debugging)
+- **Added**: Diagrams to `docs/qa/api-testing-examples.md` - API testing architecture and test flow diagrams
+- **Added**: Diagrams to `docs/qa/practical-examples.md` - Complete RAG workflow diagram
+- **Enhanced**: `docs/features/user-management.md` - Simplified role hierarchy diagram
+- **Enhanced**: `docs/features/matrix-integration.md` - Enhanced webhook configuration flow
+- **Enhanced**: `docs/components/pinia-stores.md` - Added component lifecycle diagram
+- **Enhanced**: `docs/technical/configuration-guide.md` - Enhanced DB connection pool lifecycle diagram
+- **Enhanced**: `docs/api/api-endpoints.md` - Added response streaming flow diagram
+- **Updated**: `AGENTS.md` - Added comprehensive documentation reference section linking to all docs
+- **Fixed**: `docs/tags-index.md` - Fixed path mismatch (`./api-endpoints.md` → `./api/api-endpoints.md`)
+- **Added**: `docs/index.md` - Documentation improvement checklist for future enhancements
+
+### Documentation Structure
+
+```
+docs/
+├── index.md                    # Main entry point with quick links and architecture overview
+├── tags-index.md               # Tag-based navigation organized by categories
+├── architecture/               # Architecture docs (4 files with diagrams)
+│   ├── system-architecture.md  # Overall system design
+│   ├── database-schema.md      # MongoDB collections and indexes
+│   ├── security-design.md      # Auth, JWT, RBAC
+│   └── worker-threads.md       # Piscina pool configuration
+├── features/                   # Feature docs (9 files with diagrams)
+│   ├── authentication.md       # User registration, login, JWT
+│   ├── user-management.md      # User CRUD operations
+│   ├── chat-sessions.md        # Conversations, streaming, memory
+│   ├── llm-integration.md      # Llama.cpp inference, embeddings
+│   ├── rag-system.md           # Document processing, semantic search
+│   ├── prompt-management.md    # Prompt templates, variables
+│   ├── tool-support.md         # Custom tools, execution
+│   ├── system-monitoring.md    # Logs, health checks
+│   └── matrix-integration.md   # Matrix bot, webhooks
+├── components/                 # Component docs (3 files with diagrams)
+│   ├── frontend-components.md  # Vue 3 components
+│   ├── pinia-stores.md         # Pinia state management
+│   └── middleware.md           # Security middleware
+├── api/                        # API docs (3 files with diagrams)
+│   ├── api-endpoints.md        # Complete endpoint reference
+│   ├── request-response-formats.md # Standard patterns
+│   └── error-handling.md       # Error codes and handling
+├── technical/                  # Technical docs (4 files with diagrams)
+│   ├── configuration-guide.md  # Environment variables
+│   ├── deployment-guide.md     # Docker, production
+│   ├── performance-guide.md    # Optimization strategies
+│   └── troubleshooting.md      # Common issues
+├── qa/                         # QA docs (2 files with diagrams)
+│   ├── api-testing-examples.md # Test cases
+│   └── practical-examples.md   # Usage patterns
+└── llama.cpp_docs/             # Llama.cpp reference docs (15 files)
+```

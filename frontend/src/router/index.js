@@ -79,12 +79,24 @@ const router = createRouter({
        meta: { requiresAuth: true }
      },
      {
-       path: '/debug',
-       name: 'debug',
-       component: () => import('../views/debug/DebugView.vue'),
-       meta: { requiresAuth: true }
-     }
-   ]
+        path: '/debug',
+        name: 'debug',
+        component: () => import('../views/debug/DebugView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/admin/users',
+        name: 'admin-users',
+        component: () => import('../views/admin/AdminUsersView.vue'),
+        meta: { requiresAuth: true, requiresAdmin: true }
+      },
+      {
+        path: '/admin/settings',
+        name: 'admin-settings',
+        component: () => import('../views/admin/AdminSettingsView.vue'),
+        meta: { requiresAuth: true, requiresAdmin: true }
+      }
+    ]
 })
 
 router.beforeEach((to, from, next) => {

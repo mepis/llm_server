@@ -11,6 +11,7 @@
             v-model="form.username"
             type="text"
             required
+            autocomplete="username"
             class="form-input"
             placeholder="Enter your username"
           />
@@ -22,6 +23,7 @@
             v-model="form.password"
             type="password"
             required
+            autocomplete="current-password"
             class="form-input"
             placeholder="Enter your password"
           />

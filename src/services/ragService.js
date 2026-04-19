@@ -234,6 +234,60 @@ const getDocumentById = async (documentId) => {
   }
 };
 
+const getChunks = async (documentId, userId, options = {}) => {
+  try {
+    const { page = 1, limit = 20 } = options;
+    const document = await RAGDocument.findById(documentId);
+    
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    
+    const chunks = document.chunked_content || [];
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedChunks = chunks.slice(startIndex, endIndex);
+    
+    return {
+      success: true,
+      data: {
+        chunks: paginatedChunks,
+        total: chunks.length,
+        page: parseInt(page),
+        limit: parseInt(limit)
+      }
+    };
+  } catch (error) {
+    logger.error('Get chunks failed:', error.message);
+    throw error;
+  }
+};
+
+const updateSettings = async (documentId, userId, settings) => {
+  try {
+    const document = await RAGDocument.findById(documentId);
+    
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    
+    document.metadata = {
+      ...document.metadata,
+      ...settings
+    };
+    
+    await document.save();
+    
+    return {
+      success: true,
+      data: document
+    };
+  } catch (error) {
+    logger.error('Update settings failed:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   uploadDocument,
   processDocument,
@@ -242,5 +296,7 @@ module.exports = {
   cosineSimilarity,
   deleteDocument,
   getDocumentsByUser,
-  getDocumentById
+  getDocumentById,
+  getChunks,
+  updateSettings
 };

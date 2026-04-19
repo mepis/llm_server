@@ -104,40 +104,80 @@ MAX_FILE_SIZE=10485760
 
 ### MongoDB Connection
 
+#### Connection Pool Lifecycle
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MongoDB Connection                            │
+│              Database Connection Pool Lifecycle                   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌──────────────┐                                               │
-│  │  MONGODB_URI │                                               │
+│  │  App Starts  │                                               │
+│  │  (Server)    │                                               │
 │  │              │                                               │
 │  └──────┬───────┘                                               │
 │         │                                                       │
 │         ▼                                                       │
 │  ┌──────────────┐                                               │
-│  │  Connection │                                               │
-│  │  Pool       │                                               │
+│  │  Connect     │                                               │
+│  │  to MongoDB  │                                               │
 │  │              │                                               │
 │  └──────┬───────┘                                               │
 │         │                                                       │
 │         ▼                                                       │
 │  ┌──────────────┐                                               │
-│  │  Options    │                                               │
+│  │  Create      │                                               │
+│  │  Pool        │                                               │
 │  │              │                                               │
 │  └──────┬───────┘                                               │
 │         │                                                       │
 │         ▼                                                       │
 │  ┌──────────────┐                                               │
-│  │  socketTimeoutMS  │  30000ms                                │
-│  │  connectTimeoutMS │  10000ms                                │
-│  │  maxPoolSize      │  10                                     │
+│  │  Pool Ready  │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Server     │                                               │
+│  │  Starts      │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  App Stops   │                                               │
+│  │  (Cleanup)   │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Close      │                                               │
+│  │  Pool        │                                               │
+│  │              │                                               │
 │  └──────────────┘                                               │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
+
+**Lifecycle Stages:**
+1. **App Starts**: Server initialization begins
+2. **Connect to MongoDB**: Establishes initial connection
+3. **Create Pool**: Initializes connection pool with settings
+4. **Pool Ready**: Pool is configured and available
+5. **Server Starts**: Application server starts listening
+6. **App Stops**: Graceful shutdown initiated
+7. **Close Pool**: Releases all connections before exit
+
+**Key Points:**
+- Pool size: 10 connections (configurable via `maxPoolSize`)
+- Timeout: 30s socket timeout, 10s connect timeout
+- Connections are reused across requests
+- Pool auto-reconnects on connection failures
+- Cleanup happens during graceful shutdown
 ```
 
-### Connection String Examples
+#### Connection String Examples
 
 ```bash
 # Local MongoDB
@@ -420,9 +460,23 @@ const piscina = new Piscina({
 
 ## Tags
 
+### Core
 - `configuration` - Configuration guide
 - `environment` - Environment variables
 - `deployment` - Deployment settings
+
+### Technical
+- `caching` - Response caching strategies
+- `streaming` - Response streaming flow
+- `pagination` - Data pagination patterns
+- `batch-operations` - Bulk user operations
+- `query-optimization` - Database query optimization
+
+### Workflow
+- `workflows` - Multi-step workflows
+- `multi-turn-chat` - Conversation management
+- `complete-pipeline` - End-to-end pipeline
+- `retry-patterns` - Retry logic and backoff
 
 ---
 

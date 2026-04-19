@@ -9,6 +9,22 @@ const originalConsole = {
 }
 
 let initialized = false
+let messageQueue = []
+let isProcessingQueue = false
+
+function processMessageQueue() {
+  if (isProcessingQueue || messageQueue.length === 0) return
+  isProcessingQueue = true
+  try {
+    const debugStore = useDebugStore()
+    while (messageQueue.length > 0) {
+      const msg = messageQueue.shift()
+      debugStore.addMessage(msg.level, msg.message, ...msg.args)
+    }
+  } finally {
+    isProcessingQueue = false
+  }
+}
 
 export function initConsoleInterceptor() {
   if (initialized) {
@@ -20,30 +36,33 @@ export function initConsoleInterceptor() {
     return
   }
 
-  const debugStore = useDebugStore()
-
   console.log = (...args) => {
-    debugStore.addMessage('log', ...args)
+    messageQueue.push({ level: 'log', message: args[0], args: args.slice(1) })
+    processMessageQueue()
     originalConsole.log(...args)
   }
 
   console.error = (...args) => {
-    debugStore.addMessage('error', ...args)
+    messageQueue.push({ level: 'error', message: args[0], args: args.slice(1) })
+    processMessageQueue()
     originalConsole.error(...args)
   }
 
   console.warn = (...args) => {
-    debugStore.addMessage('warn', ...args)
+    messageQueue.push({ level: 'warn', message: args[0], args: args.slice(1) })
+    processMessageQueue()
     originalConsole.warn(...args)
   }
 
   console.info = (...args) => {
-    debugStore.addMessage('info', ...args)
+    messageQueue.push({ level: 'info', message: args[0], args: args.slice(1) })
+    processMessageQueue()
     originalConsole.info(...args)
   }
 
   console.debug = (...args) => {
-    debugStore.addMessage('debug', ...args)
+    messageQueue.push({ level: 'debug', message: args[0], args: args.slice(1) })
+    processMessageQueue()
     originalConsole.debug(...args)
   }
 

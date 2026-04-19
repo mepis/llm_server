@@ -8,6 +8,72 @@ This document provides practical examples and use cases for the LLM Server featu
 
 These examples show how to use the LLM Server features in practical scenarios, from simple operations to complex workflows.
 
+### Complete Workflow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Complete RAG Workflow Diagram                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐                                               │
+│  │  Upload      │                                               │
+│  │  Document    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Process     │                                               │
+│  │  Document    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Chunk       │                                               │
+│  │  Document    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Generate    │                                               │
+│  │  Embeddings  │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Store in    │                                               │
+│  │  Database    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  User        │                                               │
+│  │  Query       │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Search      │                                               │
+│  │  Relevant    │                                               │
+│  │  Chunks      │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Generate    │                                               │
+│  │  Response    │                                               │
+│  │              │                                               │
+│  └──────────────┘                                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Example Structure
 
 ```

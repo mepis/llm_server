@@ -1,5 +1,6 @@
 <template>
   <div class="tools-view">
+    <Toast />
     <div class="page-header">
       <h1>Tool Builder</h1>
       <Button

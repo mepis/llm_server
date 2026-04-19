@@ -1,5 +1,6 @@
 <template>
   <div class="skills-view">
+    <Toast />
     <div class="page-header">
       <h1>Skills</h1>
       <Button

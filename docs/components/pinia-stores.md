@@ -446,14 +446,102 @@ export const useToolStore = defineStore('tool', () => {
 });
 ```
 
+### Component Lifecycle Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              Pinia Store Component Lifecycle                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐                                               │
+│  │  App Mounts  │                                               │
+│  │  (Vue 3)     │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Create      │                                               │
+│  │  Store       │                                               │
+│  │  Instance    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Initialize  │                                               │
+│  │  State       │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Load Data   │                                               │
+│  │  (if needed) │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Store       │                                               │
+│  │  Ready       │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Component   │                                               │
+│  │  Uses Store  │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  App Unmounts│                                               │
+│  │  (Cleanup)   │                                               │
+│  │              │                                               │
+│  └──────────────┘                                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+**Lifecycle Stages:**
+1. **App Mounts**: Vue 3 creates the app instance
+2. **Create Store Instance**: Pinia creates store with defineStore
+3. **Initialize State**: Sets initial state values (ref variables)
+4. **Load Data (Optional)**: Fetches data on store creation if needed
+5. **Store Ready**: Store is available globally
+6. **Component Uses Store**: Components access store via useStore()
+7. **App Unmounts**: Cleanup happens when app destroys
+
+**Key Points:**
+- Stores are created once at app initialization
+- State persists across component re-renders
+- Actions can be async for API calls
+- Cleanup runs on app unmount (for subscriptions, timers, etc.)
+```
+
 ---
 
 ## Store Tags
 
+### Core
 - `pinia` - State management
 - `state-management` - Pinia stores
 - `vue3` - Vue 3 frontend
 - `frontend` - Frontend components
+
+### Technical
+- `caching` - Response caching strategies
+- `streaming` - Response streaming flow
+- `pagination` - Data pagination patterns
+- `batch-operations` - Bulk user operations
+- `query-optimization` - Database query optimization
+
+### Workflow
+- `workflows` - Multi-step workflows
+- `multi-turn-chat` - Conversation management
+- `complete-pipeline` - End-to-end pipeline
+- `retry-patterns` - Retry logic and backoff
 
 ---
 

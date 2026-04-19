@@ -140,6 +140,29 @@ Users can customize their experience through preferences stored in the database.
 ### Role Hierarchy
 
 ```
+                     ┌─────────┐
+                     │  system │
+                     │  (Bot)  │
+                     └────┬────┘
+                          │
+                         ▼
+          ┌──────────────────────────┐
+          │                          │
+    ┌─────┴─────┐            ┌───────┴───────┐
+    │   admin   │            │               │
+    │           │            │               │
+  ┌──┴───┐     ┌──┴────┐   ┌──┴────┐       ┌──┴───┐
+  │ user │     │       │   │ logs  │       │ matrix│
+  │      │     │       │   │       │       │       │
+  │chat  │     │prompts│   │ view  │       │ bot   │
+  │sess  │     │tools  │   │ access│       │ hooks │
+  └──────┘     └───────┘   └───────┘       └──────┘
+```
+
+**Legend:**
+- **system**: Bot-level access (Matrix integration, system monitoring)
+- **admin**: Administrative privileges (user management, system config)
+- **user**: Standard user access (chat, RAG, prompts, tools)
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Role Hierarchy                            │
 ├─────────────────────────────────────────────────────────────────┤
@@ -437,12 +460,26 @@ curl -X DELETE "http://localhost:3000/api/users/60d5ec4f1234567890abcdef" \
 
 ## Tags
 
+### Core
 - `user-management` - User CRUD operations
 - `admin` - Administrative privileges
 - `security` - Security best practices
 - `authentication` - User authentication
 - `profiles` - User profile management
 - `roles` - Role-based access control
+
+### Technical
+- `caching` - Response caching strategies
+- `streaming` - Response streaming flow
+- `pagination` - Data pagination patterns
+- `batch-operations` - Bulk user operations
+- `query-optimization` - Database query optimization
+
+### Workflow
+- `workflows` - Multi-step workflows
+- `multi-turn-chat` - Conversation management
+- `complete-pipeline` - End-to-end pipeline
+- `retry-patterns` - Retry logic and backoff
 
 ---
 

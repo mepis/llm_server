@@ -502,3 +502,32 @@ async function getMatrixStatus() {
   return status;
 }
 ```
+
+---
+
+## Tags
+
+### Core
+- `matrix-integration` - Matrix bot functionality
+- `webhooks` - Webhook configuration
+- `bot-functionality` - Bot message handling
+
+### Workflow
+- `workflows` - Multi-step workflows
+- `multi-turn-chat` - Conversation management
+- `complete-pipeline` - End-to-end pipeline
+- `retry-patterns` - Retry logic and backoff
+
+---
+
+## Related Documentation
+
+- [User Management](./user-management.md) - User CRUD operations
+- [API Endpoints](../api/api-endpoints.md) - Complete API reference
+- [Middleware](../components/middleware.md) - Auth and RBAC middleware
+
+---
+
+## Practical Examples
+
+### Example 1: Handle Matrix Webhook

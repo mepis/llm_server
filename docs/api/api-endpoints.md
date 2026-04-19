@@ -664,14 +664,87 @@ Authorization: Bearer <token>
 
 Sends a chat completion request to Llama.cpp.
 
-```
-POST /api/llama/chat/completions
-```
-
-#### Headers
+#### Streaming Flow
 
 ```
-Authorization: Bearer <token>
+┌─────────────────────────────────────────────────────────────────┐
+│              Response Streaming Flow                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────┐                                               │
+│  │  Client      │                                               │
+│  │  requests    │                                               │
+│  │  stream:     │                                               │
+│  │  true        │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Auth        │                                               │
+│  │  Middleware  │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Rate       │                                               │
+│  │  Limiter    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Validate   │                                               │
+│  │  request    │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Llama.cpp  │                                               │
+│  │  Server     │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Generate   │                                               │
+│  │  response   │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Stream     │                                               │
+│  │  chunks     │                                               │
+│  │              │                                               │
+│  └──────┬───────┘                                               │
+│         │                                                       │
+│         ▼                                                       │
+│  ┌──────────────┐                                               │
+│  │  Send to    │                                               │
+│  │  Client     │                                               │
+│  │              │                                               │
+│  └──────────────┘                                               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+**Flow Stages:**
+1. **Client requests** with `stream: true`
+2. **Auth middleware** validates bearer token
+3. **Rate limiter** checks request limits (15min window)
+4. **Validate request** - model, messages, params
+5. **Llama.cpp Server** generates response
+6. **Stream chunks** in SSE format to client
+7. **Client receives** streaming response
+
+**Key Points:**
+- Streaming enabled via `stream: true` parameter
+- Response sent as Server-Sent Events (SSE)
+- Chunks streamed as text is generated
+- Client can render partial responses immediately
+- Full response arrives at end of stream
 ```
 
 #### Request
@@ -689,38 +762,32 @@ Authorization: Bearer <token>
       "content": "Explain RAG"
     }
   ],
-  "stream": false,
+  "stream": true,
   "temperature": 0.7,
   "max_tokens": 2048,
   "top_p": 0.9
 }
 ```
 
-#### Response (200 OK)
+#### Response (200 OK - Streaming)
 
 ```json
-{
-  "success": true,
-  "data": {
-    "id": "chatcmpl-123",
-    "choices": [
-      {
-        "index": 0,
-        "message": {
-          "role": "assistant",
-          "content": "RAG (Retrieval-Augmented Generation)..."
-        },
-        "finish_reason": "stop"
-      }
-    ],
-    "usage": {
-      "prompt_tokens": 15,
-      "completion_tokens": 150,
-      "total_tokens": 165
-    },
-    "model": "llama-3-8b"
-  }
-}
+# First chunk
+data: {"id":"chatcmpl-123","choices":[{"delta":{"role":"assistant","content":""},"finish_reason":null}]}
+
+# Second chunk
+data: {"id":"chatcmpl-123","choices":[{"delta":{"role":"assistant","content":"RAG "}}]}
+
+# Third chunk
+data: {"id":"chatcmpl-123","choices":[{"delta":{"role":"assistant","content":"(Retrieval"}}]}
+
+# ... more chunks ...
+
+# Final chunk
+data: {"id":"chatcmpl-123","choices":[{"delta":{"role":"assistant","content":"-Augmented"}}]}
+
+# Done
+data: {"id":"chatcmpl-123","choices":[{"delta":{},"finish_reason":"stop"}]}
 ```
 
 ---
@@ -1594,6 +1661,7 @@ Authorization: Bearer <system_token>
 
 ## Tags
 
+### Core
 - `api` - API endpoints
 - `authentication` - User authentication
 - `user-management` - User CRUD operations
@@ -1602,6 +1670,19 @@ Authorization: Bearer <system_token>
 - `prompts` - Prompt management
 - `tools` - Custom tool execution
 - `monitoring` - System monitoring
+
+### Technical
+- `caching` - Response caching strategies
+- `streaming` - Response streaming flow
+- `pagination` - Data pagination patterns
+- `batch-operations` - Bulk user operations
+- `query-optimization` - Database query optimization
+
+### Workflow
+- `workflows` - Multi-step workflows
+- `multi-turn-chat` - Conversation management
+- `complete-pipeline` - End-to-end pipeline
+- `retry-patterns` - Retry logic and backoff
 
 ---
 
