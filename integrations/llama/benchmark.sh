@@ -29,6 +29,12 @@ export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 
-./llama-bench -m $MODEL_DIR/$model --fit-ctx $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --prio 2 --cpu-strict 1  --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $batch_size --ubatch-size $ubatch_size --mlock 1 --no-mmap --fit-target 256
+## added for benchmarks
+export LLAMA_ARG_MLOCK=on
+export LLAMA_ARG_MMAP=off
+export LLAMA_ARG_FIT=on
+export LLAMA_ARG_FIT_TARGET=256
+
+./llama-bench -m $MODEL_DIR/$model --fit-ctx $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --prio 2 --cpu-strict 1  --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $batch_size --ubatch-size $ubatch_size 
 
 # --mmap $mmap --fit $fit 
