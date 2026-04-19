@@ -35,6 +35,7 @@ export LLAMA_ARG_MMAP=off
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
+export LLAMA_ARG_FLASH_ATTN=on
 
 ./llama-bench -m $MODEL_DIR/$model -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1  --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $batch_size --ubatch-size $ubatch_size --verbose
 
