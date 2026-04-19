@@ -24,5 +24,13 @@ router.post('/:id/memory', authMiddleware, chatController.updateMemory);
 router.post('/:sessionId/memory', authMiddleware, chatController.updateMemory);
 router.put('/:id/memory', authMiddleware, chatController.updateMemory);
 router.put('/:sessionId/memory', authMiddleware, chatController.updateMemory);
+router.get('/:id/tool-calls', authMiddleware, chatController.getToolCalls);
+router.get('/:sessionId/tool-calls', authMiddleware, chatController.getToolCalls);
+router.get('/:id/tool-calls/:toolCallId', authMiddleware, chatController.getToolCall);
+router.get(
+  '/:sessionId/tool-calls/:toolCallId',
+  authMiddleware,
+  chatController.getToolCall
+);
 
 module.exports = router;

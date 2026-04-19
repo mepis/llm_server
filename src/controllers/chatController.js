@@ -1,6 +1,7 @@
 const ChatSession = require('../models/ChatSession');
 const chatService = require('../services/chatService');
 const logger = require('../utils/logger');
+const ToolCall = require('../models/ToolCall');
 
 const createSession = async (req, res) => {
   try {
@@ -191,31 +192,101 @@ const sendToLLM = async (req, res) => {
     const userId = req.user.user_id;
     const sessionId = req.params.sessionId || req.params.id;
     const { message, model, temperature, max_tokens, top_p, use_rag } = req.body;
-    
+
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session || session.user_id.toString() !== userId) {
       return res.status(404).json({
         success: false,
-        error: 'Session not found'
+        error: 'Session not found',
       });
     }
-    
-    const result = await chatService.chatWithLLM(sessionId, message, {
+
+    const result = await chatService.runLoop(sessionId, message, {
       temperature,
       max_tokens,
-      top_p
+      top_p,
     });
-    
+
     res.json({
       success: true,
-      data: result.data
+      data: result.data,
     });
   } catch (error) {
     logger.error('Send to LLM failed:', error.message);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+    });
+  }
+};
+
+const getToolCalls = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const sessionId = req.params.sessionId || req.params.id;
+    const { messageId } = req.query;
+
+    const session = await ChatSession.findById(sessionId);
+
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found',
+      });
+    }
+
+    const result = await chatService.getToolCalls(sessionId, messageId);
+
+    res.json({
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    logger.error('Get tool calls failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+const getToolCall = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const sessionId = req.params.sessionId || req.params.id;
+    const toolCallId = req.params.toolCallId;
+
+    const session = await ChatSession.findById(sessionId);
+
+    if (!session || session.user_id.toString() !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found',
+      });
+    }
+
+    const toolCall = await ToolCall.findOne({
+      _id: toolCallId,
+      session_id: sessionId,
+    });
+
+    if (!toolCall) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tool call not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: toolCall,
+    });
+  } catch (error) {
+    logger.error('Get tool call failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
     });
   }
 };
@@ -285,6 +356,8 @@ module.exports = {
   addMessage,
   getMessages,
   sendToLLM,
+  getToolCalls,
+  getToolCall,
   clearMessages,
-  updateMemory
+  updateMemory,
 };

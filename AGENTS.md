@@ -72,3 +72,7 @@ frontend/src/
 ## Changelog
 
 Always update `docs/CHANGELOG.md` with timestamps for bug fixes and new features.
+
+## Commit & Push
+
+When asked to commit and push, you **MUST** update the changelog first, then commit all changes including the changelog update.

@@ -1,413 +1,446 @@
 <template>
-  <div class="tools-container">
-    <Header />
-    <Sidebar />
-    <main class="tools-main">
-      <div class="tools-header">
-        <h1>Tool Builder</h1>
-        <Button label="New Tool" icon="pi pi-plus" @click="openCreateModal" />
-      </div>
+  <div class="tools-view">
+    <div class="page-header">
+      <h1>Tool Builder</h1>
+      <Button
+        v-if="toolStore.hasAdminRole"
+        label="New Tool"
+        icon="pi pi-plus"
+        @click="openCreateDialog"
+      />
+    </div>
 
-      <div v-if="loading" class="loading-state">
-        <p>Loading tools...</p>
-      </div>
+    <div v-if="toolStore.error" class="error-banner">
+      {{ toolStore.error }}
+    </div>
 
-      <div v-else-if="toolsList.length === 0" class="empty-state">
-        <p>No tools yet. Create a custom tool to extend the AI's capabilities!</p>
-      </div>
+    <div v-if="toolStore.loading" class="loading">Loading tools...</div>
 
-      <div v-else class="tools-grid">
-        <div v-for="tool in toolsList" :key="tool._id" class="tool-card">
-          <div class="tool-header">
-            <h3>{{ tool.name }}</h3>
-            <span :class="['status-badge', tool.is_active ? 'active' : 'inactive']">
-              {{ tool.is_active ? 'Active' : 'Inactive' }}
-            </span>
+    <div v-else class="tools-grid">
+      <div v-for="tool in toolStore.tools" :key="tool._id" class="tool-card">
+        <div class="tool-card-header">
+          <h3>{{ tool.name }}</h3>
+          <div class="tool-status">
+            <Badge :value="tool.is_active ? 'Active' : 'Disabled'" :severity="tool.is_active ? 'success' : 'danger'" />
           </div>
-          <p class="tool-description">{{ tool.description }}</p>
-          <div v-if="tool.parameters && tool.parameters.length > 0" class="tool-parameters">
-            <span class="param-label">Parameters:</span>
-            <span v-for="param in tool.parameters" :key="param.name" class="param">
-              {{ param.name }}:{{ param.type }}
-            </span>
-          </div>
-          <div class="tool-actions">
-            <Button text label="Execute" @click="executeTool(tool)" />
-            <Button text label="Edit" @click="editTool(tool)" />
-            <Button text severity="danger" label="Delete" @click="deleteTool(tool._id)" />
-          </div>
+        </div>
+
+        <p class="tool-description">{{ tool.description }}</p>
+
+        <div class="tool-roles">
+          <span v-for="role in (tool.roles || ['user'])" :key="role" class="role-badge">{{ role }}</span>
+        </div>
+
+        <div v-if="tool.parameters && tool.parameters.length" class="tool-parameters">
+          <h4>Parameters</h4>
+          <ul>
+            <li v-for="param in tool.parameters" :key="param.name">
+              <strong>{{ param.name }}</strong> ({{ param.type }})
+              <span v-if="param.required" class="required">*</span>
+              <span v-if="param.description"> - {{ param.description }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="tool-actions">
+          <Button
+            v-if="toolStore.canExecuteTool(tool)"
+            label="Execute"
+            icon="pi pi-play"
+            outlined
+            @click="openExecuteDialog(tool)"
+          />
+          <Button
+            v-if="toolStore.hasAdminRole"
+            label="Edit"
+            icon="pi pi-pencil"
+            outlined
+            @click="openEditDialog(tool)"
+          />
+          <Button
+            v-if="toolStore.hasAdminRole"
+            label="Delete"
+            icon="pi pi-trash"
+            severity="danger"
+            outlined
+            @click="confirmDelete(tool)"
+          />
+          <div v-if="!toolStore.canExecuteTool(tool)" class="access-denied">Access denied</div>
         </div>
       </div>
 
-      <Dialog v-model:visible="dialogVisible" :modal="true" header="Tool Configuration" :style="{ width: '700px' }">
-        <div class="tool-form">
-          <div class="form-group">
-            <label>Name</label>
-            <InputText v-model="form.name" placeholder="Tool name" />
-          </div>
-          <div class="form-group">
-            <label>Description</label>
-            <InputText v-model="form.description" placeholder="What does this tool do?" />
-          </div>
-          <div class="form-group">
-            <label>Code</label>
-            <textarea v-model="form.code" rows="10" placeholder="function myTool(params) {\n  return result;\n}" />
-          </div>
-          <div class="form-group">
-            <label>Parameters (JSON)</label>
-            <textarea v-model="form.parametersJson" rows="4" placeholder='[{"name": "input", "type": "string", "required": true}]' />
-          </div>
-          <div class="form-group">
-            <Checkbox v-model="form.is_active" :binary="true" label="Active" />
+      <div v-if="toolStore.tools.length === 0" class="empty-state">
+        <p>No tools found. Create your first tool to get started.</p>
+      </div>
+    </div>
+
+    <!-- Create/Edit Dialog -->
+    <Dialog
+      v-model:visible="dialogVisible"
+      :header="isEditing ? 'Edit Tool' : 'Create Tool'"
+      modal
+      class="tool-dialog"
+    >
+      <div class="dialog-form">
+        <div class="form-field">
+          <label>Name</label>
+          <InputText v-model="toolForm.name" placeholder="Tool name" />
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <InputText v-model="toolForm.description" placeholder="Tool description" />
+        </div>
+        <div class="form-field">
+          <label>Roles</label>
+          <div class="role-checkboxes">
+            <label v-for="role in availableRoles" :key="role" class="role-checkbox">
+              <Checkbox v-model="selectedRoles" inputId="role-{{ role }}" value="role" />
+              <span>{{ role }}</span>
+            </label>
           </div>
         </div>
-        <template #footer>
-          <Button label="Cancel" text @click="closeModal" />
-          <Button label="Save" @click="saveTool" />
-        </template>
-      </Dialog>
+        <div class="form-field">
+          <label>Code</label>
+          <textarea v-model="toolForm.code" class="code-input" placeholder="async function(params) { return params; }"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Parameters (JSON)</label>
+          <textarea v-model="toolForm.parametersText" class="code-input" placeholder='[{"name": "input", "type": "string", "required": true, "description": "Input value"}]'></textarea>
+        </div>
+        <div class="form-field">
+          <label>
+            <Checkbox v-model="toolForm.is_active" inputId="is_active" />
+            Active
+          </label>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancel" outlined @click="dialogVisible = false" />
+        <Button label="Save" @click="saveTool" :disabled="toolStore.loading" />
+      </template>
+    </Dialog>
 
-      <Dialog v-model:visible="executeDialogVisible" :modal="true" header="Execute Tool" :style="{ width: '600px' }">
-        <div v-if="selectedTool" class="execute-form">
-          <div v-for="param in selectedTool.parameters" :key="param.name" class="form-group">
-            <label>{{ param.name }} {{ param.required ? '*' : '' }}</label>
-            <InputText v-model="execParams[param.name]" :placeholder="'Value for ' + param.name" />
-          </div>
+    <!-- Execute Dialog -->
+    <Dialog
+      v-model:visible="executeDialogVisible"
+      :header="'Execute: ' + (selectedTool?.name || '')"
+      modal
+      class="execute-dialog"
+    >
+      <div v-if="selectedTool" class="execute-form">
+        <div v-for="param in (selectedTool.parameters || [])" :key="param.name" class="form-field">
+          <label>
+            {{ param.name }}
+            <span v-if="param.required" class="required">*</span>
+          </label>
+          <InputText
+            v-if="param.type === 'string'"
+            v-model="executeParams[param.name]"
+            :placeholder="param.description || param.name"
+          />
+          <InputText
+            v-else-if="param.type === 'number'"
+            v-model.number="executeParams[param.name]"
+            type="number"
+            :placeholder="param.description || param.name"
+          />
+          <InputText
+            v-else
+            v-model="executeParams[param.name]"
+            :placeholder="param.description || param.name"
+          />
         </div>
         <div v-if="executeResult" class="execute-result">
-          <h4>Result:</h4>
-          <pre>{{ JSON.stringify(executeResult, null, 2) }}</pre>
+          <h4>Result</h4>
+          <pre>{{ executeResult }}</pre>
         </div>
-        <template #footer>
-          <Button label="Execute" @click="runTool" :disabled="!selectedTool" />
-        </template>
-      </Dialog>
-    </main>
+        <div v-if="executeError" class="execute-error">
+          {{ executeError }}
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancel" outlined @click="executeDialogVisible = false" />
+        <Button label="Run" icon="pi pi-play" @click="runTool" :disabled="toolStore.loading" />
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useToolStore } from '@/stores/tool'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
-import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
-import Checkbox from 'primevue/checkbox'
+import { ref, reactive, computed } from 'vue';
+import { useToolStore } from '@/stores/tool';
+import { useToast } from 'primevue/usetoast';
+import Toast from 'primevue/toast';
 
-const toolStore = useToolStore()
-const loading = ref(false)
-const dialogVisible = ref(false)
-const executeDialogVisible = ref(false)
-const editingTool = ref(null)
-const selectedTool = ref(null)
-const executeResult = ref(null)
+const toolStore = useToolStore();
+const toast = useToast();
 
-const toolsList = computed(() => toolStore.tools)
+const dialogVisible = ref(false);
+const executeDialogVisible = ref(false);
+const isEditing = ref(false);
+const selectedTool = ref(null);
 
-const form = ref({
+const availableRoles = ['user', 'admin', 'system'];
+
+const toolForm = reactive({
   name: '',
   description: '',
   code: '',
-  parametersJson: '[]',
-  is_active: true
-})
+  parametersText: '[]',
+  is_active: true,
+  roles: [],
+});
 
-const execParams = ref({})
+const selectedRoles = ref([]);
 
-const openCreateModal = () => {
-  editingTool.value = null
-  form.value = {
-    name: '',
-    description: '',
-    code: '',
-    parametersJson: '[]',
-    is_active: true
-  }
-  dialogVisible.value = true
-}
+const executeParams = reactive({});
+const executeResult = ref(null);
+const executeError = ref(null);
 
-const editTool = (tool) => {
-  editingTool.value = tool
-  form.value = {
-    name: tool.name,
-    description: tool.description,
-    code: tool.code,
-    parametersJson: JSON.stringify(tool.parameters || [], null, 2),
-    is_active: tool.is_active
-  }
-  dialogVisible.value = true
-}
+const initToolForm = () => {
+  toolForm.name = '';
+  toolForm.description = '';
+  toolForm.code = '';
+  toolForm.parametersText = '[]';
+  toolForm.is_active = true;
+  toolForm.roles = ['user'];
+  selectedRoles.value = ['user'];
+};
 
-const closeModal = () => {
-  dialogVisible.value = false
-}
+const openCreateDialog = () => {
+  isEditing.value = false;
+  selectedTool.value = null;
+  initToolForm();
+  dialogVisible.value = true;
+};
+
+const openEditDialog = (tool) => {
+  isEditing.value = true;
+  selectedTool.value = tool;
+  toolForm.name = tool.name;
+  toolForm.description = tool.description;
+  toolForm.code = tool.code;
+  toolForm.parametersText = JSON.stringify(tool.parameters, null, 2);
+  toolForm.is_active = tool.is_active;
+  toolForm.roles = tool.roles || ['user'];
+  selectedRoles.value = [...(tool.roles || ['user'])];
+  dialogVisible.value = true;
+};
+
+const openExecuteDialog = (tool) => {
+  selectedTool.value = tool;
+  Object.keys(executeParams).forEach((key) => delete executeParams[key]);
+  executeResult.value = null;
+  executeError.value = null;
+  executeDialogVisible.value = true;
+};
 
 const saveTool = async () => {
-  if (!form.value.name || !form.value.code) {
-    alert('Name and code are required')
-    return
-  }
-
-  let parameters = []
   try {
-    parameters = JSON.parse(form.value.parametersJson || '[]')
-  } catch (e) {
-    alert('Invalid JSON for parameters')
-    return
-  }
+    const params = JSON.parse(toolForm.parametersText);
+    const data = {
+      name: toolForm.name,
+      description: toolForm.description,
+      function_code: toolForm.code,
+      parameters: params,
+      is_active: toolForm.is_active,
+      roles: selectedRoles.value,
+    };
 
-  const toolData = {
-    name: form.value.name,
-    description: form.value.description,
-    code: form.value.code,
-    parameters,
-    is_active: form.value.is_active
-  }
-
-  try {
-    if (editingTool.value) {
-      await toolStore.updateTool(editingTool.value._id, toolData)
+    if (isEditing.value && selectedTool.value) {
+      await toolStore.updateTool(selectedTool.value._id, data);
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Tool updated' });
     } else {
-      await toolStore.createTool(toolData)
+      await toolStore.createTool(data);
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Tool created' });
     }
-    closeModal()
+
+    dialogVisible.value = false;
+    await toolStore.listTools();
   } catch (error) {
-    console.error('Failed to save tool:', error)
-    alert('Failed to save tool: ' + (error.response?.data?.message || error.message))
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to save tool' });
   }
-}
-
-const deleteTool = async (toolId) => {
-  if (!confirm('Are you sure you want to delete this tool?')) return
-
-  try {
-    await toolStore.deleteTool(toolId)
-  } catch (error) {
-    console.error('Failed to delete tool:', error)
-    alert('Failed to delete tool')
-  }
-}
-
-const executeTool = (tool) => {
-  selectedTool.value = tool
-  execParams.value = {}
-  executeResult.value = null
-  executeDialogVisible.value = true
-}
+};
 
 const runTool = async () => {
-  if (!selectedTool.value) return
-
   try {
-    executeResult.value = await toolStore.executeTool(selectedTool.value._id, execParams.value)
+    executeResult.value = null;
+    executeError.value = null;
+    const result = await toolStore.executeTool(selectedTool.value._id, executeParams);
+    executeResult.value = result.output;
   } catch (error) {
-    console.error('Tool execution failed:', error)
-    alert('Execution failed: ' + (error.response?.data?.message || error.message))
+    executeError.value = error.response?.data?.error || 'Failed to execute tool';
   }
-}
+};
 
-const loadTools = async () => {
-  loading.value = true
+const confirmDelete = async (tool) => {
+  if (!confirm(`Delete "${tool.name}"?`)) return;
   try {
-    await toolStore.listTools()
+    await toolStore.deleteTool(tool._id);
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Tool deleted' });
+    await toolStore.listTools();
   } catch (error) {
-    console.error('Failed to load tools:', error)
-  } finally {
-    loading.value = false
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to delete tool' });
   }
-}
+};
 
-onMounted(() => {
-  loadTools()
-})
+toolStore.listTools();
 </script>
 
 <style scoped>
-.tools-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.tools-main {
-  flex: 1;
-  margin-left: 250px;
+.tools-view {
   padding: 2rem;
-  background: #f9fafb;
-  overflow-y: auto;
 }
 
-.tools-header {
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
 
-.tools-header h1 {
-  font-size: 1.875rem;
-  color: #111827;
+.page-header h1 {
   margin: 0;
 }
 
-.loading-state,
-.empty-state {
+.error-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.loading {
   text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
+  padding: 2rem;
 }
 
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .tool-card {
-  padding: 1.25rem;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.tool-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.tool-header {
+.tool-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 0.5rem;
 }
 
-.tool-header h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111827;
+.tool-card-header h3 {
   margin: 0;
 }
 
-.status-badge {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-weight: 600;
-}
-
-.status-badge.active {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.inactive {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
 .tool-description {
-  color: #6b7280;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin: 0 0 1rem 0;
+  color: #666;
+  margin: 0.5rem 0;
 }
 
-.tool-parameters {
-  margin-bottom: 1rem;
+.tool-roles {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.param-label {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 600;
-}
-
-.param {
-  display: inline-block;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+.role-badge {
   background: #e0e7ff;
   color: #4338ca;
-  margin: 0.25rem 0.25rem 0 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.tool-parameters h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.tool-parameters ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+
+.required {
+  color: #ef4444;
 }
 
 .tool-actions {
   display: flex;
   gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
-.tool-form,
+.access-denied {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.dialog-form,
 .execute-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.form-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
 }
 
-.form-group label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.form-group textarea {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+.code-input {
   font-family: monospace;
+  width: 100%;
+  min-height: 100px;
   resize: vertical;
 }
 
-.form-group textarea:focus {
-  outline: none;
-  border-color: #2d6a4f;
+.role-checkboxes {
+  display: flex;
+  gap: 1rem;
+}
+
+.role-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .execute-result {
-  margin-top: 1rem;
+  background: #f0fdf4;
   padding: 1rem;
-  background: #f3f4f6;
-  border-radius: 6px;
-}
-
-.execute-result h4 {
-  margin: 0 0 0.5rem 0;
-  color: #374151;
+  border-radius: 8px;
 }
 
 .execute-result pre {
-  margin: 0;
-  overflow-x: auto;
-  font-size: 0.875rem;
+  margin: 0.5rem 0 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-@media (max-width: 768px) {
-  .tools-main {
-    margin-left: 0;
-    padding: 1rem;
-  }
-
-  .tools-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .tools-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .tools-grid {
-    grid-template-columns: 1fr;
-  }
+.execute-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 8px;
 }
 </style>

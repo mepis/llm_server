@@ -56,7 +56,7 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async addMessage(content) {
+    async sendMessage(content) {
       this.loading = true
       this.error = null
       try {
@@ -64,29 +64,86 @@ export const useChatStore = defineStore('chat', {
           const newChat = await this.createSession()
           this.currentChat = newChat
         }
-        
-        const response = await apiClient.post(`/chats/${this.currentChat.chat_id}/llm`, { message: content })
-        
+
         const userMessage = {
           role: 'user',
           content,
           timestamp: new Date().toISOString()
         }
-        
-        const assistantMessage = {
-          role: 'assistant',
-          content: response.data.data,
-          timestamp: new Date().toISOString()
-        }
-        
+
         if (!this.currentChat.messages) {
           this.currentChat.messages = []
         }
-        
-        this.currentChat.messages.push(userMessage, assistantMessage)
+
+        this.currentChat.messages.push(userMessage)
+
+        const response = await apiClient.post(`/chats/${this.currentChat.chat_id}/llm`, { message: content })
+
+        const data = response.data.data
+
+        if (data?.tool_calls && data.tool_calls.length > 0) {
+          const assistantMessage = {
+            role: 'assistant',
+            content: null,
+            tool_calls: data.tool_calls,
+            timestamp: new Date().toISOString()
+          }
+          this.currentChat.messages.push(assistantMessage)
+
+          if (data.tool_results) {
+            for (const toolResult of data.tool_results) {
+              const toolMessage = {
+                role: 'tool',
+                tool_call_id: toolResult.tool_call_id,
+                content: toolResult.content,
+                timestamp: new Date().toISOString()
+              }
+              this.currentChat.messages.push(toolMessage)
+            }
+          }
+
+          return response.data
+        }
+
+        const assistantMessage = {
+          role: 'assistant',
+          content: data,
+          timestamp: new Date().toISOString()
+        }
+
+        this.currentChat.messages.push(assistantMessage)
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to send message'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async loadToolCalls(chatId, messageId) {
+      this.loading = true
+      this.error = null
+      try {
+        const params = messageId ? { messageId } : {}
+        const response = await apiClient.get(`/chats/${chatId}/tool-calls`, { params })
+        return response.data.data || []
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to load tool calls'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async loadToolCall(chatId, toolCallId) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get(`/chats/${chatId}/tool-calls/${toolCallId}`)
+        return response.data.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to load tool call'
         throw error
       } finally {
         this.loading = false

@@ -15,13 +15,22 @@ const chatSessionSchema = new mongoose.Schema({
   messages: [{
     role: {
       type: String,
-      enum: ['system', 'user', 'assistant'],
+      enum: ['system', 'user', 'assistant', 'tool'],
       required: true
     },
     content: {
       type: String,
-      required: true
+      default: ''
     },
+    tool_calls: [{
+      id: String,
+      type: String,
+      function: {
+        name: String,
+        arguments: String
+      }
+    }],
+    tool_call_id: String,
     timestamp: {
       type: Date,
       default: Date.now
@@ -29,7 +38,8 @@ const chatSessionSchema = new mongoose.Schema({
     metadata: {
       model: String,
       tokens_used: Number,
-      embedding_used: Boolean
+      embedding_used: Boolean,
+      type: mongoose.Schema.Types.Mixed
     }
   }],
   memory: {
@@ -93,12 +103,18 @@ chatSessionSchema.set('toJSON', {
 });
 
 chatSessionSchema.methods.addMessage = function(role, content, metadata = {}) {
-  this.messages.push({
+  const msg = {
     role,
-    content,
+    content: content || '',
     timestamp: new Date(),
-    metadata
-  });
+    metadata: metadata || {}
+  };
+
+  if (metadata && metadata.tool_calls) {
+    msg.tool_calls = metadata.tool_calls;
+  }
+
+  this.messages.push(msg);
   this.updated_at = new Date();
   return this.save();
 };

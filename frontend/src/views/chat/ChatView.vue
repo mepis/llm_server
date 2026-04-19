@@ -10,11 +10,43 @@
         </div>
         <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
           <div class="message-avatar">
-            {{ message.role === 'user' ? 'U' : 'AI' }}
+            {{ message.role === 'user' ? 'U' : message.role === 'tool' ? 'T' : 'AI' }}
           </div>
           <div class="message-content">
             <div class="message-role">{{ message.role }}</div>
-            <div class="message-text">{{ message.content }}</div>
+
+            <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
+
+            <div v-else-if="message.role === 'assistant' && message.content" class="message-text">{{ message.content }}</div>
+
+            <div v-else-if="message.role === 'assistant' && message.tool_calls" class="tool-calls-section">
+              <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
+                <div class="tool-call-header">
+                  <i class="pi pi-cog"></i>
+                  <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
+                </div>
+                <div v-if="tc.function?.arguments" class="tool-call-input">
+                  <pre>{{ JSON.stringify(JSON.parse(tc.function.arguments), null, 2) }}</pre>
+                </div>
+              </div>
+            </div>
+
+            <div v-else-if="message.role === 'tool'" class="tool-result">
+              <div class="tool-result-header">
+                <i class="pi pi-check-circle"></i>
+                <span>Tool Result</span>
+                <Button
+                  text
+                  size="small"
+                  :label="expandedMessages.has(message.timestamp + index) ? 'Collapse' : 'Expand'"
+                  @click="toggleExpand(message.timestamp + index)"
+                />
+              </div>
+              <div class="tool-result-content" :class="{ collapsed: !expandedMessages.has(message.timestamp + index) }">
+                <pre>{{ message.content }}</pre>
+              </div>
+            </div>
+
             <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
         </div>
@@ -51,11 +83,13 @@ import { ref, computed, nextTick } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import Header from '@/components/layout/Header.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
+import Button from 'primevue/button'
 
 const chatStore = useChatStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
 const loading = ref(false)
+const expandedMessages = ref(new Set())
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
 
@@ -72,15 +106,25 @@ const scrollToBottom = async () => {
   }
 }
 
+const toggleExpand = (key) => {
+  const set = expandedMessages.value
+  if (set.has(key)) {
+    set.delete(key)
+  } else {
+    set.add(key)
+  }
+  expandedMessages.value = new Set(set)
+}
+
 const sendMessage = async () => {
   if (!newMessage.value.trim() || loading.value) return
-  
+
   loading.value = true
   const content = newMessage.value.trim()
   newMessage.value = ''
-  
+
   try {
-    await chatStore.addMessage(content)
+    await chatStore.sendMessage(content)
     await scrollToBottom()
   } catch (error) {
     console.error('Failed to send message:', error)
@@ -163,6 +207,11 @@ const sendMessage = async () => {
   color: #374151;
 }
 
+.message.tool .message-avatar {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .message-content {
   flex: 1;
   max-width: 600px;
@@ -216,6 +265,78 @@ const sendMessage = async () => {
   font-size: 0.75rem;
   color: #9ca3af;
   margin-top: 0.5rem;
+}
+
+.tool-calls-section {
+  margin-top: 0.5rem;
+}
+
+.tool-call-item {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.tool-call-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #166534;
+  margin-bottom: 0.5rem;
+}
+
+.tool-call-input {
+  margin-top: 0.5rem;
+}
+
+.tool-call-input pre {
+  background: #f9fafb;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  color: #374151;
+  margin: 0;
+}
+
+.tool-result {
+  margin-top: 0.5rem;
+}
+
+.tool-result-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #92400e;
+  margin-bottom: 0.5rem;
+}
+
+.tool-result-content {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tool-result-content.collapsed {
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.tool-result-content pre {
+  margin: 0;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
 }
 
 .chat-input-container {

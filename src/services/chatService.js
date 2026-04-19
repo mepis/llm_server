@@ -1,261 +1,532 @@
 const ChatSession = require('../models/ChatSession');
+const ToolCall = require('../models/ToolCall');
 const RAGDocument = require('../models/RAGDocument');
+const ragService = require('./ragService');
 const llamaService = require('./llamaService');
+const toolRegistry = require('../tool/registry');
+const { getBuiltinTools } = require('../tool');
 const logger = require('../utils/logger');
 
-const createChatSession = async (userId, sessionName, options = {}) => {
+const MAX_TOOL_TURNS = 10;
+
+async function resolveTools(session) {
+  const builtinTools = getBuiltinTools();
+  const customTools = await toolRegistry.loadCustomTools(session.metadata?.model);
+  const allTools = [...builtinTools, ...customTools];
+  const openAITools = toolRegistry.toOpenAITools(allTools);
+  return { tools: allTools, openAITools };
+}
+
+async function buildMessages(session) {
+  return session.messages.map((msg) => {
+    if (msg.tool_calls && msg.tool_calls.length > 0) {
+      return {
+        role: 'assistant',
+        content: null,
+        tool_calls: msg.tool_calls,
+      };
+    }
+    if (msg.role === 'tool' && msg.tool_call_id) {
+      return {
+        role: 'tool',
+        tool_call_id: msg.tool_call_id,
+        content: msg.content || '',
+      };
+    }
+    return {
+      role: msg.role,
+      content: msg.content || '',
+    };
+  });
+}
+
+async function createChatSession(userId, sessionName, options = {}) {
   try {
-    const { 
+    const {
       model = 'llama-3-8b',
       temperature = 0.7,
       maxTokens = 2048,
       enableRAG = false,
-      ragDocuments = []
+      ragDocuments = [],
     } = options;
-    
+
     const session = await ChatSession.create({
       user_id: userId,
       session_name: sessionName,
       metadata: {
         model,
         temperature,
-        max_tokens: maxTokens
+        max_tokens: maxTokens,
       },
       rag_enabled: enableRAG,
-      rag_document_ids: ragDocuments
+      rag_document_ids: ragDocuments,
     });
-    
+
     logger.info(`Chat session created: ${session._id} for user ${userId}`);
-    
+
     return {
       success: true,
-      data: session
+      data: session,
     };
   } catch (error) {
     logger.error('Create chat session failed:', error.message);
     throw error;
   }
-};
+}
 
-const addMessageToSession = async (sessionId, role, content) => {
+async function addMessageToSession(sessionId, role, content) {
   try {
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     await session.addMessage(role, content);
-    
+
     return {
       success: true,
-      data: session
+      data: session,
     };
   } catch (error) {
     logger.error('Add message failed:', error.message);
     throw error;
   }
-};
+}
 
-const getMessages = async (sessionId) => {
+async function getMessages(sessionId) {
   try {
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     return {
       success: true,
-      data: session.messages
+      data: session.messages,
     };
   } catch (error) {
     logger.error('Get messages failed:', error.message);
     throw error;
   }
-};
+}
 
-const chatWithLLM = async (sessionId, content, options = {}) => {
+async function executeToolCall(toolCall, session, allTools) {
+  const toolName = toolCall.function?.name || toolCall.tool_name;
+  const toolCallId = toolCall.id || toolCall.tool_call_id;
+  const input = toolCall.function?.arguments
+    ? JSON.parse(toolCall.function.arguments)
+    : toolCall.input || {};
+
+  const toolCallDoc = await ToolCall.create({
+    session_id: session._id,
+    message_id: toolCallId,
+    tool_call_id: toolCallId,
+    tool_name: toolName,
+    input,
+    state: 'running',
+  });
+
+  const tool = allTools.find((t) => t.id === toolName);
+
+  if (!tool) {
+    await ToolCall.findByIdAndUpdate(toolCallDoc._id, {
+      state: 'error',
+      output: `Unknown tool: ${toolName}`,
+      error: `Unknown tool: ${toolName}`,
+    });
+    return {
+      role: 'tool',
+      tool_call_id: toolCallId,
+      content: `Error: Unknown tool "${toolName}"`,
+    };
+  }
+
+  const ctx = {
+    sessionID: session._id.toString(),
+    messageID: toolCallId,
+    agent: 'assistant',
+    abort: new AbortController().signal,
+    messages: session.messages,
+    metadata: async (val) => {},
+    ask: async (req) => {
+      await ToolCall.findByIdAndUpdate(toolCallDoc._id, {
+        state: 'pending',
+        output: `Question: ${req.question}`,
+      });
+    },
+  };
+
+  try {
+    const result = await tool.execute(input, ctx);
+    const output = result.output || '';
+
+    await ToolCall.findByIdAndUpdate(toolCallDoc._id, {
+      state: 'completed',
+      output,
+      title: result.title,
+      metadata: result.metadata || {},
+    });
+
+    return {
+      role: 'tool',
+      tool_call_id: toolCallId,
+      content: output,
+    };
+  } catch (error) {
+    await ToolCall.findByIdAndUpdate(toolCallDoc._id, {
+      state: 'error',
+      output: `Error: ${error.message}`,
+      error: error.message,
+    });
+
+    return {
+      role: 'tool',
+      tool_call_id: toolCallId,
+      content: `Error executing tool "${toolName}": ${error.message}`,
+    };
+  }
+}
+
+async function chatWithLLM(sessionId, content, options = {}) {
   try {
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
-    const { temperature, max_tokens, top_p, stream } = {
+
+    const { temperature, max_tokens, top_p } = {
       temperature: session.metadata?.temperature || 0.7,
       max_tokens: session.metadata?.max_tokens || 2048,
       top_p: session.metadata?.top_p || 0.9,
-      ...options
+      ...options,
     };
-    
-    const messages = session.messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-    
-    messages.push({
-      role: 'user',
-      content
-    });
-    
-    let responseContent;
-    
-    if (stream) {
-      responseContent = await streamChatResponse(sessionId, messages, {
-        temperature,
-        max_tokens,
-        top_p
-      });
-    } else {
-      const response = await llamaService.getChatCompletions(messages, {
-        temperature,
-        max_tokens,
-        top_p,
-        stream: false
-      });
-      
-      responseContent = response.choices[0]?.message?.content || '';
+
+    const messages = buildMessages(session);
+    messages.push({ role: 'user', content });
+
+    const { tools, openAITools } = await resolveTools(session);
+
+    let ragContext = '';
+    if (session.rag_enabled && session.rag_document_ids.length > 0) {
+      const ragResult = await ragService.searchDocuments(
+        session.rag_document_ids,
+        content
+      );
+      if (ragResult && ragResult.data && ragResult.data.length > 0) {
+        ragContext = ragResult.data
+          .map((doc) => doc.content)
+          .join('\n\n');
+      }
     }
-    
-    await session.addMessage('assistant', responseContent, {
-      model: session.metadata?.model || 'llama-3-8b'
+
+    const systemMessage = ragContext
+      ? `You are a helpful assistant. Here is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`
+      : 'You are a helpful assistant.';
+
+    const finalMessages = [
+      { role: 'system', content: systemMessage },
+      ...messages,
+    ];
+
+    const response = await llamaService.chatWithTools(finalMessages, openAITools, {
+      temperature,
+      max_tokens,
+      top_p,
     });
-    
+
+    const assistantMessage = response.choices?.[0]?.message || {};
+    const contentText = assistantMessage.content || '';
+    const toolCalls = assistantMessage.tool_calls || [];
+
+    if (toolCalls && toolCalls.length > 0) {
+      await session.addMessage('assistant', null, {
+        tool_calls: toolCalls,
+        model: session.metadata?.model || 'llama-3-8b',
+      });
+
+      const toolResults = [];
+      for (const tc of toolCalls) {
+        const result = await executeToolCall(tc, session, tools);
+        toolResults.push(result);
+      }
+
+      return {
+        success: true,
+        data: {
+          content: null,
+          tool_calls: toolCalls,
+          tool_results: toolResults,
+        },
+        session,
+        needsMoreTurns: true,
+      };
+    }
+
+    await session.addMessage('assistant', contentText, {
+      model: session.metadata?.model || 'llama-3-8b',
+    });
+
     return {
       success: true,
-      data: responseContent,
-      session: session
+      data: contentText,
+      session,
+      needsMoreTurns: false,
     };
   } catch (error) {
     logger.error('Chat with LLM failed:', error.message);
     throw error;
   }
-};
+}
 
-const streamChatResponse = async function*(sessionId, messages, options) {
+async function runLoop(sessionId, content, options = {}) {
+  try {
+    const session = await ChatSession.findById(sessionId);
+
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    const { temperature, max_tokens, top_p } = {
+      temperature: session.metadata?.temperature || 0.7,
+      max_tokens: session.metadata?.max_tokens || 2048,
+      top_p: session.metadata?.top_p || 0.9,
+      ...options,
+    };
+
+    const messages = buildMessages(session);
+    messages.push({ role: 'user', content });
+
+    const { tools, openAITools } = await resolveTools(session);
+
+    let ragContext = '';
+    if (session.rag_enabled && session.rag_document_ids.length > 0) {
+      const ragResult = await ragService.searchDocuments(
+        session.rag_document_ids,
+        content
+      );
+      if (ragResult && ragResult.data && ragResult.data.length > 0) {
+        ragContext = ragResult.data
+          .map((doc) => doc.content)
+          .join('\n\n');
+      }
+    }
+
+    const systemMessage = ragContext
+      ? `You are a helpful assistant. Here is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`
+      : 'You are a helpful assistant.';
+
+    let turn = 0;
+    const maxTurns = MAX_TOOL_TURNS;
+    let finalContent = '';
+
+    while (turn < maxTurns) {
+      const finalMessages = [
+        { role: 'system', content: systemMessage },
+        ...messages,
+      ];
+
+      const response = await llamaService.chatWithTools(
+        finalMessages,
+        openAITools,
+        {
+          temperature,
+          max_tokens,
+          top_p,
+        }
+      );
+
+      const assistantMessage = response.choices?.[0]?.message || {};
+      const contentText = assistantMessage.content || '';
+      const toolCalls = assistantMessage.tool_calls || [];
+
+      if (toolCalls && toolCalls.length > 0) {
+        await session.addMessage('assistant', null, {
+          tool_calls: toolCalls,
+          model: session.metadata?.model || 'llama-3-8b',
+        });
+
+        for (const tc of toolCalls) {
+          const result = await executeToolCall(tc, session, tools);
+          messages.push(result);
+
+          await session.addMessage('tool', result.content, {
+            tool_call_id: result.tool_call_id,
+          });
+        }
+
+        turn++;
+        continue;
+      }
+
+      await session.addMessage('assistant', contentText, {
+        model: session.metadata?.model || 'llama-3-8b',
+      });
+
+      finalContent = contentText;
+      break;
+    }
+
+    if (turn >= maxTurns) {
+      logger.warn(`Max tool turns (${maxTurns}) exceeded for session ${sessionId}`);
+    }
+
+    return {
+      success: true,
+      data: finalContent,
+      session,
+    };
+  } catch (error) {
+    logger.error('Run loop failed:', error.message);
+    throw error;
+  }
+}
+
+async function* streamChatResponse(sessionId, messages, options) {
   const session = await ChatSession.findById(sessionId);
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 60000);
-  
+
   try {
     const response = await llamaService.getChatCompletions(messages, {
       ...options,
-      stream: true
+      stream: true,
     });
-    
+
     let fullResponse = '';
     let buffer = '';
-    
+
     for await (const chunk of response) {
       const chunkText = chunk.choices[0]?.delta?.content || '';
       buffer += chunkText;
-      
+
       if (buffer.length > 100) {
         fullResponse += buffer;
         buffer = '';
       }
-      
+
       yield chunkText;
     }
-    
+
     fullResponse += buffer;
-    
+
     clearTimeout(timeoutId);
-    
+
     await session.addMessage('assistant', fullResponse, {
-      model: session.metadata?.model || 'llama-3-8b'
+      model: session.metadata?.model || 'llama-3-8b',
     });
-    
   } catch (error) {
     logger.error('Streaming chat error:', error.message);
     throw error;
   }
-};
+}
 
-const clearSessionMessages = async (sessionId) => {
+async function clearSessionMessages(sessionId) {
   try {
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     await session.clearMessages();
-    
+
     return {
       success: true,
-      data: session
+      data: session,
     };
   } catch (error) {
     logger.error('Clear messages failed:', error.message);
     throw error;
   }
-};
+}
 
-const updateSessionMemory = async (sessionId, memoryData) => {
+async function updateSessionMemory(sessionId, memoryData) {
   try {
     const session = await ChatSession.findById(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     await session.updateMemory(memoryData);
-    
+
     return {
       success: true,
-      data: session
+      data: session,
     };
   } catch (error) {
     logger.error('Update session memory failed:', error.message);
     throw error;
   }
-};
+}
 
-const getSessionsByUser = async (userId) => {
+async function getSessionsByUser(userId) {
   try {
     const sessions = await ChatSession.find({ user_id: userId })
       .sort({ created_at: -1 })
       .select('-messages');
-    
+
     return {
       success: true,
-      data: sessions
+      data: sessions,
     };
   } catch (error) {
     logger.error('Get user sessions failed:', error.message);
     throw error;
   }
-};
+}
 
-const deleteSession = async (sessionId) => {
+async function deleteSession(sessionId) {
   try {
+    await ToolCall.deleteMany({ session_id: sessionId });
     const session = await ChatSession.findByIdAndDelete(sessionId);
-    
+
     if (!session) {
       throw new Error('Session not found');
     }
-    
+
     logger.info(`Session deleted: ${sessionId}`);
-    
+
     return { success: true };
   } catch (error) {
     logger.error('Delete session failed:', error.message);
     throw error;
   }
-};
+}
+
+async function getToolCalls(sessionId, messageId) {
+  try {
+    const query = { session_id: sessionId };
+    if (messageId) {
+      query.message_id = messageId;
+    }
+
+    const toolCalls = await ToolCall.find(query).sort({ created_at: 1 });
+
+    return {
+      success: true,
+      data: toolCalls,
+    };
+  } catch (error) {
+    logger.error('Get tool calls failed:', error.message);
+    throw error;
+  }
+}
 
 module.exports = {
   createChatSession,
   addMessageToSession,
   getMessages,
   chatWithLLM,
+  runLoop,
   streamChatResponse,
   clearSessionMessages,
   updateSessionMemory,
   getSessionsByUser,
-  deleteSession
+  deleteSession,
+  getToolCalls,
 };

@@ -8,19 +8,19 @@ const CACHE_TTL = 60000;
 
 const getModels = async () => {
   const now = Date.now();
-  
+
   if (cachedModels && modelsCacheTime && (now - modelsCacheTime < CACHE_TTL)) {
     return cachedModels;
   }
-  
+
   try {
     const response = await axios.get(`${config.llama.url}/v1/models`, {
-      timeout: config.llama.timeout
+      timeout: config.llama.timeout,
     });
-    
+
     cachedModels = response.data;
     modelsCacheTime = now;
-    
+
     return cachedModels;
   } catch (error) {
     logger.error('Failed to get models from Llama.cpp:', error.message);
@@ -34,19 +34,43 @@ const getChatCompletions = async (messages, options = {}) => {
       `${config.llama.url}/v1/chat/completions`,
       {
         messages,
-        ...options
+        ...options,
       },
       {
         timeout: config.llama.timeout,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
-    
+
     return response.data;
   } catch (error) {
     logger.error('Failed to get chat completions:', error.message);
+    throw error;
+  }
+};
+
+const chatWithTools = async (messages, tools, options = {}) => {
+  try {
+    const response = await axios.post(
+      `${config.llama.url}/v1/chat/completions`,
+      {
+        messages,
+        tools,
+        ...options,
+      },
+      {
+        timeout: config.llama.timeout,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    logger.error('Failed to get chat completions with tools:', error.message);
     throw error;
   }
 };
@@ -57,16 +81,16 @@ const getEmbeddings = async (input, model = 'all-MiniLM-L6-v2') => {
       `${config.llama.url}/v1/embeddings`,
       {
         model,
-        input: Array.isArray(input) ? input : [input]
+        input: Array.isArray(input) ? input : [input],
       },
       {
         timeout: config.llama.timeout,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
-    
+
     return response.data;
   } catch (error) {
     logger.error('Failed to get embeddings:', error.message);
@@ -77,7 +101,7 @@ const getEmbeddings = async (input, model = 'all-MiniLM-L6-v2') => {
 const healthCheck = async () => {
   try {
     const response = await axios.get(`${config.llama.url}/health`, {
-      timeout: 5000
+      timeout: 5000,
     });
     return response.data;
   } catch (error) {
@@ -89,6 +113,7 @@ const healthCheck = async () => {
 module.exports = {
   getModels,
   getChatCompletions,
+  chatWithTools,
   getEmbeddings,
-  healthCheck
+  healthCheck,
 };

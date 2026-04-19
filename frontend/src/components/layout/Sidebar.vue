@@ -58,7 +58,7 @@
             </router-link>
           </nav>
         </div>
-      <div v-if="user?.role === 'admin' || user?.role === 'system'" class="sidebar-section">
+      <div v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" class="sidebar-section">
         <h3 class="section-title">Admin</h3>
         <nav class="nav-links">
           <router-link to="/admin/users" class="nav-link" @click="closeAfterNav">
