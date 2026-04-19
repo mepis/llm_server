@@ -36,15 +36,19 @@
       <div class="sidebar-section">
          <h3 class="section-title">Management</h3>
          <nav class="nav-links">
-           <router-link to="/prompts" class="nav-link" @click="closeAfterNav">
-             <i class="pi pi-font"></i>
-             <span>Prompts</span>
-           </router-link>
-           <router-link to="/tools" class="nav-link" @click="closeAfterNav">
-             <i class="pi pi-wrench"></i>
-             <span>Tools</span>
-           </router-link>
-           <router-link to="/logs" class="nav-link" @click="closeAfterNav">
+          <router-link to="/prompts" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-font"></i>
+              <span>Prompts</span>
+            </router-link>
+            <router-link to="/tools" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-wrench"></i>
+              <span>Tools</span>
+            </router-link>
+            <router-link to="/skills" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-book"></i>
+              <span>Skills</span>
+            </router-link>
+            <router-link to="/logs" class="nav-link" @click="closeAfterNav">
              <i class="pi pi-list"></i>
              <span>Logs</span>
            </router-link>

@@ -14,6 +14,7 @@ const logRoutes = require('./log');
 const matrixRoutes = require('./matrix');
 const llamaRoutes = require('./llama');
 const monitorRoutes = require('./monitor');
+const skillRoutes = require('./skill');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -26,5 +27,6 @@ router.use('/logs', logRoutes);
 router.use('/matrix', matrixRoutes);
 router.use('/llama', llamaRoutes);
 router.use('/monitor', monitorRoutes);
+router.use('/skills', skillRoutes);
 
 module.exports = router;

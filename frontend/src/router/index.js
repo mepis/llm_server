@@ -54,14 +54,20 @@ const router = createRouter({
       component: () => import('../views/prompts/PromptsView.vue'),
       meta: { requiresAuth: true }
     },
-    {
-      path: '/tools',
-      name: 'tools',
-      component: () => import('../views/tools/ToolsView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/logs',
+     {
+        path: '/tools',
+        name: 'tools',
+        component: () => import('../views/tools/ToolsView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/skills',
+        name: 'skills',
+        component: () => import('../views/skills/SkillsView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/logs',
       name: 'logs',
       component: () => import('../views/logs/LogsView.vue'),
       meta: { requiresAuth: true }

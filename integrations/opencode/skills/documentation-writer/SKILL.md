@@ -3,6 +3,7 @@ name: documentation-writer
 description: Create application documentation
 license: MIT
 compatibility: opencode
+roles: ["user"]
 ---
 
 ## What I do

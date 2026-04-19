@@ -6,6 +6,7 @@ const { globTool } = require('./glob');
 const { grepTool } = require('./grep');
 const { questionTool } = require('./question');
 const { todoTool } = require('./todo');
+const { skillTool } = require('./skill');
 
 registerBuiltin(bashTool);
 registerBuiltin(readTool);
@@ -14,6 +15,7 @@ registerBuiltin(globTool);
 registerBuiltin(grepTool);
 registerBuiltin(questionTool);
 registerBuiltin(todoTool);
+registerBuiltin(skillTool);
 
 const { getBuiltinTools } = require('./registry');
 

@@ -206,6 +206,7 @@ const sendToLLM = async (req, res) => {
       temperature,
       max_tokens,
       top_p,
+      userRoles: req.user.roles || ['user'],
     });
 
     res.json({

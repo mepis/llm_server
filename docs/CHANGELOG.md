@@ -22,6 +22,21 @@ All notable changes to the LLM Server application.
 - **Fixed**: `src/services/toolService.js` - Same issue as promptService. Created `src/models/Tool.js` Mongoose model and rewrote service to use Mongoose.
 - **Fixed**: `src/services/logService.js` - Same issue as promptService. Created `src/models/Log.js` Mongoose model and rewrote service to use Mongoose.
 
+### Skill System (OpenCode Integration)
+
+- **Added**: `src/tool/skill.js` — Core skill definition API with Zod validation, JSON schema conversion, OpenAI function tool format
+- **Added**: `src/services/skillService.js` — New service for retrieving accessible skills based on user roles via `skillModel.find({ roles: { $in: userRoles } })`
+- **Added**: `src/controllers/skillController.js` — New controller with `getAccessibleSkills` endpoint
+- **Added**: `src/routes/skill.js` — New `/skills` routes mounted in `api.js`
+- **Added**: `frontend/src/stores/skill.js` — Pinia store with `getAccessibleSkills()` action using `response.data.data`
+- **Added**: `frontend/src/views/skills/SkillsView.vue` — New skills view component
+- **Modified**: `frontend/src/components/layout/Header.vue` — Added "Skills" link to desktop and mobile navs
+- **Modified**: `frontend/src/components/layout/Sidebar.vue` — Added "Skills" link under Management section
+- **Modified**: `frontend/src/router/index.js` — Added `/skills` route pointing to `SkillsView.vue`
+- **Modified**: `src/controllers/chatController.js` — Passes `userRoles` to chat service for skill prompt building
+- **Modified**: `src/services/chatService.js` — Added `buildSkillsPrompt()` and integrated skills into system message before RAG context
+- **Modified**: `src/tool/index.js` — Registered `skillTool` with builtin tools
+
 ### Frontend Fixes
 
 #### Pinia Stores (Response Data Extraction)
@@ -91,13 +106,13 @@ All stores were storing `response.data` (the full API response `{ success: true,
 |----------|-----------|
 | Authentication | 3 |
 | Chat | 2 |
-| Database Models | 3 |
-| Pinia Stores | 9 |
+| Database Models | 6 |
+| Pinia Stores | 10 |
 | UI Components | 1 |
-| Views | 1 |
+| Views | 2 |
 | Tool RBAC | 6 |
-| Tool Calling | 20 |
-| **Total** | **45** |
+| Tool Calling | 24 |
+| **Total** | **50** |
 
 ### Agent Instructions
 

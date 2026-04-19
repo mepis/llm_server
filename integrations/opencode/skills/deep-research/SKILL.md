@@ -8,6 +8,7 @@ metadata:
   workflow: deep-dive, synthesis, recursion
   expertise_level: expert
   state_management: file-based, persistent
+roles: ["user"]
 ---
 ## 📦 STATE MANAGEMENT
 

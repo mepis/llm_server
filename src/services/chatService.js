@@ -5,9 +5,43 @@ const ragService = require('./ragService');
 const llamaService = require('./llamaService');
 const toolRegistry = require('../tool/registry');
 const { getBuiltinTools } = require('../tool');
+const skillService = require('./skillService');
 const logger = require('../utils/logger');
 
 const MAX_TOOL_TURNS = 10;
+
+async function buildSkillsPrompt(userRoles) {
+  try {
+    const result = await skillService.getAccessibleSkills(userRoles);
+    const skills = result.data;
+
+    if (skills.length === 0) return null;
+
+    const skillEntries = skills
+      .map(
+        (skill) =>
+          `  <skill>
+    <name>${skill.name}</name>
+    <description>${skill.description}</description>
+    <location>${skill.location}</location>
+  </skill>`
+      )
+      .join('\n');
+
+    return [
+      'Skills provide specialized instructions and workflows for specific tasks.',
+      'Use the skill tool to load a skill when a task matches its description.',
+      'The skill will inject detailed instructions, workflows, and access to bundled resources into the conversation context.',
+      '',
+      '<available_skills>',
+      skillEntries,
+      '</available_skills>',
+    ].join('\n');
+  } catch (error) {
+    logger.error('Build skills prompt failed:', error.message);
+    return null;
+  }
+}
 
 async function resolveTools(session) {
   const builtinTools = getBuiltinTools();
@@ -222,9 +256,16 @@ async function chatWithLLM(sessionId, content, options = {}) {
       }
     }
 
-    const systemMessage = ragContext
-      ? `You are a helpful assistant. Here is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`
-      : 'You are a helpful assistant.';
+    const userRoles = options.userRoles || ['user'];
+    const skillsPrompt = await buildSkillsPrompt(userRoles);
+
+    let systemMessage = 'You are a helpful assistant.';
+    if (ragContext) {
+      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+    }
+    if (skillsPrompt) {
+      systemMessage = skillsPrompt + '\n\n' + systemMessage;
+    }
 
     const finalMessages = [
       { role: 'system', content: systemMessage },
@@ -314,9 +355,16 @@ async function runLoop(sessionId, content, options = {}) {
       }
     }
 
-    const systemMessage = ragContext
-      ? `You are a helpful assistant. Here is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`
-      : 'You are a helpful assistant.';
+    const userRoles = options.userRoles || ['user'];
+    const skillsPrompt = await buildSkillsPrompt(userRoles);
+
+    let systemMessage = 'You are a helpful assistant.';
+    if (ragContext) {
+      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+    }
+    if (skillsPrompt) {
+      systemMessage = skillsPrompt + '\n\n' + systemMessage;
+    }
 
     let turn = 0;
     const maxTurns = MAX_TOOL_TURNS;

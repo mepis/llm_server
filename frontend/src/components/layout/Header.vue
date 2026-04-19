@@ -10,11 +10,12 @@
       <div class="header-nav">
          <nav class="nav-links">
            <router-link to="/chat" class="nav-link">Chat</router-link>
-           <router-link to="/rag" class="nav-link">RAG</router-link>
-           <router-link to="/prompts" class="nav-link">Prompts</router-link>
-           <router-link to="/tools" class="nav-link">Tools</router-link>
-           <router-link to="/logs" class="nav-link">Logs</router-link>
-           <router-link to="/monitor" class="nav-link">Monitor</router-link>
+            <router-link to="/rag" class="nav-link">RAG</router-link>
+            <router-link to="/prompts" class="nav-link">Prompts</router-link>
+            <router-link to="/tools" class="nav-link">Tools</router-link>
+            <router-link to="/skills" class="nav-link">Skills</router-link>
+            <router-link to="/logs" class="nav-link">Logs</router-link>
+            <router-link to="/monitor" class="nav-link">Monitor</router-link>
          </nav>
        </div>
       <div class="header-actions">
@@ -32,6 +33,7 @@
           <router-link to="/rag" class="mobile-nav-link" @click="closeMobileMenu">RAG</router-link>
           <router-link to="/prompts" class="mobile-nav-link" @click="closeMobileMenu">Prompts</router-link>
           <router-link to="/tools" class="mobile-nav-link" @click="closeMobileMenu">Tools</router-link>
+          <router-link to="/skills" class="mobile-nav-link" @click="closeMobileMenu">Skills</router-link>
           <router-link to="/logs" class="mobile-nav-link" @click="closeMobileMenu">Logs</router-link>
           <router-link to="/monitor" class="mobile-nav-link" @click="closeMobileMenu">Monitor</router-link>
         </nav>
