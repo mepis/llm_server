@@ -4,12 +4,11 @@ model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # Benchmark configs
 batch_size=1024,2048,4096,8192
 ubatch_size=256,512,1024,2048
-mlock=0,1
-mmap=0,1
 
 threads=8
 fit=on
-
+mlock=1
+# mmap=0
 
 # Hardware Configs
 mainGpu=0
