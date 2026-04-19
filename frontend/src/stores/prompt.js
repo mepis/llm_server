@@ -15,8 +15,8 @@ export const usePromptStore = defineStore('prompt', {
       this.error = null
       try {
         const response = await apiClient.post('/prompts', data)
-        this.prompts.unshift(response.data)
-        return response.data
+        this.prompts.unshift(response.data.data)
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to create prompt'
         throw error
@@ -30,8 +30,8 @@ export const usePromptStore = defineStore('prompt', {
       this.error = null
       try {
         const response = await apiClient.get('/prompts')
-        this.prompts = response.data
-        return response.data
+        this.prompts = response.data.data || []
+        return this.prompts
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list prompts'
         throw error
@@ -45,8 +45,8 @@ export const usePromptStore = defineStore('prompt', {
       this.error = null
       try {
         const response = await apiClient.get(`/prompts/${promptId}`)
-        this.currentPrompt = response.data
-        return response.data
+        this.currentPrompt = response.data.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to get prompt'
         throw error
@@ -60,11 +60,12 @@ export const usePromptStore = defineStore('prompt', {
       this.error = null
       try {
         const response = await apiClient.put(`/prompts/${promptId}`, data)
+        const updated = response.data.data
         const index = this.prompts.findIndex(p => p._id === promptId)
         if (index !== -1) {
-          this.prompts[index] = response.data
+          this.prompts[index] = updated
         }
-        return response.data
+        return updated
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to update prompt'
         throw error

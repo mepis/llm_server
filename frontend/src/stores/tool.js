@@ -15,8 +15,8 @@ export const useToolStore = defineStore('tool', {
       this.error = null
       try {
         const response = await apiClient.post('/tools', data)
-        this.tools.unshift(response.data)
-        return response.data
+        this.tools.unshift(response.data.data)
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to create tool'
         throw error
@@ -30,8 +30,8 @@ export const useToolStore = defineStore('tool', {
       this.error = null
       try {
         const response = await apiClient.get('/tools')
-        this.tools = response.data
-        return response.data
+        this.tools = response.data.data || []
+        return this.tools
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list tools'
         throw error
@@ -45,8 +45,8 @@ export const useToolStore = defineStore('tool', {
       this.error = null
       try {
         const response = await apiClient.get(`/tools/${toolId}`)
-        this.currentTool = response.data
-        return response.data
+        this.currentTool = response.data.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to get tool'
         throw error
@@ -60,11 +60,12 @@ export const useToolStore = defineStore('tool', {
       this.error = null
       try {
         const response = await apiClient.put(`/tools/${toolId}`, data)
+        const updated = response.data.data
         const index = this.tools.findIndex(t => t._id === toolId)
         if (index !== -1) {
-          this.tools[index] = response.data
+          this.tools[index] = updated
         }
-        return response.data
+        return updated
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to update tool'
         throw error
@@ -92,7 +93,7 @@ export const useToolStore = defineStore('tool', {
       this.error = null
       try {
         const response = await apiClient.post(`/tools/${toolId}/execute`, params)
-        return response.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to execute tool'
         throw error

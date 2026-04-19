@@ -9,12 +9,7 @@ const promptSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true,
-    maxlength: 100
-  },
-  description: {
-    type: String,
-    maxlength: 500
+    trim: true
   },
   content: {
     type: String,
@@ -22,50 +17,26 @@ const promptSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['chat', 'completion', 'instruct', 'custom'],
-    default: 'chat'
-  },
-  tags: {
-    type: [String],
-    default: []
-  },
-  is_public: {
-    type: Boolean,
-    default: false
+    enum: ['system', 'user', 'assistant', 'custom'],
+    default: 'custom'
   },
   variables: [{
     name: String,
-    description: String,
-    required: {
-      type: Boolean,
-      default: false
-    }
+    default: String
   }],
   settings: {
-    temperature: {
-      type: Number,
-      default: 0.7
-    },
-    max_tokens: {
-      type: Number,
-      default: 2048
-    },
-    top_p: {
-      type: Number,
-      default: 0.9
-    },
-    frequency_penalty: {
-      type: Number,
-      default: 0.0
-    },
-    presence_penalty: {
-      type: Number,
-      default: 0.0
-    }
+    model: String,
+    temperature: Number,
+    max_tokens: Number,
+    top_p: Number
   },
-  usage_count: {
-    type: Number,
-    default: 0
+  tags: [{
+    type: String,
+    trim: true
+  }],
+  is_public: {
+    type: Boolean,
+    default: false
   },
   created_at: {
     type: Date,
@@ -79,37 +50,8 @@ const promptSchema = new mongoose.Schema({
   timestamps: true
 });
 
-promptSchema.index({ user_id: 1, name: 1 });
-promptSchema.index({ is_public: 1, created_at: -1 });
-promptSchema.index({ 'tags': 1 });
-promptSchema.index({ type: 1 });
-
-promptSchema.methods.incrementUsage = function() {
-  this.usage_count += 1;
-  this.updated_at = new Date();
-  return this.save();
-};
-
-promptSchema.statics.searchByName = async function(userId, name) {
-  const regex = new RegExp(name, 'i');
-  return this.find({
-    user_id: userId,
-    name: regex
-  });
-};
-
-promptSchema.statics.searchByTag = async function(userId, tag) {
-  return this.find({
-    user_id: userId,
-    tags: tag
-  });
-};
-
-promptSchema.statics.getPublicPrompts = async function() {
-  return this.find({
-    is_public: true
-  }).select('-user_id');
-};
+promptSchema.index({ user_id: 1, created_at: -1 });
+promptSchema.index({ name: 1 });
 
 const Prompt = mongoose.model('Prompt', promptSchema);
 

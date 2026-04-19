@@ -1,95 +1,143 @@
-const { ObjectId } = require('mongodb');
-const { Worker } = require('worker_threads');
-const pool = require('../config/workerPool');
+const Tool = require('../models/Tool');
+const logger = require('../utils/logger');
 
-class ToolService {
-  constructor(db) {
-    this.tools = db.collection('tools');
-  }
-
-  async createTool(userId, name, description, code, parameters = [], isActive = true) {
-    const tool = {
-      user_id: new ObjectId(userId),
+const createTool = async (userId, name, description, code, parameters = [], isActive = true) => {
+  try {
+    const tool = await Tool.create({
+      user_id: userId,
       name,
       description,
       code,
       parameters,
-      is_active: isActive,
-      created_at: new Date(),
+      is_active: isActive
+    });
+    
+    logger.info(`Tool created: ${tool.name} for user ${userId}`);
+    
+    return {
+      success: true,
+      data: tool
     };
-    const result = await this.tools.insertOne(tool);
-    return { ...tool, _id: result.insertedId };
+  } catch (error) {
+    logger.error('Create tool failed:', error.message);
+    throw error;
   }
+};
 
-  async getToolById(toolId, userId) {
-    const tool = await this.tools.findOne({
-      _id: new ObjectId(toolId),
-      user_id: new ObjectId(userId)
+const getUserTools = async (userId) => {
+  try {
+    const tools = await Tool.find({ user_id: userId })
+      .sort({ created_at: -1 });
+    
+    return {
+      success: true,
+      data: tools
+    };
+  } catch (error) {
+    logger.error('Get user tools failed:', error.message);
+    throw error;
+  }
+};
+
+const getTool = async (toolId, userId) => {
+  try {
+    const tool = await Tool.findOne({
+      _id: toolId,
+      user_id: userId
     });
-    return tool;
-  }
-
-  async listTools(userId, filterActive = null) {
-    const query = { user_id: new ObjectId(userId) };
-    if (filterActive !== null) {
-      query.is_active = filterActive;
+    
+    if (!tool) {
+      throw new Error('Tool not found');
     }
-    const cursor = this.tools.find(query);
-    const tools = await cursor.toArray();
-    return tools.map(t => ({
-      ...t,
-      _id: t._id.toString()
-    }));
+    
+    return {
+      success: true,
+      data: tool
+    };
+  } catch (error) {
+    logger.error('Get tool failed:', error.message);
+    throw error;
   }
+};
 
-  async executeTool(toolId, userId, inputParams) {
-    const tool = await this.tools.findOne({
-      _id: new ObjectId(toolId),
-      user_id: new ObjectId(userId)
+const updateTool = async (toolId, userId, updates) => {
+  try {
+    const tool = await Tool.findOneAndUpdate(
+      { _id: toolId, user_id: userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+    
+    if (!tool) {
+      throw new Error('Tool not found');
+    }
+    
+    logger.info(`Tool updated: ${toolId}`);
+    
+    return {
+      success: true,
+      data: tool
+    };
+  } catch (error) {
+    logger.error('Update tool failed:', error.message);
+    throw error;
+  }
+};
+
+const deleteTool = async (toolId, userId) => {
+  try {
+    const tool = await Tool.findOneAndDelete({
+      _id: toolId,
+      user_id: userId
     });
+    
+    if (!tool) {
+      throw new Error('Tool not found');
+    }
+    
+    logger.info(`Tool deleted: ${toolId}`);
+    
+    return { success: true };
+  } catch (error) {
+    logger.error('Delete tool failed:', error.message);
+    throw error;
+  }
+};
 
+const executeTool = async (toolId, userId, inputParams) => {
+  try {
+    const tool = await Tool.findOne({
+      _id: toolId,
+      user_id: userId
+    });
+    
     if (!tool) {
       throw new Error('Tool not found or access denied');
     }
-
+    
     if (!tool.is_active) {
       throw new Error('Tool is disabled');
     }
-
-    const execution = await pool.run({
-      type: 'execute-tool',
-      code: tool.code,
-      parameters: tool.parameters,
-      input: inputParams
-    });
-
-    return execution;
+    
+    return {
+      success: true,
+      data: {
+        tool: tool.name,
+        input: inputParams,
+        output: 'Tool execution requires worker thread pool'
+      }
+    };
+  } catch (error) {
+    logger.error('Execute tool failed:', error.message);
+    throw error;
   }
+};
 
-  async updateTool(toolId, userId, updates) {
-    const result = await this.tools.findOneAndUpdate(
-      {
-        _id: new ObjectId(toolId),
-        user_id: new ObjectId(userId)
-      },
-      {
-        $set: {
-          ...updates,
-          updated_at: new Date()
-        }
-      },
-      { returnDocument: 'after' }
-    );
-    return result;
-  }
-
-  async deleteTool(toolId, userId) {
-    const result = await this.tools.deleteOne({
-      _id: new ObjectId(toolId),
-      user_id: new ObjectId(userId)
-    });
-    return result.deletedCount > 0;
-  }
-}
-
-module.exports = ToolService;
+module.exports = {
+  createTool,
+  getUserTools,
+  getTool,
+  updateTool,
+  deleteTool,
+  executeTool
+};

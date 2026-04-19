@@ -15,8 +15,8 @@ export const useMatrixStore = defineStore('matrix', {
       this.error = null
       try {
         const response = await apiClient.get('/matrix/messages')
-        this.messages = response.data
-        return response.data
+        this.messages = response.data.data || []
+        return this.messages
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list messages'
         throw error
@@ -30,8 +30,8 @@ export const useMatrixStore = defineStore('matrix', {
       this.error = null
       try {
         const response = await apiClient.get('/matrix/rooms')
-        this.rooms = response.data
-        return response.data
+        this.rooms = response.data.data || []
+        return this.rooms
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list rooms'
         throw error
@@ -45,7 +45,7 @@ export const useMatrixStore = defineStore('matrix', {
       this.error = null
       try {
         const response = await apiClient.post(`/matrix/rooms/${roomId}/messages`, { content })
-        return response.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to send message'
         throw error

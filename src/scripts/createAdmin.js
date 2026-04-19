@@ -1,7 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const config = require('../config/database');
-const bcrypt = require('bcryptjs');
 
 const createAdminUser = async () => {
   try {
@@ -18,12 +17,12 @@ const createAdminUser = async () => {
       return;
     }
     
-    // Create admin user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    // Create admin user with argon2 hash
+    const hashedPassword = await User.hashPassword('admin123');
     const adminUser = new User({
       username: 'admin',
       email: 'admin@example.com',
-      password: hashedPassword,
+      password_hash: hashedPassword,
       roles: ['admin', 'user']
     });
     

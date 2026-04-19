@@ -15,8 +15,8 @@ export const useUserStore = defineStore('user', {
       this.error = null
       try {
         const response = await apiClient.get('/users')
-        this.users = response.data
-        return response.data
+        this.users = response.data.data || []
+        return this.users
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list users'
         throw error
@@ -30,8 +30,8 @@ export const useUserStore = defineStore('user', {
       this.error = null
       try {
         const response = await apiClient.get(`/users/${userId}`)
-        this.currentUser = response.data
-        return response.data
+        this.currentUser = response.data.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to get user'
         throw error
@@ -45,11 +45,12 @@ export const useUserStore = defineStore('user', {
       this.error = null
       try {
         const response = await apiClient.put(`/users/${userId}`, data)
+        const updated = response.data.data
         const index = this.users.findIndex(u => u._id === userId)
         if (index !== -1) {
-          this.users[index] = response.data
+          this.users[index] = updated
         }
-        return response.data
+        return updated
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to update user'
         throw error

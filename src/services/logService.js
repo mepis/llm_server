@@ -1,107 +1,125 @@
-const { ObjectId } = require('mongodb');
+const Log = require('../models/Log');
+const logger = require('../utils/logger');
 
-class LogService {
-  constructor(db) {
-    this.logs = db.collection('logs');
-  }
-
-  async createLog(level, service, message, metadata = {}) {
-    const log = {
+const createLog = async (level, service, message, metadata = {}) => {
+  try {
+    const log = await Log.create({
       log_level: level,
       service,
       message,
-      metadata,
-      timestamp: new Date(),
+      metadata
+    });
+    
+    return {
+      success: true,
+      data: log
     };
-    const result = await this.logs.insertOne(log);
-    return { ...log, _id: result.insertedId };
+  } catch (error) {
+    logger.error('Create log failed:', error.message);
+    throw error;
   }
+};
 
-  async getLogs(options = {}) {
+const getLogs = async (options = {}) => {
+  try {
     const { level, service, startTime, endTime, page = 1, limit = 100 } = options;
     const query = {};
-
-    if (level) {
-      query.log_level = level;
-    }
-
-    if (service) {
-      query.service = service;
-    }
-
+    
+    if (level) query.log_level = level;
+    if (service) query.service = service;
+    
     if (startTime || endTime) {
       query.timestamp = {};
-      if (startTime) {
-        query.timestamp.$gte = new Date(startTime);
-      }
-      if (endTime) {
-        query.timestamp.$lte = new Date(endTime);
-      }
+      if (startTime) query.timestamp.$gte = new Date(startTime);
+      if (endTime) query.timestamp.$lte = new Date(endTime);
     }
-
-    const total = await this.logs.countDocuments(query);
+    
+    const total = await Log.countDocuments(query);
     const skip = (page - 1) * limit;
-
-    const cursor = this.logs.find(query)
+    
+    const logs = await Log.find(query)
       .sort({ timestamp: -1 })
       .skip(skip)
       .limit(limit);
-
-    const logs = await cursor.toArray();
+    
     return {
-      logs: logs.map(l => ({
-        ...l,
-        _id: l._id.toString()
-      })),
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
+      success: true,
+      data: {
+        logs,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
     };
+  } catch (error) {
+    logger.error('Get logs failed:', error.message);
+    throw error;
   }
+};
 
-  async getLogStats() {
-    const stats = await this.logs.aggregate([
+const getLogStats = async () => {
+  try {
+    const stats = await Log.aggregate([
       {
         $group: {
           _id: '$log_level',
           count: { $sum: 1 }
         }
       }
-    ]).toArray();
-
-    const result = {
-      error: 0,
-      warn: 0,
-      info: 0,
-      debug: 0
-    };
-
+    ]);
+    
+    const result = { error: 0, warn: 0, info: 0, debug: 0 };
     stats.forEach(s => {
       result[s._id] = s.count;
     });
-
-    return result;
+    
+    return {
+      success: true,
+      data: result
+    };
+  } catch (error) {
+    logger.error('Get log stats failed:', error.message);
+    throw error;
   }
+};
 
-  async getRecentLogs(hours = 24, limit = 50) {
+const getRecentLogs = async (hours = 24, limit = 50) => {
+  try {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const cursor = this.logs.find({ timestamp: { $gte: cutoff } })
+    const logs = await Log.find({ timestamp: { $gte: cutoff } })
       .sort({ timestamp: -1 })
       .limit(limit);
-
-    const logs = await cursor.toArray();
-    return logs.map(l => ({
-      ...l,
-      _id: l._id.toString()
-    }));
+    
+    return {
+      success: true,
+      data: logs
+    };
+  } catch (error) {
+    logger.error('Get recent logs failed:', error.message);
+    throw error;
   }
+};
 
-  async deleteOldLogs(days = 30) {
+const deleteOldLogs = async (days = 30) => {
+  try {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    const result = await this.logs.deleteMany({ timestamp: { $lt: cutoff } });
-    return result.deletedCount;
+    const result = await Log.deleteMany({ timestamp: { $lt: cutoff } });
+    
+    return {
+      success: true,
+      data: { deletedCount: result.deletedCount }
+    };
+  } catch (error) {
+    logger.error('Delete old logs failed:', error.message);
+    throw error;
   }
-}
+};
 
-module.exports = LogService;
+module.exports = {
+  createLog,
+  getLogs,
+  getLogStats,
+  getRecentLogs,
+  deleteOldLogs
+};

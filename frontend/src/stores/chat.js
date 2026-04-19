@@ -15,8 +15,9 @@ export const useChatStore = defineStore('chat', {
       this.error = null
       try {
         const response = await apiClient.post('/chats', { session_name: name })
-        this.sessions.unshift(response.data)
-        return response.data
+        const session = response.data.data
+        this.sessions.unshift(session)
+        return session
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to create session'
         throw error
@@ -30,7 +31,7 @@ export const useChatStore = defineStore('chat', {
       this.error = null
       try {
         const response = await apiClient.get('/chats')
-        this.sessions = response.data || []
+        this.sessions = response.data.data || []
         return this.sessions
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list sessions'
@@ -45,8 +46,8 @@ export const useChatStore = defineStore('chat', {
       this.error = null
       try {
         const response = await apiClient.get(`/chats/${chatId}`)
-        this.currentChat = response.data
-        return response.data
+        this.currentChat = response.data.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to load chat'
         throw error
@@ -97,8 +98,8 @@ export const useChatStore = defineStore('chat', {
       this.error = null
       try {
         await apiClient.delete(`/chats/${chatId}`)
-        this.sessions = this.sessions.filter(s => s.chat_id !== chatId)
-        if (this.currentChat?.chat_id === chatId) {
+        this.sessions = this.sessions.filter(s => s._id.toString() !== chatId)
+        if (this.currentChat?._id.toString() === chatId) {
           this.currentChat = null
         }
       } catch (error) {

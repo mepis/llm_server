@@ -20,7 +20,7 @@
       <div class="header-actions">
         <div class="user-info">
           <span class="username">{{ user?.username || 'User' }}</span>
-          <span class="user-role" :class="`role-${user?.role || 'user'}`">{{ user?.role || 'user' }}</span>
+          <span class="user-role" :class="`role-${user?.roles?.[0] || 'user'}`">{{ user?.roles?.[0] || 'user' }}</span>
         </div>
         <Button label="Logout" icon="pi pi-sign-out" @click="handleLogout" />
       </div>
@@ -37,7 +37,7 @@
         </nav>
         <div class="mobile-user-info">
           <span class="mobile-username">{{ user?.username || 'User' }}</span>
-          <span class="mobile-user-role" :class="`role-${user?.role || 'user'}`">{{ user?.role || 'user' }}</span>
+          <span class="mobile-user-role" :class="`role-${user?.roles?.[0] || 'user'}`">{{ user?.roles?.[0] || 'user' }}</span>
         </div>
         <Button label="Logout" icon="pi pi-sign-out" @click="handleLogout" class="mobile-logout-btn" />
       </div>

@@ -84,6 +84,14 @@ chatSessionSchema.virtual('message_count').get(function() {
   return this.messages.length;
 });
 
+chatSessionSchema.virtual('chat_id').get(function() {
+  return this._id.toString();
+});
+
+chatSessionSchema.set('toJSON', {
+  virtuals: true
+});
+
 chatSessionSchema.methods.addMessage = function(role, content, metadata = {}) {
   this.messages.push({
     role,

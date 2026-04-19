@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
@@ -13,7 +12,7 @@ const registerUser = async (username, email, password) => {
         throw new Error('Username or email already exists');
       }
       
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await User.hashPassword(password);
       
       const user = await User.create({
         username,
@@ -47,7 +46,7 @@ const registerUser = async (username, email, password) => {
         throw new Error('Invalid credentials');
       }
       
-      const isValidPassword = await bcrypt.compare(password, user.password_hash);
+      const isValidPassword = await user.checkPassword(password);
       
       logger.debug(`Password verification for ${username}: ${isValidPassword}`);
       

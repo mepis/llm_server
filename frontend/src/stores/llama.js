@@ -16,8 +16,8 @@ export const useLlamaStore = defineStore('llama', {
       this.error = null
       try {
         const response = await apiClient.get('/llama/models')
-        this.models = response.data
-        return response.data
+        this.models = response.data.data || []
+        return this.models
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list models'
         throw error
@@ -31,8 +31,8 @@ export const useLlamaStore = defineStore('llama', {
       this.error = null
       try {
         const response = await apiClient.get(`/llama/models/${modelId}`)
-        this.currentModel = response.data
-        return response.data
+        this.currentModel = response.data.data
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to get model info'
         throw error
@@ -46,8 +46,8 @@ export const useLlamaStore = defineStore('llama', {
       this.error = null
       try {
         const response = await apiClient.get('/llama/status')
-        this.status = response.data
-        return response.data
+        this.status = response.data.data
+        return this.status
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to get server status'
         throw error

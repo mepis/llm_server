@@ -9,6 +9,7 @@ CMakeFiles/
 *.so
 *.d
 *.out
+.playwright-cli/
 
 # Editor/IDE files
 .vscode/

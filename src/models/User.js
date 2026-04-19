@@ -64,11 +64,11 @@ userSchema.statics.hashPassword = async function(password) {
 };
 
 userSchema.statics.verifyPassword = async function(hash, password) {
-  return await argon2.verify(hash, password);
+  return await argon2.verify({ hash, password });
 };
 
 userSchema.methods.checkPassword = async function(password) {
-  return await argon2.verify(this.password_hash, password);
+  return await argon2.verify({ hash: this.password_hash, password });
 };
 
 userSchema.methods.hasRole = function(role) {

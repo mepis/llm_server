@@ -50,7 +50,7 @@ const getUserSessions = async (req, res) => {
 const getSession = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     
     const session = await ChatSession.findById(sessionId);
     
@@ -77,7 +77,7 @@ const getSession = async (req, res) => {
 const updateSession = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     const updateData = req.body;
     
     const session = await ChatSession.findById(sessionId);
@@ -108,7 +108,7 @@ const updateSession = async (req, res) => {
 const deleteSession = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     
     const session = await ChatSession.findById(sessionId);
     
@@ -134,7 +134,7 @@ const deleteSession = async (req, res) => {
 const addMessage = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     const { role, content, metadata } = req.body;
     
     if (!role || !content) {
@@ -162,7 +162,7 @@ const addMessage = async (req, res) => {
 const getMessages = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     
     const session = await ChatSession.findById(sessionId);
     
@@ -189,7 +189,7 @@ const getMessages = async (req, res) => {
 const sendToLLM = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     const { message, model, temperature, max_tokens, top_p, use_rag } = req.body;
     
     const session = await ChatSession.findById(sessionId);
@@ -223,7 +223,7 @@ const sendToLLM = async (req, res) => {
 const clearMessages = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     
     const session = await ChatSession.findById(sessionId);
     
@@ -249,7 +249,7 @@ const clearMessages = async (req, res) => {
 const updateMemory = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const sessionId = req.params.sessionId;
+    const sessionId = req.params.sessionId || req.params.id;
     const memoryData = req.body;
     
     const session = await ChatSession.findById(sessionId);

@@ -69,8 +69,8 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return null
       try {
         const response = await apiClient.get('/auth/me')
-        this.user = response.data
-        return response.data
+        this.user = response.data.data
+        return response.data.data
       } catch (error) {
         this.logout()
         throw error

@@ -1,5 +1,5 @@
 ---
-name: search-the-web
+name: playwright
 description: Search the web by using the Playwright CLI. Automate browser interactions, test web pages and work with Playwright tests. Use this tool anytime you need to use a web browser, including using PlayWright.
 allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
 ---

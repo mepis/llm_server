@@ -22,8 +22,8 @@ export const useRAGStore = defineStore('rag', {
         const response = await apiClient.post('/rag/documents', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-        this.documents.unshift(response.data)
-        return response.data
+        this.documents.unshift(response.data.data)
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to upload document'
         throw error
@@ -37,8 +37,8 @@ export const useRAGStore = defineStore('rag', {
       this.error = null
       try {
         const response = await apiClient.get('/rag/documents')
-        this.documents = response.data
-        return response.data
+        this.documents = response.data.data || []
+        return this.documents
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list documents'
         throw error
@@ -66,8 +66,8 @@ export const useRAGStore = defineStore('rag', {
       this.error = null
       try {
         const response = await apiClient.post('/rag/query', { query, documentIds })
-        this.queries.unshift(response.data)
-        return response.data
+        this.queries.unshift(response.data.data)
+        return response.data.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to query knowledge base'
         throw error
