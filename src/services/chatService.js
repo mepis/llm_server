@@ -51,8 +51,9 @@ async function resolveTools(session) {
   return { tools: allTools, openAITools };
 }
 
-async function buildMessages(session) {
-  return session.messages.map((msg) => {
+function buildMessages(session) {
+  const msgs = Array.isArray(session.messages) ? session.messages : [];
+  return msgs.map((msg) => {
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       return {
         role: 'assistant',
