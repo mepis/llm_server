@@ -22,7 +22,7 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-export CUDA_SCALE_LAUNCH_QUEUES=2x 
+export CUDA_SCALE_LAUNCH_QUEUES=16x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
