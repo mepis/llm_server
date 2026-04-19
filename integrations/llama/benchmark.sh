@@ -5,7 +5,7 @@ model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 batch_size=512,1024,2048,4096,8192,16384
 ubatch_size=256
 
-threads=16
+threads=22
 
 
 # Hardware Configs
