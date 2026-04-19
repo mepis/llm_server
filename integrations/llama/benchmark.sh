@@ -3,7 +3,7 @@ model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 
 # Benchmark configs
 batch_size=256,512,1024,2048,4096,8192,16384
-ubatch_size=256
+ubatch_size=128,256
 
 threads=16
 
@@ -22,7 +22,7 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-export CUDA_SCALE_LAUNCH_QUEUES=128x 
+export CUDA_SCALE_LAUNCH_QUEUES=24x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
