@@ -1,4 +1,5 @@
 const llamaService = require('../services/llamaService');
+const logger = require('../utils/logger');
 
 const getModels = async (req, res) => {
   try {
@@ -54,9 +55,31 @@ const getHealth = async (req, res) => {
   }
 };
 
+const generateAudio = async (req, res) => {
+  try {
+    const { text, speakerFile, speakerAudio, useGuideTokens } = req.body;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ success: false, error: 'Text is required' });
+    }
+
+    const options = {};
+    if (speakerAudio && typeof speakerAudio === 'string') {
+      options.speakerAudio = speakerAudio;
+    }
+
+    const base64Wav = await llamaService.generateAudio(text, options);
+
+    res.json({ success: true, data: base64Wav });
+  } catch (error) {
+    logger.error('TTS generation failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 module.exports = {
   getModels,
   createChatCompletion,
   createEmbedding,
-  getHealth
+  getHealth,
+  generateAudio,
 };

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package tts;
+
+// TTSService provides text-to-speech generation using Chatterbox Turbo model.
+service TTSService {
+  // GenerateSpeech converts text to speech audio.
+  rpc GenerateSpeech (TtsRequest) returns (TtsResponse);
+  
+  // HealthCheck verifies the gRPC service is operational.
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message TtsRequest {
+  // Text to synthesize into speech. Max 2000 characters.
+  string text = 1;
+  
+  // Sampling temperature (0.05–2.0). Default: 0.8.
+  double temperature = 2;
+  
+  // Nucleus sampling threshold (0.0–1.0). Default: 0.95.
+  double top_p = 3;
+  
+  // Top-k sampling parameter. Default: 1000.
+  int32 top_k = 4;
+  
+  // Optional WAV audio bytes for voice cloning (max 5MB).
+  // If provided, extracts speaker embedding and uses it for cloning.
+  bytes speaker_audio = 5;
+}
+
+message TtsResponse {
+  // Base64-encoded 16-bit PCM WAV audio at 24kHz sample rate, mono channel.
+  string audio_base64 = 1;
+  
+  // Approximate audio duration in milliseconds.
+  int32 duration_ms = 2;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+}

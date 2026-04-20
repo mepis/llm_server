@@ -8,6 +8,7 @@ const db = require('./config/db');
 const logger = require('./utils/logger');
 const rateLimiter = require('./config/rateLimiter');
 const { validateEnvironment } = require('./utils/environment');
+const { spawnChatterboxService, initChatterboxClient, waitForChatterboxHealth, shutdownChatterboxService } = require('./services/llamaService');
 
 validateEnvironment();
 
@@ -52,7 +53,22 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     await db.connectDB();
-    
+
+    // Start Chatterbox TTS service
+    logger.info('Initializing Chatterbox TTS service...');
+    const serviceStarted = spawnChatterboxService();
+
+    if (serviceStarted) {
+      const healthy = await waitForChatterboxHealth();
+      if (!healthy) {
+        logger.warn('Chatterbox service failed to become healthy. TTS will not be available.');
+      } else {
+        initChatterboxClient();
+      }
+    } else {
+      logger.warn('Failed to spawn Chatterbox service. TTS will not be available.');
+    }
+
     app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port}`);
       logger.info(`Environment: ${config.env}`);
@@ -64,3 +80,16 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('Received SIGTERM, shutting down...');
+  shutdownChatterboxService();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT, shutting down...');
+  shutdownChatterboxService();
+  process.exit(0);
+});

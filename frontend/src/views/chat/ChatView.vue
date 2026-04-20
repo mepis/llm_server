@@ -17,7 +17,17 @@
 
             <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
 
-            <div v-else-if="message.role === 'assistant' && message.content" class="message-text">{{ message.content }}</div>
+            <div v-else-if="message.role === 'assistant' && message.content" class="message-text">
+              {{ message.content }}
+              <button
+                @click="speakMessage(message.content, index)"
+                :class="['speaker-button', { speaking: isSpeaking }]"
+                :disabled="isSpeaking && !speakingIndex.includes(index)"
+                title="Speak"
+              >
+                <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
+              </button>
+            </div>
 
             <div v-else-if="message.role === 'assistant' && message.tool_calls" class="tool-calls-section">
               <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
@@ -84,12 +94,16 @@ import { useChatStore } from '@/stores/chat'
 import Header from '@/components/layout/Header.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Button from 'primevue/button'
+import axios from 'axios'
 
 const chatStore = useChatStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
 const loading = ref(false)
 const expandedMessages = ref(new Set())
+const isSpeaking = ref(false)
+const speakingIndex = ref([])
+let currentAudio = null
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
 
@@ -114,6 +128,56 @@ const toggleExpand = (key) => {
     set.add(key)
   }
   expandedMessages.value = new Set(set)
+}
+
+const stopSpeaking = () => {
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
+  }
+  isSpeaking.value = false
+  speakingIndex.value = []
+}
+
+const speakMessage = async (text, index) => {
+  if (isSpeaking.value && speakingIndex.value.includes(index)) {
+    stopSpeaking()
+    return
+  }
+
+  stopSpeaking()
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.post('/api/llama/tts', { text }, {
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 60000,
+    })
+
+    if (response.data.success) {
+      const binaryString = atob(response.data.data)
+      const bytes = new Uint8Array(binaryString.length)
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+
+      const blob = new Blob([bytes], { type: 'audio/wav' })
+      const url = URL.createObjectURL(blob)
+
+      currentAudio = new Audio(url)
+      currentAudio.onended = () => {
+        isSpeaking.value = false
+        speakingIndex.value = []
+        URL.revokeObjectURL(url)
+      }
+      await currentAudio.play()
+      isSpeaking.value = true
+      speakingIndex.value = [index]
+    }
+  } catch (error) {
+    console.error('Failed to generate audio:', error.message || error)
+    stopSpeaking()
+  }
 }
 
 const sendMessage = async () => {
@@ -274,6 +338,40 @@ const sendMessage = async () => {
   font-size: 0.75rem;
   color: #9ca3af;
   margin-top: 0.5rem;
+}
+
+.speaker-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.speaker-button:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #2d6a4f;
+}
+
+.speaker-button.speaking {
+  color: #2d6a4f;
+}
+
+.speaker-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.message-text {
+  display: inline;
 }
 
 .tool-calls-section {

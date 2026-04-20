@@ -47,7 +47,8 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 - **401/403** in frontend auto-redirects to `/login` via axios response interceptor.
 - **Tool execution** for custom tools is `POST /api/tools/:id/call` (not `/execute`). Builtin tools (bash, read, write, glob, grep, question, todo, skill) are registered via `src/tool/index.js`.
 - **Chat routes** are mounted under both `/api/chat` and `/api/chats` in `api.js`.
-- `.env` is committed to the repo — contains default JWT secret and MongoDB URI.
+- Do not commit actual environment secrets. Use `.env.example` as a template and ensure `.env` is added to `.gitignore` in all environments.
+- **Chatterbox TTS** requires GPU and Python 3.10+. The service auto-starts with the backend. If TTS fails, check that CUDA is available and the Chatterbox process is running.
 
 ## Entry Points
 
