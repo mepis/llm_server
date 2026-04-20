@@ -6,6 +6,22 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-20
 
+### Features
+
+#### Chatterbox TTS Integration
+- **Added**: `src/services/chatterbox/` — Python gRPC server for Chatterbox text-to-speech (`tts_service.py`, `tts.proto`)
+- **Added**: `src/services/llamaService.js` — gRPC client initialization and lifecycle management for Chatterbox service
+- **Added**: `src/server.js` — Auto-spawn Chatterbox on startup with health check; graceful shutdown via SIGTERM/SIGINT handlers
+- **Added**: Database config extension with `chatterbox` settings (`grpcHost`, `grpcPort`, `speakerFile`, `temperature`, `topP`, `topK`)
+- **Added**: `.env.example` — New TTS environment variables (`CHATTERBOX_GRPC_HOST`, `CHATTERBOX_GRPC_PORT`, `CHATTERBOX_SPEAKER_FILE`, `CHATTERBOX_TEMPERATURE`, `CHATTERBOX_TOP_P`, `CHATTERBOX_TOP_K`, `TTS_SPEAKER_FILE`)
+- **Added**: `integrations/llama/models/` — TTS model scripts (`download-tts.sh`, `run-tts.sh`) and speaker reference (`en_male_1.json`)
+
+#### Frontend E2E Testing
+- **Verified**: All 15 routes load without JavaScript errors (home, login, register, chat, chat-history, rag-documents, rag-queries, prompts, tools, skills, logs, monitor, debug, admin-users, admin-settings)
+- **Verified**: Auth flow — login redirects to `/chat`, logout returns to `/login`, router guards enforce auth correctly
+- **Verified**: Admin-only sections visible for admin users, hidden for regular users
+- **Verified**: Backend API endpoints return expected `{"success": true/false, data/error}` responses
+
 ### Bug Fixes (Frontend QA Testing)
 
 #### ChatSession Model

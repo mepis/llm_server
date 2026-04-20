@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const { mongoose } = require('../config/db');
 const logger = require('../utils/logger');
 
 const getHealth = async (req, res) => {
@@ -9,7 +9,8 @@ const getHealth = async (req, res) => {
   };
 
   try {
-    await db.admin().ping();
+    const db = mongoose.connection;
+    if (!db || db.readyState !== 1) throw new Error(`Connection not ready (state: ${db?.readyState})`);
     health.database = 'connected';
   } catch (error) {
     health.status = 'unhealthy';
@@ -55,7 +56,7 @@ const getPerformance = async (req, res) => {
   performance.active_workers = global.workerPool?.threadCount() || 0;
 
   try {
-    const stats = await db.collection('logs').aggregate([
+    const stats = await mongoose.connection.collection('logs').aggregate([
       { $match: { timestamp: { $gte: new Date(Date.now() - 60000) } } },
       { $group: { _id: null, count: { $sum: 1 }, errors: { $sum: { $cond: [{ $eq: ['$log_level', 'error'] }, 1, 0] } } } }
     ]).toArray();
