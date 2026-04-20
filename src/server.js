@@ -14,8 +14,18 @@ validateEnvironment();
 const app = express();
 app.set('port', config.port);
 
+const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const envOrigins = (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).filter(Boolean);
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173' || 'http://100.110.57.127:5173' || 'http://100.78.136.115:5173',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 };
 

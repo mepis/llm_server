@@ -87,6 +87,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import Header from '@/components/layout/Header.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Button from 'primevue/button'
@@ -110,16 +111,16 @@ const loadMetrics = async () => {
   loading.value = true
   
   try {
+    const token = localStorage.getItem('token')
+    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {}
+    
     const [healthRes, perfRes] = await Promise.all([
-      fetch('http://127.0.0.1:3000/api/monitor/health'),
-      fetch('http://127.0.0.1:3000/api/monitor/performance')
+      axios.get('/api/monitor/health', config),
+      axios.get('/api/monitor/performance', config)
     ])
     
-    const healthData = await healthRes.json()
-    const perfData = await perfRes.json()
-    
-    health.value = healthData.data
-    performance.value = perfData.data
+    health.value = healthRes.data.data
+    performance.value = perfRes.data.data
   } catch (error) {
     console.error('Failed to load metrics:', error)
   } finally {

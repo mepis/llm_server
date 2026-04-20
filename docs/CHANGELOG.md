@@ -4,6 +4,39 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-20
+
+### Bug Fixes (Frontend QA Testing)
+
+#### ChatSession Model
+- **Fixed**: `src/models/ChatSession.js` - `message_count` virtual threw "Cannot read properties of undefined (reading 'length')" when using `.select('-messages')` in queries. Added null check `(this.messages || []).length`.
+
+#### PrimeVue Toast Plugin
+- **Fixed**: `frontend/src/main.js` - Added `ToastService` plugin registration (`app.use(ToastService)`) so `useToast()` composable works in ToolsView and SkillsView components. Previously threw "No PrimeVue Toast provided!" error.
+
+#### Monitor Page API Calls
+- **Fixed**: `frontend/src/views/monitor/SystemMonitorView.vue` - Changed raw `fetch()` calls to use `axios` with Bearer token from localStorage. Removed hardcoded `http://127.0.0.1:3000` URLs in favor of relative `/api/` paths.
+
+#### CORS Configuration
+- **Fixed**: `src/server.js` - Updated CORS to accept both `localhost:5173` and configured `FRONTEND_URL` origins. Previously only allowed a single hardcoded network IP, blocking all localhost requests.
+
+#### Chat View Session Loading
+- **Fixed**: `frontend/src/views/chat/ChatView.vue` - Added proper session loading on mount with error handling for empty state.
+- **Fixed**: `frontend/src/stores/chat.js` - Added `response.data.data` to `sendMessage()` action for correct data extraction.
+
+### Summary
+
+| Category | Bugs Fixed |
+|----------|-----------|
+| ChatSession Model | 1 |
+| PrimeVue Plugin | 1 |
+| Monitor Page | 1 |
+| CORS Config | 1 |
+| Chat View | 2 |
+| **Total** | **6** |
+
+---
+
 ## [Unreleased] - 2026-04-19
 
 ### Backend Fixes

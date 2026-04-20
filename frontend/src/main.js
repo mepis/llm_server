@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
+import Toast from 'primevue/toast'
+import ToastService from 'primevue/toastservice'
 import axios from 'axios'
 
 import './style.css'
@@ -37,6 +39,8 @@ app.use(PrimeVue, {
     }
   }
 })
+app.use(ToastService)
+app.component('Toast', Toast)
 
 if (import.meta.env.DEV) {
   initConsoleInterceptor()

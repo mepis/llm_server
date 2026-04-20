@@ -524,7 +524,7 @@ async function getSessionsByUser(userId) {
       data: sessions,
     };
   } catch (error) {
-    logger.error('Get user sessions failed:', error.message);
+    logger.error('Get user sessions failed:', error);
     throw error;
   }
 }

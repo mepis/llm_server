@@ -128,6 +128,15 @@ const sendMessage = async () => {
     await scrollToBottom()
   } catch (error) {
     console.error('Failed to send message:', error)
+    if (chatStore.currentChat && chatStore.currentChat.messages.length > 0) {
+      const lastMsg = chatStore.currentChat.messages[chatStore.currentChat.messages.length - 1]
+      if (lastMsg.role === 'user') {
+        chatStore.currentChat.messages.pop()
+      }
+    }
+    if (chatStore.error) {
+      console.error('Chat error:', chatStore.error)
+    }
   } finally {
     loading.value = false
   }

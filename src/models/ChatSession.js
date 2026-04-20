@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const toolCallSchema = new mongoose.Schema({
+  id: String,
+  type: String,
+  function: {
+    name: String,
+    arguments: String
+  }
+});
+
 const chatSessionSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -22,14 +31,7 @@ const chatSessionSchema = new mongoose.Schema({
       type: String,
       default: ''
     },
-    tool_calls: [{
-      id: String,
-      type: String,
-      function: {
-        name: String,
-        arguments: String
-      }
-    }],
+    tool_calls: [toolCallSchema],
     tool_call_id: String,
     timestamp: {
       type: Date,
@@ -91,7 +93,7 @@ chatSessionSchema.index({ session_name: 1 });
 chatSessionSchema.index({ 'messages.timestamp': -1 });
 
 chatSessionSchema.virtual('message_count').get(function() {
-  return this.messages.length;
+  return (this.messages || []).length;
 });
 
 chatSessionSchema.virtual('chat_id').get(function() {

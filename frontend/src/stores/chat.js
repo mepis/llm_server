@@ -115,6 +115,12 @@ export const useChatStore = defineStore('chat', {
         return response.data
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to send message'
+        if (this.currentChat && this.currentChat.messages.length > 0) {
+          const lastMsg = this.currentChat.messages[this.currentChat.messages.length - 1]
+          if (lastMsg.role === 'user') {
+            this.currentChat.messages.pop()
+          }
+        }
         throw error
       } finally {
         this.loading = false
