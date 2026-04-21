@@ -48,7 +48,7 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 - **Tool execution** for custom tools is `POST /api/tools/:id/call` (not `/execute`). Builtin tools (bash, read, write, glob, grep, question, todo, skill) are registered via `src/tool/index.js`.
 - **Chat routes** are mounted under both `/api/chat` and `/api/chats` in `api.js`.
 - Do not commit actual environment secrets. Use `.env.example` as a template and ensure `.env` is added to `.gitignore` in all environments.
-- **Chatterbox TTS** requires GPU and Python 3.10+. The service auto-starts with the backend. If TTS fails, check that CUDA is available and the Chatterbox process is running.
+- **Qwen3-TTS** runs as an external HTTP service (not spawned by the backend). Configure `TTS_SERVER_URL` in `.env`. The service requires GPU and Python 3.9+. Reference implementation at `integrations/qwen3-tts/`.
 
 ## Entry Points
 

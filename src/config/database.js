@@ -24,16 +24,13 @@ module.exports = {
   llama: {
     url: process.env.LLAMA_SERVER_URL || 'http://localhost:8082',
     timeout: parseInt(process.env.LLAMA_TIMEOUT) || 30000,
-    ttsSpeakerFile: process.env.TTS_SPEAKER_FILE || null,
   },
 
-  chatterbox: {
-    grpcHost: process.env.CHATTERBOX_GRPC_HOST || 'localhost',
-    grpcPort: parseInt(process.env.CHATTERBOX_GRPC_PORT) || 50051,
-    speakerFile: process.env.CHATTERBOX_SPEAKER_FILE || null,
-    temperature: parseFloat(process.env.CHATTERBOX_TEMPERATURE) || 0.8,
-    topP: parseFloat(process.env.CHATTERBOX_TOP_P) || 0.95,
-    topK: parseInt(process.env.CHATTERBOX_TOP_K) || 1000,
+  tts: {
+    serverUrl: process.env.TTS_SERVER_URL || null,              // e.g., http://tts-server.local:50052
+    timeout: parseInt(process.env.TTS_TIMEOUT) || 60000,        // axios timeout in ms
+    speaker: process.env.TTS_DEFAULT_SPEAKER || 'Ryan',         // preset speaker name (Ryan, Aiden, Vivian, etc.)
+    language: process.env.TTS_DEFAULT_LANGUAGE || 'Auto',       // default language (en, zh, Auto, etc.)
   },
 
   matrix: {

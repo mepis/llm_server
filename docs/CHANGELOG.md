@@ -4,6 +4,43 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-21
+
+### Major Changes
+
+#### Qwen3-TTS Migration (Replaces Chatterbox TTS)
+- **Replaced**: Chatterbox gRPC TTS service with Qwen3-TTS as an external HTTP service
+- **Added**: `integrations/qwen3-tts/` — Standalone Qwen3-TTS FastAPI service (`tts_service.py`, `requirements.txt`, `start.sh`, `README.md`) using `Qwen/Qwen3-TTS-12Hz-1.7B-Base` model
+- **Removed**: Entire `src/services/chatterbox/` directory (gRPC server, protobuf definitions, TypeScript stubs, Python venv)
+- **Removed**: `@grpc/grpc-js` and `@grpc/proto-loader` npm dependencies from `package.json`
+- **Removed**: `start:chatter` script from `package.json`
+- **Modified**: `src/services/llamaService.js` — Replaced gRPC client with axios HTTP calls to external TTS server; added `getSpeakers()` function
+- **Modified**: `src/server.js` — Removed Chatterbox subprocess spawning and health checking; simplified startup/shutdown
+- **Modified**: `src/config/database.js` — Replaced `chatterbox` config block with `tts` block (`serverUrl`, `timeout`, `speaker`, `language`); removed `llama.ttsSpeakerFile`
+- **Modified**: `src/controllers/llamaController.js` — Updated TTS request handling to accept `speaker` and `language` parameters (removed `speakerFile`)
+- **Modified**: `src/routes/llama.js` — Added `GET /tts/speakers` endpoint for listing available preset speakers
+- **Modified**: `.env.example` and `.env` — Replaced `CHATTERBOX_*` environment variables with `TTS_*` (`TTS_SERVER_URL`, `TTS_TIMEOUT`, `TTS_DEFAULT_SPEAKER`)
+- **Modified**: `AGENTS.md` — Updated TTS gotcha to reflect Qwen3-TTS external service architecture
+
+### Voice Modes
+- CustomVoice (preset speakers: Ryan, Aiden, Vivian, Serena, etc.)
+- VoiceDesign (text prompt-based voice)
+- Base (voice cloning from reference audio via `speakerAudio` parameter)
+
+### API Changes
+- **New endpoint**: `GET /api/llama/tts/speakers` — Returns available speaker presets with their languages and descriptions
+- **Existing endpoint**: `POST /api/llama/tts` — Now accepts optional `speaker` and `language` body fields in addition to `text` and `speakerAudio`
+
+### Testing
+- **Verified**: All 8 backend model tests pass
+- **Verified**: All 30 RBAC integration tests pass
+- **Verified**: All 10 E2E Playwright tests pass (home, login, register, health, auth flows, route access)
+- **Verified**: TTS endpoints return expected error when `TTS_SERVER_URL` is not configured
+- **Verified**: Speakers endpoint returns 500 when TTS server unreachable
+- **Verified**: All frontend routes load correctly with authentication
+
+---
+
 ## [Unreleased] - 2026-04-20
 
 ### Features

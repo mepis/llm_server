@@ -80,6 +80,10 @@
           rows="1"
           :disabled="loading"
         ></textarea>
+        <label class="auto-play-toggle">
+          <input type="checkbox" :checked="settingsStore.autoPlayTTS" @change="settingsStore.setAutoPlayTTS($event.target.checked)" />
+          <span>Auto-play</span>
+        </label>
         <button @click="sendMessage" :disabled="loading || !newMessage.trim()" class="send-button">
           <i class="pi pi-paper-plane"></i>
         </button>
@@ -89,14 +93,16 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import { useSettingsStore } from '@/stores/settings'
 import Header from '@/components/layout/Header.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Button from 'primevue/button'
 import axios from 'axios'
 
 const chatStore = useChatStore()
+const settingsStore = useSettingsStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
 const loading = ref(false)
@@ -139,12 +145,7 @@ const stopSpeaking = () => {
   speakingIndex.value = []
 }
 
-const speakMessage = async (text, index) => {
-  if (isSpeaking.value && speakingIndex.value.includes(index)) {
-    stopSpeaking()
-    return
-  }
-
+const playAudio = async (text, index) => {
   stopSpeaking()
 
   try {
@@ -180,6 +181,14 @@ const speakMessage = async (text, index) => {
   }
 }
 
+const speakMessage = async (text, index) => {
+  if (isSpeaking.value && speakingIndex.value.includes(index)) {
+    stopSpeaking()
+    return
+  }
+  await playAudio(text, index)
+}
+
 const sendMessage = async () => {
   if (!newMessage.value.trim() || loading.value) return
 
@@ -205,6 +214,25 @@ const sendMessage = async () => {
     loading.value = false
   }
 }
+
+const prevMessageCount = ref(0)
+
+watch(messages, (newMessages, oldMessages) => {
+  if (!settingsStore.autoPlayTTS) return
+
+  const newLength = newMessages?.length || 0
+  if (newLength <= prevMessageCount.value) {
+    prevMessageCount.value = newLength
+    return
+  }
+
+  const lastMsg = newMessages[newLength - 1]
+  if (lastMsg?.role === 'assistant' && lastMsg?.content) {
+    playAudio(lastMsg.content, newLength - 1)
+  }
+
+  prevMessageCount.value = newLength
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -494,6 +522,23 @@ const sendMessage = async () => {
 
 .send-button i {
   font-size: 1.25rem;
+}
+
+.auto-play-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #6b7280;
+  user-select: none;
+}
+
+.auto-play-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2d6a4f;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

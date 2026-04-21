@@ -57,7 +57,7 @@ const getHealth = async (req, res) => {
 
 const generateAudio = async (req, res) => {
   try {
-    const { text, speakerFile, speakerAudio, useGuideTokens } = req.body;
+    const { text, speakerAudio, speaker, language } = req.body;
     if (!text || typeof text !== 'string') {
       return res.status(400).json({ success: false, error: 'Text is required' });
     }
@@ -65,6 +65,12 @@ const generateAudio = async (req, res) => {
     const options = {};
     if (speakerAudio && typeof speakerAudio === 'string') {
       options.speakerAudio = speakerAudio;
+    }
+    if (speaker) {
+      options.speaker = speaker;
+    }
+    if (language) {
+      options.language = language;
     }
 
     const base64Wav = await llamaService.generateAudio(text, options);

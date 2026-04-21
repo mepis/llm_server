@@ -4,15 +4,13 @@
   "description": "Comprehensive Llama.cpp-based chat system with RBAC, RAG, and Matrix integration",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start:server": "node src/server.js",
     "dev": "node --watch src/server.js",
     "worker": "node src/workers/worker.js",
     "seed-admin": "node src/scripts/createAdmin.js",
     "test": "node src/tests/testAll.js"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.14.3",
-    "@grpc/proto-loader": "^0.8.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
