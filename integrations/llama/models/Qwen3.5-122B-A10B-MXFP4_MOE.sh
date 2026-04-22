@@ -12,7 +12,7 @@ splitMode=layer
 threads=20
 
 # Model Configs
-context=131072
+context=65536
 temp=0.6
 topP=0.95
 minP=0.00
