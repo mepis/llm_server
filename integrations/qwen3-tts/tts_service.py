@@ -11,6 +11,7 @@ import io
 import logging
 import os
 import tempfile
+from contextlib import asynccontextmanager
 from typing import Optional
 
 import numpy as np
@@ -27,7 +28,7 @@ logger = logging.getLogger('qwen-tts')
 
 
 class Config:
-    MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-Base"
+    MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
     DEFAULT_SPEAKER = "Ryan"
     DEFAULT_LANGUAGE = "Auto"
     OUTPUT_SAMPLE_RATE = 24000
@@ -59,8 +60,6 @@ class TTSResponse(BaseModel):
     duration_ms: int
 
 
-app = FastAPI(title="Qwen3-TTS Service")
-
 # Global model singleton - loaded once at startup
 model: Optional[Qwen3TTSModel] = None
 
@@ -87,6 +86,22 @@ def _load_model():
     logger.info(f"Model loaded. VRAM: {vram_used:.0f} MB")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load model on startup, clean up on shutdown."""
+    _load_model()
+    yield
+    global model
+    if model is not None:
+        del model
+        model = None
+        torch.cuda.empty_cache()
+        logger.info("Model unloaded")
+
+
+app = FastAPI(title="Qwen3-TTS Service", lifespan=lifespan)
+
+
 def _encode_wav(waveform: np.ndarray, sample_rate: int) -> str:
     """Convert numpy waveform array to base64-encoded WAV bytes.
 
@@ -107,7 +122,7 @@ async def generate_tts(request: TTSRequest):
       - No speaker_audio -> CustomVoice (default: Ryan, or speaker field if provided)
       - With speaker_audio -> Voice clone from reference WAV
     """
-    if not model:
+    if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     text = request.text.strip()
@@ -164,7 +179,7 @@ async def list_speakers():
     hardcoded fallback if the model is unavailable or returns None.
     """
     speakers = []
-    if model:
+    if model is not None:
         try:
             speakers = model.get_supported_speakers() or []
         except Exception:
@@ -189,5 +204,4 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=50052, help='HTTP server port (default: 50052)')
     args = parser.parse_args()
 
-    _load_model()
     uvicorn.run(app, host="0.0.0.0", port=args.port)
