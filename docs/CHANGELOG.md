@@ -30,6 +30,18 @@ All notable changes to the LLM Server application.
 - **Modified**: `SkillsView.vue` — removed inline dialog form; replaced with `RouterLink` navigation to edit page for New/Edit actions
 - **Modified**: `src/services/skillService.js` — sanitizes skill names consistently via `sanitizedName` variable before filesystem operations; `getSkillByName` now matches both original and sanitized names
 
+#### Tool Builder (Dedicated Create/Edit Page)
+- **Added**: `frontend/src/views/tools/EditToolView.vue` — dedicated create/edit page for tools with form validation, code editor, and parameter configuration
+- **Added**: Router routes `/tools/new` and `/tools/:id/edit` with admin guard (`requiresAdmin: true`)
+- **Modified**: `ToolsView.vue` — removed inline dialog form; replaced with `RouterLink` navigation to edit page for New/Edit actions
+
+#### Skill Service (Name Matching)
+- **Modified**: `src/services/skillService.js` — `getSkillByName`, `updateSkill`, and `deleteSkill` now try multiple name sanitization strategies (removing hyphens, removing underscores) to find skill files with various naming conventions
+
+#### Other Improvements
+- **Modified**: `EditSkillView.vue` — toast messages improved ("created/updated successfully"), toast duration set to 4s, better error detail extraction from API responses, navigation delayed 1.5s after save
+- **Modified**: `integrations/opencode/skills/api_designer/SKILL.md` — fixed YAML frontmatter formatting (tools and model fields reordered)
+
 ### Backend Changes
 - **Modified**: `src/services/chatService.js` — minor updates to chat session handling
 - **Modified**: `frontend/package.json` / `package-lock.json` — dependency updates

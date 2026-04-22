@@ -1,7 +1,7 @@
 <template>
   <div class="edit-skill-container">
     <main class="edit-skill-main">
-      <Toast />
+      <Toast :life="4000" />
       <div class="edit-skill-header">
         <div class="header-left">
           <Button icon="pi pi-arrow-left" outlined severity="secondary" @click="$router.push('/skills')" class="back-btn" />
@@ -298,15 +298,16 @@ const saveSkill = async () => {
 
     if (isEditing.value) {
       await skillStore.updateSkill(route.params.name, data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill updated' });
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill updated successfully' });
     } else {
       await skillStore.createSkill(data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill created' });
+      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill created successfully' });
     }
 
-    router.push('/skills');
+    setTimeout(() => router.push('/skills'), 1500);
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to save skill' });
+    const message = error.response?.data?.error || error.message || 'Failed to save skill';
+    toast.add({ severity: 'error', summary: 'Error', detail: message });
   }
 };
 </script>

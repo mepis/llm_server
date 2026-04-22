@@ -62,6 +62,18 @@ const router = createRouter({
           meta: { requiresAdmin: true }
         },
         {
+          path: 'tools/new',
+          name: 'tools-new',
+          component: () => import('../views/tools/EditToolView.vue'),
+          meta: { requiresAdmin: true }
+        },
+        {
+          path: 'tools/:id/edit',
+          name: 'tool-edit',
+          component: () => import('../views/tools/EditToolView.vue'),
+          meta: { requiresAdmin: true }
+        },
+        {
           path: 'skills',
           name: 'skills',
           component: () => import('../views/skills/SkillsView.vue')

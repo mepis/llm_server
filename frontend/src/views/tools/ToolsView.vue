@@ -4,12 +4,13 @@
       <Toast />
       <div class="tools-header">
         <h1>Tool Builder</h1>
-        <Button
-          v-if="toolStore.hasAdminRole"
-          label="New Tool"
-          icon="pi pi-plus"
-          @click="openCreateDialog"
-        />
+        <RouterLink to="/tools/new">
+          <Button
+            v-if="toolStore.hasAdminRole"
+            label="New Tool"
+            icon="pi pi-plus"
+          />
+        </RouterLink>
       </div>
 
       <div v-if="toolStore.error" class="error-banner">
@@ -52,13 +53,14 @@
             outlined
             @click="openExecuteDialog(tool)"
           />
-          <Button
-            v-if="toolStore.hasAdminRole"
-            label="Edit"
-            icon="pi pi-pencil"
-            outlined
-            @click="openEditDialog(tool)"
-          />
+          <RouterLink :to="`/tools/${tool._id}/edit`">
+            <Button
+              v-if="toolStore.hasAdminRole"
+              label="Edit"
+              icon="pi pi-pencil"
+              outlined
+            />
+          </RouterLink>
           <Button
             v-if="toolStore.hasAdminRole"
             label="Delete"
@@ -75,52 +77,6 @@
         <p>No tools found. Create your first tool to get started.</p>
       </div>
     </div>
-
-    <!-- Create/Edit Dialog -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      :header="isEditing ? 'Edit Tool' : 'Create Tool'"
-      modal
-      class="tool-dialog"
-    >
-      <div class="dialog-form">
-        <div class="form-field">
-          <label>Name</label>
-          <InputText v-model="toolForm.name" placeholder="Tool name" />
-        </div>
-        <div class="form-field">
-          <label>Description</label>
-          <InputText v-model="toolForm.description" placeholder="Tool description" />
-        </div>
-        <div class="form-field">
-          <label>Roles</label>
-          <div class="role-checkboxes">
-            <label v-for="role in availableRoles" :key="role" class="role-checkbox">
-              <Checkbox v-model="selectedRoles" inputId="role-{{ role }}" value="role" />
-              <span>{{ role }}</span>
-            </label>
-          </div>
-        </div>
-        <div class="form-field">
-          <label>Code</label>
-          <textarea v-model="toolForm.code" class="code-input" placeholder="async function(params) { return params; }"></textarea>
-        </div>
-        <div class="form-field">
-          <label>Parameters (JSON)</label>
-          <textarea v-model="toolForm.parametersText" class="code-input" placeholder='[{"name": "input", "type": "string", "required": true, "description": "Input value"}]'></textarea>
-        </div>
-        <div class="form-field">
-          <label>
-            <Checkbox v-model="toolForm.is_active" inputId="is_active" />
-            Active
-          </label>
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancel" outlined @click="dialogVisible = false" />
-        <Button label="Save" @click="saveTool" :disabled="toolStore.loading" />
-      </template>
-    </Dialog>
 
     <!-- Execute Dialog -->
     <Dialog
@@ -170,66 +126,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useToolStore } from '@/stores/tool';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
-
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import Badge from 'primevue/badge';
+import InputText from 'primevue/inputtext';
 
 const toolStore = useToolStore();
 const toast = useToast();
 
-const dialogVisible = ref(false);
 const executeDialogVisible = ref(false);
-const isEditing = ref(false);
 const selectedTool = ref(null);
-
-const availableRoles = ['user', 'admin', 'system'];
-
-const toolForm = reactive({
-  name: '',
-  description: '',
-  code: '',
-  parametersText: '[]',
-  is_active: true,
-  roles: [],
-});
-
-const selectedRoles = ref([]);
 
 const executeParams = reactive({});
 const executeResult = ref(null);
 const executeError = ref(null);
-
-const initToolForm = () => {
-  toolForm.name = '';
-  toolForm.description = '';
-  toolForm.code = '';
-  toolForm.parametersText = '[]';
-  toolForm.is_active = true;
-  toolForm.roles = ['user'];
-  selectedRoles.value = ['user'];
-};
-
-const openCreateDialog = () => {
-  isEditing.value = false;
-  selectedTool.value = null;
-  initToolForm();
-  dialogVisible.value = true;
-};
-
-const openEditDialog = (tool) => {
-  isEditing.value = true;
-  selectedTool.value = tool;
-  toolForm.name = tool.name;
-  toolForm.description = tool.description;
-  toolForm.code = tool.code;
-  toolForm.parametersText = JSON.stringify(tool.parameters, null, 2);
-  toolForm.is_active = tool.is_active;
-  toolForm.roles = tool.roles || ['user'];
-  selectedRoles.value = [...(tool.roles || ['user'])];
-  dialogVisible.value = true;
-};
 
 const openExecuteDialog = (tool) => {
   selectedTool.value = tool;
@@ -237,33 +152,6 @@ const openExecuteDialog = (tool) => {
   executeResult.value = null;
   executeError.value = null;
   executeDialogVisible.value = true;
-};
-
-const saveTool = async () => {
-  try {
-    const params = JSON.parse(toolForm.parametersText);
-    const data = {
-      name: toolForm.name,
-      description: toolForm.description,
-      function_code: toolForm.code,
-      parameters: params,
-      is_active: toolForm.is_active,
-      roles: selectedRoles.value,
-    };
-
-    if (isEditing.value && selectedTool.value) {
-      await toolStore.updateTool(selectedTool.value._id, data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Tool updated' });
-    } else {
-      await toolStore.createTool(data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Tool created' });
-    }
-
-    dialogVisible.value = false;
-    await toolStore.listTools();
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to save tool' });
-  }
 };
 
 const runTool = async () => {
@@ -409,7 +297,6 @@ toolStore.listTools();
   color: #666;
 }
 
-.dialog-form,
 .execute-form {
   display: flex;
   flex-direction: column;
@@ -420,24 +307,6 @@ toolStore.listTools();
   display: block;
   margin-bottom: 0.25rem;
   font-weight: 500;
-}
-
-.code-input {
-  font-family: monospace;
-  width: 100%;
-  min-height: 100px;
-  resize: vertical;
-}
-
-.role-checkboxes {
-  display: flex;
-  gap: 1rem;
-}
-
-.role-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .execute-result {
