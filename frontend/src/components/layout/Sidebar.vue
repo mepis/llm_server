@@ -37,7 +37,7 @@
          <h3 class="section-title">Management</h3>
          <nav class="nav-links">
           <router-link to="/prompts" class="nav-link" @click="closeAfterNav">
-              <i class="pi pi-font"></i>
+              <i class="pi pi-briefcase"></i>
               <span>Prompts</span>
             </router-link>
            <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/tools" class="nav-link" @click="closeAfterNav">

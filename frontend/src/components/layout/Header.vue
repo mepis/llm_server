@@ -11,7 +11,7 @@
          <nav class="nav-links">
            <router-link to="/chat" class="nav-link">Chat</router-link>
             <router-link to="/rag" class="nav-link">RAG</router-link>
-            <router-link to="/prompts" class="nav-link">Prompts</router-link>
+            <router-link to="/prompts" class="nav-link"><i class="pi pi-briefcase"></i> Prompts</router-link>
             <router-link to="/tools" class="nav-link">Tools</router-link>
             <router-link to="/skills" class="nav-link">Skills</router-link>
             <router-link to="/logs" class="nav-link">Logs</router-link>
@@ -31,7 +31,7 @@
         <nav class="mobile-nav-links">
           <router-link to="/chat" class="mobile-nav-link" @click="closeMobileMenu">Chat</router-link>
           <router-link to="/rag" class="mobile-nav-link" @click="closeMobileMenu">RAG</router-link>
-          <router-link to="/prompts" class="mobile-nav-link" @click="closeMobileMenu">Prompts</router-link>
+          <router-link to="/prompts" class="mobile-nav-link" @click="closeMobileMenu"><i class="pi pi-briefcase"></i> Prompts</router-link>
           <router-link to="/tools" class="mobile-nav-link" @click="closeMobileMenu">Tools</router-link>
           <router-link to="/skills" class="mobile-nav-link" @click="closeMobileMenu">Skills</router-link>
           <router-link to="/logs" class="mobile-nav-link" @click="closeMobileMenu">Logs</router-link>

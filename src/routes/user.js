@@ -21,5 +21,6 @@ router.get('/:userId', validation.validateUserId, userController.getUserById);
 router.put('/:userId', validation.validateUserId, userController.updateUser);
 router.delete('/:userId', validation.validateUserId, userController.deleteUser);
 router.patch('/:userId/role', validation.validateUserId, userController.updateUserRole);
+router.post('/:userId/reset-password', validation.validateUserId, userController.resetUserPassword);
 
 module.exports = router;

@@ -71,6 +71,11 @@ userSchema.methods.checkPassword = async function(password) {
   return await argon2.verify({ hash: this.password_hash, password });
 };
 
+userSchema.methods.resetPassword = async function(newPassword) {
+  this.password_hash = await argon2.hash(newPassword);
+  return await this.save();
+};
+
 userSchema.methods.hasRole = function(role) {
   return this.roles.includes(role);
 };

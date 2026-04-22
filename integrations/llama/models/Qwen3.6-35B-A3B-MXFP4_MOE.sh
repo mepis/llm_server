@@ -13,7 +13,7 @@ threads=20
 
 # Model Configs
 context=262144
-temp=0.6
+temp=0.7
 topP=0.95
 minP=0.00
 topK=20
@@ -33,4 +33,6 @@ export LLAMA_ARG_FIT_TARGET=512
 export LLAMA_ARG_FIT_CTX=262144
 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 2 --cpu-range 0-19 --cpu-strict 1  --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 256 --ubatch-size 256 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5 --repeat-penalty 1.0 
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 2 --cpu-range 0-19 --cpu-strict 1  --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 256 --ubatch-size 256 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5 
+
+# --repeat-penalty 1.0 

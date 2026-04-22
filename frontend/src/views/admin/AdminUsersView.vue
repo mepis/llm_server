@@ -100,6 +100,15 @@
                   title="Manage roles"
                 />
                 <Button
+                  icon="pi pi-lock"
+                  severity="warning"
+                  outlined
+                  text
+                  size="small"
+                  @click="openResetPasswordDialog(slotData.data)"
+                  title="Reset password"
+                />
+                <Button
                   icon="pi pi-trash"
                   severity="danger"
                   outlined
@@ -274,6 +283,39 @@
           />
         </template>
       </Dialog>
+
+      <!-- Reset Password Dialog -->
+      <Dialog
+        v-model:visible="resetPasswordDialogVisible"
+        header="Reset Password"
+        modal
+        :style="{ width: '450px' }"
+      >
+        <div v-if="resetPasswordTarget" class="dialog-form">
+          <p class="reset-password-info">
+            Reset password for user
+            <strong>"{{ resetPasswordTarget.username }}"</strong>
+            (<span>{{ resetPasswordTarget.email }}</span>)
+          </p>
+          <div class="form-field">
+            <label>New Password <span class="required">*</span></label>
+            <InputText v-model="resetPasswordForm.password" placeholder="Enter new password" type="password" />
+          </div>
+          <div class="form-field">
+            <label>Confirm Password <span class="required">*</span></label>
+            <InputText v-model="resetPasswordForm.confirmPassword" placeholder="Confirm new password" type="password" />
+          </div>
+        </div>
+        <template #footer>
+          <Button label="Cancel" outlined @click="resetPasswordDialogVisible = false" />
+          <Button
+            label="Reset Password"
+            severity="warning"
+            @click="resetPassword"
+            :disabled="userStore.loading"
+          />
+        </template>
+      </Dialog>
     </main>
   </div>
 </template>
@@ -326,6 +368,14 @@ const selectedRoleToAdd = ref(null)
 const deleteDialogVisible = ref(false)
 const deleteUserTarget = ref(null)
 
+// Reset password dialog
+const resetPasswordDialogVisible = ref(false)
+const resetPasswordTarget = ref(null)
+const resetPasswordForm = ref({
+  password: '',
+  confirmPassword: ''
+})
+
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return userStore.users
   const query = searchQuery.value.toLowerCase()
@@ -348,7 +398,7 @@ const loadUsers = async () => {
   try {
     await userStore.listUsers()
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load users' })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load users', life: 2000 })
   }
 }
 
@@ -366,15 +416,15 @@ const openCreateDialog = () => {
 
 const createUser = async () => {
   if (!createForm.value.username || !createForm.value.email || !createForm.value.password) {
-    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Username, email, and password are required' })
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Username, email, and password are required', life: 2000 })
     return
   }
   if (createForm.value.password !== createForm.value.confirmPassword) {
-    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Passwords do not match' })
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Passwords do not match', life: 2000 })
     return
   }
   if (selectedCreateRoles.value.length === 0) {
-    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'At least one role is required' })
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'At least one role is required', life: 2000 })
     return
   }
 
@@ -386,10 +436,10 @@ const createUser = async () => {
       roles: selectedCreateRoles.value,
       is_active: createForm.value.isActive
     })
-    toast.add({ severity: 'success', summary: 'Success', detail: 'User created successfully' })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'User created successfully', life: 2000 })
     createDialogVisible.value = false
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to create user' })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to create user', life: 2000 })
   }
 }
 
@@ -405,7 +455,7 @@ const openEditDialog = (user) => {
 
 const saveEditUser = async () => {
   if (!editForm.value.email) {
-    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Email is required' })
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Email is required', life: 2000 })
     return
   }
 
@@ -414,11 +464,11 @@ const saveEditUser = async () => {
       email: editForm.value.email,
       is_active: editForm.value.isActive
     })
-    toast.add({ severity: 'success', summary: 'Success', detail: 'User updated successfully' })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'User updated successfully', life: 2000 })
     editDialogVisible.value = false
     await loadUsers()
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to update user' })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to update user', life: 2000 })
   }
 }
 
@@ -433,11 +483,11 @@ const addSelectedRole = async () => {
 
   try {
     await userStore.addRole(selectedUser.value._id, selectedRoleToAdd.value)
-    toast.add({ severity: 'success', summary: 'Success', detail: `Role "${selectedRoleToAdd.value}" added` })
+    toast.add({ severity: 'success', summary: 'Success', detail: `Role "${selectedRoleToAdd.value}" added`, life: 2000 })
     selectedRoleToAdd.value = null
     await loadUsers()
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to add role' })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to add role', life: 2000 })
   }
 }
 
@@ -446,10 +496,10 @@ const removeUserRole = async (role) => {
 
   try {
     await userStore.removeRole(selectedUser.value._id, role)
-    toast.add({ severity: 'success', summary: 'Success', detail: `Role "${role}" removed` })
+    toast.add({ severity: 'success', summary: 'Success', detail: `Role "${role}" removed`, life: 2000 })
     await loadUsers()
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to remove role' })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to remove role', life: 2000 })
   }
 }
 
@@ -461,10 +511,38 @@ const confirmDelete = (user) => {
 const deleteUser = async () => {
   try {
     await userStore.deleteUser(deleteUserTarget.value._id)
-    toast.add({ severity: 'success', summary: 'Success', detail: 'User deleted successfully' })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'User deleted successfully', life: 2000 })
     deleteDialogVisible.value = false
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to delete user' })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to delete user', life: 2000 })
+  }
+}
+
+const openResetPasswordDialog = (user) => {
+  resetPasswordTarget.value = user
+  resetPasswordForm.value = {
+    password: '',
+    confirmPassword: ''
+  }
+  resetPasswordDialogVisible.value = true
+}
+
+const resetPassword = async () => {
+  if (!resetPasswordForm.value.password) {
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Password is required', life: 2000 })
+    return
+  }
+  if (resetPasswordForm.value.password !== resetPasswordForm.value.confirmPassword) {
+    toast.add({ severity: 'warn', summary: 'Validation Error', detail: 'Passwords do not match', life: 2000 })
+    return
+  }
+
+  try {
+    await userStore.resetPassword(resetPasswordTarget.value._id, resetPasswordForm.value.password)
+    toast.add({ severity: 'success', summary: 'Success', detail: `Password reset for "${resetPasswordTarget.value.username}"`, life: 3000 })
+    resetPasswordDialogVisible.value = false
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to reset password', life: 2000 })
   }
 }
 
@@ -704,6 +782,20 @@ onMounted(() => {
   color: #374151;
   line-height: 1.6;
   margin: 0;
+}
+
+.reset-password-info {
+  color: #374151;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+.reset-password-info strong {
+  color: #1f2937;
+}
+
+.reset-password-info span {
+  color: #6b7280;
 }
 
 @media (max-width: 768px) {

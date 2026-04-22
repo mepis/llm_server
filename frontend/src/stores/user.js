@@ -125,6 +125,20 @@ export const useUserStore = defineStore('user', {
       } finally {
         this.loading = false
       }
+    },
+
+    async resetPassword(userId, newPassword) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.post(`/users/${userId}/reset-password`, { password: newPassword })
+        return response.data.data
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to reset password'
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

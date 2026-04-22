@@ -248,6 +248,33 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+const resetUserPassword = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password is required'
+      });
+    }
+
+    const result = await userService.updateUserPassword(userId, password);
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    logger.error('Reset user password failed:', error.message);
+    res.status(error.message.includes('not found') ? 404 : 400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
   createUser,
@@ -260,5 +287,6 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
-  updateUserRole
+  updateUserRole,
+  resetUserPassword
 };

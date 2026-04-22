@@ -260,6 +260,28 @@ const removeUserRole = async (userId, role) => {
   }
 };
 
+const updateUserPassword = async (userId, newPassword) => {
+  try {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    await user.resetPassword(newPassword);
+    
+    logger.info(`Admin reset password for user: ${user.username}`);
+    
+    return {
+      success: true,
+      data: { username: user.username, email: user.email }
+    };
+  } catch (error) {
+    logger.error('Update user password failed:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   registerUser,
   createUser,
@@ -269,5 +291,6 @@ module.exports = {
   updateUser,
   deleteUser,
   setUserRole,
-  removeUserRole
+  removeUserRole,
+  updateUserPassword
 };
