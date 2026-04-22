@@ -4,12 +4,13 @@
       <Toast />
       <div class="skills-header">
         <h1>Skills</h1>
-        <Button
-          v-if="skillStore.hasAdminRole"
-          label="New Skill"
-          icon="pi pi-plus"
-          @click="openCreateDialog"
-        />
+         <RouterLink to="/skills/new">
+            <Button
+              v-if="skillStore.hasAdminRole"
+              label="New Skill"
+              icon="pi pi-plus"
+            />
+          </RouterLink>
       </div>
 
       <div v-if="skillStore.error" class="error-banner">
@@ -47,13 +48,14 @@
             outlined
             @click="openViewDialog(skill)"
           />
-          <Button
-            v-if="skillStore.hasAdminRole"
-            label="Edit"
-            icon="pi pi-pencil"
-            outlined
-            @click="openEditDialog(skill)"
-          />
+          <RouterLink :to="`/skills/${skill.name}/edit`">
+            <Button
+              v-if="skillStore.hasAdminRole"
+              label="Edit"
+              icon="pi pi-pencil"
+              outlined
+            />
+          </RouterLink>
           <Button
             v-if="skillStore.hasAdminRole"
             label="Delete"
@@ -69,51 +71,6 @@
         <p>No skills found. Create your first skill to get started.</p>
       </div>
     </div>
-
-    <!-- Create/Edit Dialog -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      :header="isEditing ? 'Edit Skill' : 'Create Skill'"
-      modal
-      class="skill-dialog"
-      :style="{ width: '700px' }"
-    >
-      <div class="dialog-form">
-        <div class="form-field">
-          <label>Name</label>
-          <InputText v-model="skillForm.name" placeholder="skill-name" :disabled="isEditing" />
-        </div>
-        <div class="form-field">
-          <label>Description</label>
-          <InputText v-model="skillForm.description" placeholder="Brief description of what this skill does" />
-        </div>
-        <div class="form-field">
-          <label>Roles</label>
-          <div class="role-checkboxes">
-            <label v-for="role in availableRoles" :key="role" class="role-checkbox">
-              <Checkbox v-model="selectedRoles" inputId="role-{{ role }}" :value="role" />
-              <span>{{ role }}</span>
-            </label>
-          </div>
-        </div>
-        <div class="form-field">
-          <label>Tools (comma-separated)</label>
-          <InputText v-model="skillForm.tools" placeholder="Read, Write, Edit, Bash, Glob, Grep" />
-        </div>
-        <div class="form-field">
-          <label>Model</label>
-          <InputText v-model="skillForm.model" placeholder="sonnet" />
-        </div>
-        <div class="form-field">
-          <label>Content (Markdown)</label>
-          <Textarea v-model="skillForm.content" class="content-textarea" placeholder="# Skill instructions..." rows="15" />
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancel" outlined @click="dialogVisible = false" />
-        <Button label="Save" @click="saveSkill" :disabled="skillStore.loading" />
-      </template>
-    </Dialog>
 
     <!-- View Dialog -->
     <Dialog
@@ -157,91 +114,23 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useSkillStore } from '@/stores/skill';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 
 
 const skillStore = useSkillStore();
 const toast = useToast();
 
-const dialogVisible = ref(false);
 const viewDialogVisible = ref(false);
-const isEditing = ref(false);
 const selectedSkill = ref(null);
-
-const availableRoles = ['user', 'admin', 'system'];
-
-const skillForm = reactive({
-  name: '',
-  description: '',
-  content: '',
-  roles: [],
-  tools: '',
-  model: '',
-});
-
-const selectedRoles = ref([]);
-
-const initSkillForm = () => {
-  skillForm.name = '';
-  skillForm.description = '';
-  skillForm.content = '';
-  skillForm.roles = ['user'];
-  skillForm.tools = '';
-  skillForm.model = '';
-  selectedRoles.value = ['user'];
-};
-
-const openCreateDialog = () => {
-  isEditing.value = false;
-  selectedSkill.value = null;
-  initSkillForm();
-  dialogVisible.value = true;
-};
-
-const openEditDialog = (skill) => {
-  isEditing.value = true;
-  selectedSkill.value = skill;
-  skillForm.name = skill.name;
-  skillForm.description = skill.description;
-  skillForm.content = skill.content;
-  skillForm.tools = skill.tools || '';
-  skillForm.model = skill.model || '';
-  skillForm.roles = skill.roles || ['user'];
-  selectedRoles.value = [...(skill.roles || ['user'])];
-  dialogVisible.value = true;
-};
 
 const openViewDialog = (skill) => {
   selectedSkill.value = skill;
   viewDialogVisible.value = true;
-};
-
-const saveSkill = async () => {
-  try {
-    const data = {
-      name: skillForm.name,
-      description: skillForm.description,
-      content: skillForm.content,
-      roles: selectedRoles.value,
-      tools: skillForm.tools || null,
-      model: skillForm.model || null,
-    };
-
-    if (isEditing.value && selectedSkill.value) {
-      await skillStore.updateSkill(selectedSkill.value.name, data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill updated' });
-    } else {
-      await skillStore.createSkill(data);
-      toast.add({ severity: 'success', summary: 'Success', detail: 'Skill created' });
-    }
-
-    dialogVisible.value = false;
-    await skillStore.listSkills();
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to save skill' });
-  }
 };
 
 const confirmDelete = async (skill) => {
@@ -379,35 +268,10 @@ skillStore.listSkills();
   color: #666;
 }
 
-.dialog-form,
 .view-content {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.form-field label {
-  display: block;
-  margin-bottom: 0.25rem;
-  font-weight: 500;
-}
-
-.content-textarea {
-  font-family: monospace;
-  width: 100%;
-  min-height: 200px;
-  resize: vertical;
-}
-
-.role-checkboxes {
-  display: flex;
-  gap: 1rem;
-}
-
-.role-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .view-meta {

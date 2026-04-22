@@ -1,15 +1,9 @@
 ---
 name: deep-research
-description: ALWAYS execute deep, multi-phase, recursive, and highly structured research on a specified topic ($TOPIC). The primary goal is to build a complete knowledge base, culminating in a definitive, formal analysis report.
-license: MIT
-compatibility: opencode
-metadata:
-  audience: analysts, researchers
-  workflow: deep-dive, synthesis, recursion
-  expertise_level: expert
-  state_management: file-based, persistent
+description: "ALWAYS execute deep, multi-phase, recursive, and highly structured research on a specified topic ($TOPIC). The primary goal is to build a complete knowledge base, culminating in a definitive, formal analysis report."
 roles: ["user"]
 ---
+
 ## 📦 STATE MANAGEMENT
 
 ### State File Location

@@ -84,7 +84,8 @@ function parseSkill(filePath) {
 
 async function getSkillByName(name) {
   const skills = getCachedSkills();
-  const skill = skills.find((s) => s.name === name);
+  const sanitizedName = name.replace(/[^a-z0-9_-]/gi, '_');
+  const skill = skills.find((s) => s.name === name || s.name === sanitizedName);
 
   if (!skill) {
     throw new Error(`Skill not found: ${name}`);
@@ -137,14 +138,15 @@ async function createSkill(data) {
     throw new Error('Name and description are required');
   }
 
-  const skillDir = path.join(SKILLS_DIR, name.replace(/[^a-z0-9_-]/gi, '_'));
+  const sanitizedName = name.replace(/[^a-z0-9_-]/gi, '_');
+  const skillDir = path.join(SKILLS_DIR, sanitizedName);
 
   if (!fs.existsSync(skillDir)) {
     fs.mkdirSync(skillDir, { recursive: true });
   }
 
   const frontmatter = `---
-name: ${name}
+name: ${sanitizedName}
 description: "${description.replace(/"/g, '\\"')}"
 ${roles ? `roles: [${roles.map((r) => `"${r}"`).join(', ')}]
 ` : ''}${tools ? `tools: ${tools}
@@ -160,11 +162,12 @@ ${roles ? `roles: [${roles.map((r) => `"${r}"`).join(', ')}]
 
   logger.info(`Skill created: ${name}`);
 
-  return getSkillByName(name);
+  return getSkillByName(sanitizedName);
 }
 
 async function updateSkill(name, data) {
-  const skillDir = path.join(SKILLS_DIR, name.replace(/[^a-z0-9_-]/gi, '_'));
+  const sanitizedName = name.replace(/[^a-z0-9_-]/gi, '_');
+  const skillDir = path.join(SKILLS_DIR, sanitizedName);
   const skillFile = path.join(skillDir, 'SKILL.md');
 
   if (!fs.existsSync(skillFile)) {
@@ -176,6 +179,8 @@ async function updateSkill(name, data) {
     ...existing,
     ...data,
   };
+
+  updated.name = sanitizedName;
 
   const frontmatter = `---
 name: ${updated.name}
@@ -192,11 +197,12 @@ ${updated.roles ? `roles: [${updated.roles.map((r) => `"${r}"`).join(', ')}]
 
   logger.info(`Skill updated: ${name}`);
 
-  return getSkillByName(name);
+  return getSkillByName(sanitizedName);
 }
 
 async function deleteSkill(name) {
-  const skillDir = path.join(SKILLS_DIR, name.replace(/[^a-z0-9_-]/gi, '_'));
+  const sanitizedName = name.replace(/[^a-z0-9_-]/gi, '_');
+  const skillDir = path.join(SKILLS_DIR, sanitizedName);
   const skillFile = path.join(skillDir, 'SKILL.md');
 
   if (!fs.existsSync(skillFile)) {

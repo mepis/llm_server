@@ -24,6 +24,12 @@ All notable changes to the LLM Server application.
 - **Added**: `frontend/src/utils/markdown.js` (new utility)
 - **Added**: PrimeIcons CSS and PrimeVue `IconField`/`InputIcon` components registered globally
 
+### Skills
+- **Added**: `EditSkillView.vue` — dedicated create/edit page for skills with validation, tool picker (Chips + Dropdown), and two-column layout
+- **Added**: Router routes `/skills/new` and `/skills/:name/edit` with admin guard (`requiresAdmin: true`)
+- **Modified**: `SkillsView.vue` — removed inline dialog form; replaced with `RouterLink` navigation to edit page for New/Edit actions
+- **Modified**: `src/services/skillService.js` — sanitizes skill names consistently via `sanitizedName` variable before filesystem operations; `getSkillByName` now matches both original and sanitized names
+
 ### Backend Changes
 - **Modified**: `src/services/chatService.js` — minor updates to chat session handling
 - **Modified**: `frontend/package.json` / `package-lock.json` — dependency updates
