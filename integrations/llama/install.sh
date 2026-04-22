@@ -11,9 +11,9 @@ CURRENT_DIR=$(pwd)
 
 ## QWEN ##
 ##--------
-# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
+MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-122B-A10B-UD-IQ2_XXS.sh
-MODEL=Qwen3.5-122B-A10B-MXFP4_MOE.sh
+# MODEL=Qwen3.5-122B-A10B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
