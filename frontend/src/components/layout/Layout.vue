@@ -14,15 +14,18 @@ import Sidebar from '@/components/layout/Sidebar.vue'
 <style scoped>
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .main-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 2rem;
   background: #f3f4f6;
   margin-left: 250px;
   transition: margin-left 0.3s ease;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {

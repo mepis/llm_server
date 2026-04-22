@@ -1,7 +1,5 @@
 <template>
   <div class="prompts-container">
-    <Header />
-    <Sidebar />
     <main class="prompts-main">
       <div class="prompts-header">
         <h1>Prompt Library</h1>
@@ -67,8 +65,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { usePromptStore } from '@/stores/prompt'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
@@ -190,7 +187,6 @@ onMounted(() => {
 
 .prompts-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

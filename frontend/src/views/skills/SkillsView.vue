@@ -1,7 +1,5 @@
 <template>
   <div class="skills-container">
-    <Header />
-    <Sidebar />
     <main class="skills-main">
       <Toast />
       <div class="skills-header">
@@ -162,8 +160,7 @@ import { ref, reactive } from 'vue';
 import { useSkillStore } from '@/stores/skill';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
-import Header from '@/components/layout/Header.vue';
-import Sidebar from '@/components/layout/Sidebar.vue';
+
 
 const skillStore = useSkillStore();
 const toast = useToast();
@@ -270,7 +267,6 @@ skillStore.listSkills();
 
 .skills-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

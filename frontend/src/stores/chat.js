@@ -17,6 +17,7 @@ export const useChatStore = defineStore('chat', {
         const response = await apiClient.post('/chats', { session_name: name })
         const session = response.data.data
         this.sessions.unshift(session)
+        this.currentChat = session
         return session
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to create session'

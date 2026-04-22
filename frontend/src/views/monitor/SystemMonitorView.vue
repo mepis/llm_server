@@ -1,7 +1,5 @@
 <template>
   <div class="monitor-container">
-    <Header />
-    <Sidebar />
     <main class="monitor-main">
       <div class="monitor-header">
         <h1>System Monitor</h1>
@@ -88,8 +86,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+
 import Button from 'primevue/button'
 
 const loading = ref(false)
@@ -143,7 +140,6 @@ onMounted(() => {
 
 .monitor-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

@@ -1,7 +1,5 @@
 <template>
   <div class="history-container">
-    <Header />
-    <Sidebar />
     <main class="history-main">
       <div class="history-header">
         <h1>Chat History</h1>
@@ -43,8 +41,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chat'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+
+
 import Button from 'primevue/button'
 
 const router = useRouter()
@@ -57,7 +55,7 @@ const currentChatId = ref(null)
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+  return date.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
 }
 
 const loadSessions = async () => {
@@ -118,7 +116,6 @@ onMounted(() => {
 
 .history-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

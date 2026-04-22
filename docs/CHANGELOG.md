@@ -4,6 +4,32 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-22
+
+### Features
+
+#### User Management (Admin)
+- **Added**: Full CRUD user management UI in `frontend/src/views/admin/AdminUsersView.vue` with DataTable, search, pagination, and role management
+- **Added**: `POST /api/users/` endpoint to create users via `userController.createUser` and `userService.createUser`
+- **Added**: `removeRole` support in `PATCH /api/users/:userId/role` — can now remove roles via `userService.removeUserRole`
+- **Added**: `is_active` as an allowed update field in `userService.updateUser`
+
+#### Admin Route Guards
+- **Added**: `requiresAdmin: true` meta to Tools, Logs, and Monitor routes; non-admin users are redirected to `/chat`
+- **Added**: Auto-fetch user profile on navigation when auth token exists but user object is missing (`authStore.fetchUser()`)
+
+#### Frontend Cleanup
+- **Removed**: `frontend/src/views/debug/DebugView.vue` and `frontend/src/stores/debug.js` — debug console interceptor removed
+- **Removed**: Console interceptor utility (`frontend/src/utils/consoleInterceptor.js`) and its import in `main.js`
+- **Added**: `frontend/src/utils/markdown.js` (new utility)
+- **Added**: PrimeIcons CSS and PrimeVue `IconField`/`InputIcon` components registered globally
+
+### Backend Changes
+- **Modified**: `src/services/chatService.js` — minor updates to chat session handling
+- **Modified**: `frontend/package.json` / `package-lock.json` — dependency updates
+
+---
+
 ## [Unreleased] - 2026-04-21
 
 ### Major Changes

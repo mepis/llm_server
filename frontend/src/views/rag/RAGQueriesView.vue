@@ -1,7 +1,5 @@
 <template>
   <div class="queries-container">
-    <Header />
-    <Sidebar />
     <main class="queries-main">
       <div class="queries-header">
         <h1>Knowledge Search</h1>
@@ -55,8 +53,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRAGStore } from '@/stores/rag'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+
 import Button from 'primevue/button'
 
 const ragStore = useRAGStore()
@@ -93,7 +90,6 @@ const performSearch = async () => {
 
 .queries-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

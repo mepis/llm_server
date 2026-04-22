@@ -239,8 +239,9 @@ async function chatWithLLM(sessionId, content, options = {}) {
       ...options,
     };
 
+    await session.addMessage('user', content);
+
     const messages = buildMessages(session);
-    messages.push({ role: 'user', content });
 
     const { tools, openAITools } = await resolveTools(session);
 
@@ -338,8 +339,9 @@ async function runLoop(sessionId, content, options = {}) {
       ...options,
     };
 
+    await session.addMessage('user', content);
+
     const messages = buildMessages(session);
-    messages.push({ role: 'user', content });
 
     const { tools, openAITools } = await resolveTools(session);
 

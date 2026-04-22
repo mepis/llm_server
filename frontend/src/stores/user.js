@@ -71,6 +71,60 @@ export const useUserStore = defineStore('user', {
       } finally {
         this.loading = false
       }
+    },
+
+    async createUser(userData) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.post('/users', userData)
+        const created = response.data.data
+        this.users.unshift(created)
+        return created
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to create user'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async addRole(userId, role) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch(`/users/${userId}/role`, { role })
+        const updated = response.data.data
+        const index = this.users.findIndex(u => u._id === userId)
+        if (index !== -1) {
+          this.users[index] = updated
+        }
+        return updated
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to add role'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async removeRole(userId, role) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch(`/users/${userId}/role`, { removeRole: role })
+        const updated = response.data.data
+        const index = this.users.findIndex(u => u._id === userId)
+        if (index !== -1) {
+          this.users[index] = updated
+        }
+        return updated
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to remove role'
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

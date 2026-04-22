@@ -58,7 +58,8 @@ const router = createRouter({
         {
           path: 'tools',
           name: 'tools',
-          component: () => import('../views/tools/ToolsView.vue')
+          component: () => import('../views/tools/ToolsView.vue'),
+          meta: { requiresAdmin: true }
         },
         {
           path: 'skills',
@@ -68,17 +69,14 @@ const router = createRouter({
         {
           path: 'logs',
           name: 'logs',
-          component: () => import('../views/logs/LogsView.vue')
+          component: () => import('../views/logs/LogsView.vue'),
+          meta: { requiresAdmin: true }
         },
         {
           path: 'monitor',
           name: 'monitor',
-          component: () => import('../views/monitor/SystemMonitorView.vue')
-        },
-        {
-          path: 'debug',
-          name: 'debug',
-          component: () => import('../views/debug/DebugView.vue')
+          component: () => import('../views/monitor/SystemMonitorView.vue'),
+          meta: { requiresAdmin: true }
         },
         {
           path: 'admin/users',
@@ -97,11 +95,22 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
+  if (authStore.isAuthenticated && !authStore.user) {
+    try {
+      await authStore.fetchUser()
+    } catch (e) {
+      authStore.logout()
+      return next('/login')
+    }
+  }
+
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login')
+  } else if (to.meta.requiresAdmin && authStore.user?.roles?.[0] !== 'admin' && authStore.user?.roles?.[0] !== 'system') {
+    next('/')
   } else if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
     next('/chat')
   } else {

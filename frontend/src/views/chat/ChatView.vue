@@ -10,12 +10,12 @@
           {{ message.role === 'user' ? 'U' : message.role === 'tool' ? 'T' : 'AI' }}
         </div>
         <div class="message-content">
-          <div class="message-role">{{ message.role }}</div>
+          <div class="message-role">{{ message.role === 'user' ? authStore.user?.username || 'User' : message.role }}</div>
 
-          <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
+          <div v-if="message.role === 'user'" class="message-text" v-html="markdownToHtml(message.content)"></div>
 
           <div v-else-if="message.role === 'assistant' && message.content" class="message-text">
-            {{ message.content }}
+            <span v-html="markdownToHtml(message.content)"></span>
             <button
               @click="speakMessage(message.content, index)"
               :class="['speaker-button', { speaking: isSpeaking }]"
@@ -61,10 +61,9 @@
         <div class="message-avatar">AI</div>
         <div class="message-content">
           <div class="message-role">assistant</div>
-          <div class="message-text typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
+          <div class="message-text thinking-container">
+            <span class="thinking-label">thinking</span>
+            <span class="thinking-dots">{{ thinkingDots }}</span>
           </div>
         </div>
       </div>
@@ -82,7 +81,7 @@
         <span>Auto-play</span>
       </label>
       <button @click="sendMessage" :disabled="loading || !newMessage.trim()" class="send-button">
-        <i class="pi pi-paper-plane"></i>
+        <i class="pi pi-arrow-right"></i>
       </button>
     </div>
   </div>
@@ -91,11 +90,14 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import Button from 'primevue/button'
 import axios from 'axios'
+import { markdownToHtml } from '@/utils/markdown'
 
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
@@ -103,7 +105,9 @@ const loading = ref(false)
 const expandedMessages = ref(new Set())
 const isSpeaking = ref(false)
 const speakingIndex = ref([])
+const thinkingDots = ref('')
 let currentAudio = null
+let dotsInterval = null
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
 
@@ -187,12 +191,17 @@ const sendMessage = async () => {
   if (!newMessage.value.trim() || loading.value) return
 
   loading.value = true
+  thinkingDots.value = ''
+  let dotCount = 0
+  dotsInterval = setInterval(() => {
+    dotCount = (dotCount + 1) % 6
+    thinkingDots.value = '.'.repeat(dotCount)
+  }, 500)
   const content = newMessage.value.trim()
   newMessage.value = ''
 
   try {
     await chatStore.sendMessage(content)
-    await scrollToBottom()
   } catch (error) {
     console.error('Failed to send message:', error)
     if (chatStore.currentChat && chatStore.currentChat.messages.length > 0) {
@@ -206,16 +215,23 @@ const sendMessage = async () => {
     }
   } finally {
     loading.value = false
+    clearInterval(dotsInterval)
+    thinkingDots.value = ''
   }
 }
 
 const prevMessageCount = ref(0)
 
-watch(messages, (newMessages, oldMessages) => {
-  if (!settingsStore.autoPlayTTS) return
-
+watch(messages, async (newMessages, oldMessages) => {
   const newLength = newMessages?.length || 0
   if (newLength <= prevMessageCount.value) {
+    prevMessageCount.value = newLength
+    return
+  }
+
+  await scrollToBottom()
+
+  if (!settingsStore.autoPlayTTS) {
     prevMessageCount.value = newLength
     return
   }
@@ -233,7 +249,7 @@ watch(messages, (newMessages, oldMessages) => {
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
 .chat-main {
@@ -321,29 +337,115 @@ watch(messages, (newMessages, oldMessages) => {
 
 .message-text {
   color: #374151;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.typing-indicator {
+.message-text :deep(h1), .message-text :deep(h2), .message-text :deep(h3),
+.message-text :deep(h4), .message-text :deep(h5), .message-text :deep(h6) {
+  margin: 0.75rem 0 0.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.message-text :deep(h1) { font-size: 1.5rem; }
+.message-text :deep(h2) { font-size: 1.25rem; }
+.message-text :deep(h3) { font-size: 1.125rem; }
+
+.message-text :deep(p) {
+  margin: 0.5rem 0;
+}
+
+.message-text :deep(ul), .message-text :deep(ol) {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.message-text :deep(li) {
+  margin: 0.25rem 0;
+}
+
+.message-text :deep(li > p) {
+  margin: 0.25rem 0;
+}
+
+.message-text :deep(strong) {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.message-text :deep(em) {
+  font-style: italic;
+}
+
+.message-text :deep(a) {
+  color: #2d6a4f;
+  text-decoration: underline;
+}
+
+.message-text :deep(a:hover) {
+  color: #22543d;
+}
+
+.message-text :deep(blockquote) {
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 3px solid #d1d5db;
+  color: #6b7280;
+}
+
+.message-text :deep(code) {
+  background: #f3f4f6;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.875em;
+  color: #1f2937;
+}
+
+.message-text :deep(pre) {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.message-text :deep(pre code) {
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.message-text :deep(hr) {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1rem 0;
+}
+
+.message-text :deep(img) {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+}
+
+.thinking-container {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
   padding: 0.5rem 0;
 }
 
-.typing-indicator span {
-  width: 8px;
-  height: 8px;
-  background: #9ca3af;
-  border-radius: 50%;
-  animation: bounce 1.4s infinite ease-in-out;
+.thinking-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-style: italic;
 }
 
-.typing-indicator span:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.typing-indicator span:nth-child(2) {
-  animation-delay: -0.16s;
+.thinking-dots {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 @keyframes bounce {
@@ -389,10 +491,6 @@ watch(messages, (newMessages, oldMessages) => {
 .speaker-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
-}
-
-.message-text {
-  display: inline;
 }
 
 .tool-calls-section {

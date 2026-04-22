@@ -21,6 +21,38 @@ const register = async (req, res) => {
   }
 };
 
+const createUser = async (req, res) => {
+  try {
+    const { username, email, password, roles, is_active } = req.body;
+    
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username, email, and password are required'
+      });
+    }
+    
+    const result = await userService.createUser({
+      username,
+      email,
+      password,
+      roles: roles || ['user'],
+      isActive: is_active !== undefined ? is_active : true
+    });
+    
+    res.status(201).json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    logger.error('Create user failed:', error.message);
+    res.status(error.message.includes('already exists') ? 409 : 400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -189,9 +221,19 @@ const deleteUser = async (req, res) => {
 const updateUserRole = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const { role } = req.body;
+    const { role, removeRole } = req.body;
     
-    const result = await require('../services/userService').setUserRole(userId, role);
+    let result;
+    if (removeRole) {
+      result = await require('../services/userService').removeUserRole(userId, removeRole);
+    } else if (role) {
+      result = await require('../services/userService').setUserRole(userId, role);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Either "role" or "removeRole" must be provided'
+      });
+    }
     
     res.json({
       success: true,
@@ -208,6 +250,7 @@ const updateUserRole = async (req, res) => {
 
 module.exports = {
   register,
+  createUser,
   login,
   logout,
   getProfile,

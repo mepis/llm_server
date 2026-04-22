@@ -40,7 +40,7 @@
               <i class="pi pi-font"></i>
               <span>Prompts</span>
             </router-link>
-            <router-link to="/tools" class="nav-link" @click="closeAfterNav">
+           <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/tools" class="nav-link" @click="closeAfterNav">
               <i class="pi pi-wrench"></i>
               <span>Tools</span>
             </router-link>
@@ -48,17 +48,13 @@
               <i class="pi pi-book"></i>
               <span>Skills</span>
             </router-link>
-            <router-link to="/logs" class="nav-link" @click="closeAfterNav">
-             <i class="pi pi-list"></i>
-             <span>Logs</span>
-           </router-link>
-         <router-link to="/monitor" class="nav-link" @click="closeAfterNav">
+            <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/logs" class="nav-link" @click="closeAfterNav">
+              <i class="pi pi-list"></i>
+              <span>Logs</span>
+            </router-link>
+          <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/monitor" class="nav-link" @click="closeAfterNav">
               <i class="pi pi-chart-bar"></i>
               <span>Monitor</span>
-            </router-link>
-            <router-link v-if="debugMenuEnabled" to="/debug" class="nav-link" @click="closeAfterNav">
-              <i class="pi pi-bug"></i>
-              <span>Debug</span>
             </router-link>
           </nav>
         </div>
@@ -79,7 +75,6 @@
     <div class="sidebar-footer">
       <div class="user-info">
         <span class="username">{{ user?.username || 'User' }}</span>
-        <span class="user-role" :class="`role-${user?.roles?.[0] || 'user'}`">{{ user?.roles?.[0] || 'user' }}</span>
       </div>
       <Button label="Logout" icon="pi pi-sign-out" @click="handleLogout" />
     </div>
@@ -99,7 +94,6 @@ const authStore = useAuthStore()
 const { isMobile, sidebarOpen, closeSidebar } = useSidebar()
 
 const user = computed(() => authStore.user)
-const debugMenuEnabled = import.meta.env.VITE_DEBUG_MENU_ENABLED === 'true'
 
 const closeAfterNav = () => {
   if (isMobile.value) {
@@ -238,11 +232,6 @@ const handleLogout = () => {
   border-radius: 12px;
   font-weight: 600;
   margin-top: 0.25rem;
-}
-
-.role-user {
-  background: #e0e7ff;
-  color: #4338ca;
 }
 
 .role-admin {

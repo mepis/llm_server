@@ -38,7 +38,46 @@ const registerUser = async (username, email, password) => {
     }
   };
 
- const loginUser = async (username, password) => {
+ const createUser = async ({ username, email, password, roles = ['user'], isActive = true }) => {
+  try {
+    const existingUser = await User.findOne({
+      $or: [{ username }, { email }]
+    });
+
+    if (existingUser) {
+      throw new Error('Username or email already exists');
+    }
+
+    const validRoles = ['user', 'admin', 'system'];
+    for (const role of roles) {
+      if (!validRoles.includes(role)) {
+        throw new Error(`Invalid role: ${role}`);
+      }
+    }
+
+    const passwordHash = await User.hashPassword(password);
+
+    const user = await User.create({
+      username,
+      email,
+      password_hash: passwordHash,
+      roles,
+      is_active: isActive
+    });
+
+    logger.info(`Admin created user: ${user.username} (${user.email})`);
+
+    return {
+      success: true,
+      data: user
+    };
+  } catch (error) {
+    logger.error('Create user failed:', error.message);
+    throw error;
+  }
+};
+
+const loginUser = async (username, password) => {
     try {
       const user = await User.findOne({ username });
       
@@ -114,7 +153,7 @@ const getUserById = async (userId) => {
 
 const updateUser = async (userId, updateData) => {
   try {
-    const allowedUpdates = ['email', 'preferences'];
+    const allowedUpdates = ['email', 'preferences', 'is_active'];
     const updates = {};
     
     for (const key of allowedUpdates) {
@@ -223,6 +262,7 @@ const removeUserRole = async (userId, role) => {
 
 module.exports = {
   registerUser,
+  createUser,
   loginUser,
   logoutUser,
   getUserById,

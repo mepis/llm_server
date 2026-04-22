@@ -1,7 +1,5 @@
 <template>
   <div class="tools-container">
-    <Header />
-    <Sidebar />
     <main class="tools-main">
       <Toast />
       <div class="tools-header">
@@ -176,8 +174,7 @@ import { ref, reactive, computed } from 'vue';
 import { useToolStore } from '@/stores/tool';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
-import Header from '@/components/layout/Header.vue';
-import Sidebar from '@/components/layout/Sidebar.vue';
+
 
 const toolStore = useToolStore();
 const toast = useToast();
@@ -303,7 +300,6 @@ toolStore.listTools();
 
 .tools-main {
   flex: 1;
-  margin-left: 250px;
   padding: 2rem;
   background: #f9fafb;
   overflow-y: auto;

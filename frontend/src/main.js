@@ -1,7 +1,11 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
+import 'primeicons/primeicons.css'
+
 import Aura from '@primeuix/themes/aura'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import axios from 'axios'
@@ -9,9 +13,10 @@ import axios from 'axios'
 import './style.css'
 import App from './App.vue'
 import router from './router'
-import { initConsoleInterceptor } from './utils/consoleInterceptor'
 
 const app = createApp(App)
+
+
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || '/api'
 
@@ -41,9 +46,5 @@ app.use(PrimeVue, {
 })
 app.use(ToastService)
 app.component('Toast', Toast)
-
-if (import.meta.env.DEV) {
-  initConsoleInterceptor()
-}
 
 app.mount('#app')
