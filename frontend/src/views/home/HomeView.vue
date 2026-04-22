@@ -1,36 +1,15 @@
 <template>
-  <div class="app-container">
-    <Header />
-    <Sidebar />
-    <main class="main-content">
-      <router-view />
-    </main>
-  </div>
+  <Layout />
 </template>
 
 <script setup>
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import Layout from '@/components/layout/Layout.vue'
+
+const router = useRouter()
+
+onMounted(() => {
+  router.replace('/chat')
+})
 </script>
-
-<style scoped>
-.app-container {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  background: #f3f4f6;
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-    padding: 1rem;
-  }
-}
-</style>

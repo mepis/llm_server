@@ -76,6 +76,13 @@
         </nav>
       </div>
     </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <span class="username">{{ user?.username || 'User' }}</span>
+        <span class="user-role" :class="`role-${user?.roles?.[0] || 'user'}`">{{ user?.roles?.[0] || 'user' }}</span>
+      </div>
+      <Button label="Logout" icon="pi pi-sign-out" @click="handleLogout" />
+    </div>
   </aside>
   <div v-if="isMobile && sidebarOpen" class="sidebar-backdrop" @click="closeSidebar"></div>
 </template>
@@ -84,7 +91,10 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useSidebar } from '@/composables/useSidebar'
+import Button from 'primevue/button'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const { isMobile, sidebarOpen, closeSidebar } = useSidebar()
 
@@ -95,6 +105,11 @@ const closeAfterNav = () => {
   if (isMobile.value) {
     closeSidebar()
   }
+}
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -196,6 +211,48 @@ const closeAfterNav = () => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.username {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.role-user {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.role-admin {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.role-system {
+  background: #d1fae5;
+  color: #059669;
 }
 
 @media (max-width: 768px) {

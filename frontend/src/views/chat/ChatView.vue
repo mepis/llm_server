@@ -1,94 +1,90 @@
 <template>
   <div class="chat-container">
-    <Header />
-    <Sidebar />
-    <main class="chat-main">
-      <div class="chat-messages" ref="messagesContainer">
-        <div v-if="messages.length === 0" class="empty-state">
-          <h2>Welcome to Chat</h2>
-          <p>Start a conversation with the AI assistant</p>
+    <div class="chat-messages" ref="messagesContainer">
+      <div v-if="messages.length === 0" class="empty-state">
+        <h2>Welcome to Chat</h2>
+        <p>Start a conversation with the AI assistant</p>
+      </div>
+      <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
+        <div class="message-avatar">
+          {{ message.role === 'user' ? 'U' : message.role === 'tool' ? 'T' : 'AI' }}
         </div>
-        <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
-          <div class="message-avatar">
-            {{ message.role === 'user' ? 'U' : message.role === 'tool' ? 'T' : 'AI' }}
+        <div class="message-content">
+          <div class="message-role">{{ message.role }}</div>
+
+          <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
+
+          <div v-else-if="message.role === 'assistant' && message.content" class="message-text">
+            {{ message.content }}
+            <button
+              @click="speakMessage(message.content, index)"
+              :class="['speaker-button', { speaking: isSpeaking }]"
+              :disabled="isSpeaking && !speakingIndex.includes(index)"
+              title="Speak"
+            >
+              <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
+            </button>
           </div>
-          <div class="message-content">
-            <div class="message-role">{{ message.role }}</div>
 
-            <div v-if="message.role === 'user'" class="message-text">{{ message.content }}</div>
-
-            <div v-else-if="message.role === 'assistant' && message.content" class="message-text">
-              {{ message.content }}
-              <button
-                @click="speakMessage(message.content, index)"
-                :class="['speaker-button', { speaking: isSpeaking }]"
-                :disabled="isSpeaking && !speakingIndex.includes(index)"
-                title="Speak"
-              >
-                <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
-              </button>
-            </div>
-
-            <div v-else-if="message.role === 'assistant' && message.tool_calls" class="tool-calls-section">
-              <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
-                <div class="tool-call-header">
-                  <i class="pi pi-cog"></i>
-                  <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
-                </div>
-                <div v-if="tc.function?.arguments" class="tool-call-input">
-                  <pre>{{ JSON.stringify(JSON.parse(tc.function.arguments), null, 2) }}</pre>
-                </div>
+          <div v-else-if="message.role === 'assistant' && message.tool_calls" class="tool-calls-section">
+            <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
+              <div class="tool-call-header">
+                <i class="pi pi-cog"></i>
+                <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
+              </div>
+              <div v-if="tc.function?.arguments" class="tool-call-input">
+                <pre>{{ JSON.stringify(JSON.parse(tc.function.arguments), null, 2) }}</pre>
               </div>
             </div>
-
-            <div v-else-if="message.role === 'tool'" class="tool-result">
-              <div class="tool-result-header">
-                <i class="pi pi-check-circle"></i>
-                <span>Tool Result</span>
-                <Button
-                  text
-                  size="small"
-                  :label="expandedMessages.has(message.timestamp + index) ? 'Collapse' : 'Expand'"
-                  @click="toggleExpand(message.timestamp + index)"
-                />
-              </div>
-              <div class="tool-result-content" :class="{ collapsed: !expandedMessages.has(message.timestamp + index) }">
-                <pre>{{ message.content }}</pre>
-              </div>
-            </div>
-
-            <div class="message-time">{{ formatTime(message.timestamp) }}</div>
           </div>
+
+          <div v-else-if="message.role === 'tool'" class="tool-result">
+            <div class="tool-result-header">
+              <i class="pi pi-check-circle"></i>
+              <span>Tool Result</span>
+              <Button
+                text
+                size="small"
+                :label="expandedMessages.has(message.timestamp + index) ? 'Collapse' : 'Expand'"
+                @click="toggleExpand(message.timestamp + index)"
+              />
+            </div>
+            <div class="tool-result-content" :class="{ collapsed: !expandedMessages.has(message.timestamp + index) }">
+              <pre>{{ message.content }}</pre>
+            </div>
+          </div>
+
+          <div class="message-time">{{ formatTime(message.timestamp) }}</div>
         </div>
-        <div v-if="loading" class="message assistant">
-          <div class="message-avatar">AI</div>
-          <div class="message-content">
-            <div class="message-role">assistant</div>
-            <div class="message-text typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
+      </div>
+      <div v-if="loading" class="message assistant">
+        <div class="message-avatar">AI</div>
+        <div class="message-content">
+          <div class="message-role">assistant</div>
+          <div class="message-text typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
       </div>
-      <div class="chat-input-container">
-        <textarea
-          v-model="newMessage"
-          @keydown.enter.prevent="sendMessage"
-          placeholder="Type your message..."
-          rows="1"
-          :disabled="loading"
-        ></textarea>
-        <label class="auto-play-toggle">
-          <input type="checkbox" :checked="settingsStore.autoPlayTTS" @change="settingsStore.setAutoPlayTTS($event.target.checked)" />
-          <span>Auto-play</span>
-        </label>
-        <button @click="sendMessage" :disabled="loading || !newMessage.trim()" class="send-button">
-          <i class="pi pi-paper-plane"></i>
-        </button>
-      </div>
-    </main>
+    </div>
+    <div class="chat-input-container">
+      <textarea
+        v-model="newMessage"
+        @keydown.enter.prevent="sendMessage"
+        placeholder="Type your message..."
+        rows="1"
+        :disabled="loading"
+      ></textarea>
+      <label class="auto-play-toggle">
+        <input type="checkbox" :checked="settingsStore.autoPlayTTS" @change="settingsStore.setAutoPlayTTS($event.target.checked)" />
+        <span>Auto-play</span>
+      </label>
+      <button @click="sendMessage" :disabled="loading || !newMessage.trim()" class="send-button">
+        <i class="pi pi-paper-plane"></i>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -96,8 +92,6 @@
 import { ref, computed, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useSettingsStore } from '@/stores/settings'
-import Header from '@/components/layout/Header.vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
 import Button from 'primevue/button'
 import axios from 'axios'
 
@@ -244,7 +238,6 @@ watch(messages, (newMessages, oldMessages) => {
 
 .chat-main {
   flex: 1;
-  margin-left: 250px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -542,10 +535,6 @@ watch(messages, (newMessages, oldMessages) => {
 }
 
 @media (max-width: 768px) {
-  .chat-main {
-    margin-left: 0;
-  }
-
   .chat-messages {
     padding: 1rem;
   }

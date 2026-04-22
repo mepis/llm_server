@@ -4,7 +4,7 @@
   "description": "Comprehensive Llama.cpp-based chat system with RBAC, RAG, and Matrix integration",
   "main": "src/server.js",
   "scripts": {
-    "start:server": "node src/server.js",
+    "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "worker": "node src/workers/worker.js",
     "seed-admin": "node src/scripts/createAdmin.js",

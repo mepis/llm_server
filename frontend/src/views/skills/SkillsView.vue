@@ -1,17 +1,20 @@
 <template>
-  <div class="skills-view">
-    <Toast />
-    <div class="page-header">
-      <h1>Skills</h1>
-      <Button
-        v-if="skillStore.hasAdminRole"
-        label="New Skill"
-        icon="pi pi-plus"
-        @click="openCreateDialog"
-      />
-    </div>
+  <div class="skills-container">
+    <Header />
+    <Sidebar />
+    <main class="skills-main">
+      <Toast />
+      <div class="skills-header">
+        <h1>Skills</h1>
+        <Button
+          v-if="skillStore.hasAdminRole"
+          label="New Skill"
+          icon="pi pi-plus"
+          @click="openCreateDialog"
+        />
+      </div>
 
-    <div v-if="skillStore.error" class="error-banner">
+      <div v-if="skillStore.error" class="error-banner">
       {{ skillStore.error }}
     </div>
 
@@ -150,6 +153,7 @@
         <Button label="Close" outlined @click="viewDialogVisible = false" />
       </template>
     </Dialog>
+    </main>
   </div>
 </template>
 
@@ -158,6 +162,8 @@ import { ref, reactive } from 'vue';
 import { useSkillStore } from '@/stores/skill';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
+import Header from '@/components/layout/Header.vue';
+import Sidebar from '@/components/layout/Sidebar.vue';
 
 const skillStore = useSkillStore();
 const toast = useToast();
@@ -256,18 +262,30 @@ skillStore.listSkills();
 </script>
 
 <style scoped>
-.skills-view {
-  padding: 2rem;
+.skills-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.page-header {
+.skills-main {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem;
+  background: #f9fafb;
+  overflow-y: auto;
+}
+
+.skills-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.page-header h1 {
+.skills-header h1 {
+  font-size: 1.875rem;
+  color: #111827;
   margin: 0;
 }
 

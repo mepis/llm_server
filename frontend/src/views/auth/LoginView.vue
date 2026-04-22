@@ -27,7 +27,7 @@ import LoginKeypad from '@/components/auth/LoginKeypad.vue'
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 600px;
 }
 
 .auth-title {

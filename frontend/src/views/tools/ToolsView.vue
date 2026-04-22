@@ -1,17 +1,20 @@
 <template>
-  <div class="tools-view">
-    <Toast />
-    <div class="page-header">
-      <h1>Tool Builder</h1>
-      <Button
-        v-if="toolStore.hasAdminRole"
-        label="New Tool"
-        icon="pi pi-plus"
-        @click="openCreateDialog"
-      />
-    </div>
+  <div class="tools-container">
+    <Header />
+    <Sidebar />
+    <main class="tools-main">
+      <Toast />
+      <div class="tools-header">
+        <h1>Tool Builder</h1>
+        <Button
+          v-if="toolStore.hasAdminRole"
+          label="New Tool"
+          icon="pi pi-plus"
+          @click="openCreateDialog"
+        />
+      </div>
 
-    <div v-if="toolStore.error" class="error-banner">
+      <div v-if="toolStore.error" class="error-banner">
       {{ toolStore.error }}
     </div>
 
@@ -164,6 +167,7 @@
         <Button label="Run" icon="pi pi-play" @click="runTool" :disabled="toolStore.loading" />
       </template>
     </Dialog>
+    </main>
   </div>
 </template>
 
@@ -172,6 +176,8 @@ import { ref, reactive, computed } from 'vue';
 import { useToolStore } from '@/stores/tool';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
+import Header from '@/components/layout/Header.vue';
+import Sidebar from '@/components/layout/Sidebar.vue';
 
 const toolStore = useToolStore();
 const toast = useToast();
@@ -289,18 +295,30 @@ toolStore.listTools();
 </script>
 
 <style scoped>
-.tools-view {
-  padding: 2rem;
+.tools-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.page-header {
+.tools-main {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem;
+  background: #f9fafb;
+  overflow-y: auto;
+}
+
+.tools-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.page-header h1 {
+.tools-header h1 {
+  font-size: 1.875rem;
+  color: #111827;
   margin: 0;
 }
 
