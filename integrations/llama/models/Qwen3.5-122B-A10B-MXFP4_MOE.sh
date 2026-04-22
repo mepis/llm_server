@@ -7,9 +7,9 @@ host=100.106.131.63
 
 # Hardware Configs
 mainGpu=0
-tensorSplit=24
+tensorSplit=16,12,12
 splitMode=layer
-threads=8
+threads=20
 
 # Model Configs
 context=131072
