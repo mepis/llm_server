@@ -18,6 +18,8 @@ router.get('/:id/messages', authMiddleware, chatController.getMessages);
 router.get('/:sessionId/messages', authMiddleware, chatController.getMessages);
 router.post('/:id/llm', authMiddleware, chatController.sendToLLM);
 router.post('/:sessionId/llm', authMiddleware, chatController.sendToLLM);
+router.post('/:id/llm/stream', authMiddleware, chatController.sendToLLMStream);
+router.post('/:sessionId/llm/stream', authMiddleware, chatController.sendToLLMStream);
 router.delete('/:id/messages', authMiddleware, chatController.clearMessages);
 router.delete('/:sessionId/messages', authMiddleware, chatController.clearMessages);
 router.post('/:id/memory', authMiddleware, chatController.updateMemory);

@@ -1,6 +1,7 @@
 const ChatSession = require('../models/ChatSession');
 const ToolCall = require('../models/ToolCall');
 const RAGDocument = require('../models/RAGDocument');
+const Config = require('../models/Config');
 const ragService = require('./ragService');
 const llamaService = require('./llamaService');
 const toolRegistry = require('../tool/registry');
@@ -8,7 +9,17 @@ const { getBuiltinTools } = require('../tool');
 const skillService = require('./skillService');
 const logger = require('../utils/logger');
 
-const MAX_TOOL_TURNS = 10;
+async function getMaxToolTurns() {
+  try {
+    const configDoc = await Config.findOne({ key: 'MAX_TOOL_TURNS' });
+    if (configDoc) {
+      return parseInt(configDoc.value) || 10;
+    }
+  } catch (error) {
+    logger.error('Failed to get MAX_TOOL_TURNS from config:', error.message);
+  }
+  return 10;
+}
 
 async function buildSkillsPrompt(userRoles) {
   try {
@@ -370,7 +381,7 @@ async function runLoop(sessionId, content, options = {}) {
     }
 
     let turn = 0;
-    const maxTurns = MAX_TOOL_TURNS;
+    const maxTurns = await getMaxToolTurns();
     let finalContent = '';
 
     while (turn < maxTurns) {
@@ -422,6 +433,9 @@ async function runLoop(sessionId, content, options = {}) {
 
     if (turn >= maxTurns) {
       logger.warn(`Max tool turns (${maxTurns}) exceeded for session ${sessionId}`);
+      if (!finalContent) {
+        finalContent = `Response truncated: exceeded maximum tool turns (${maxTurns}). The assistant may be stuck in a loop.`;
+      }
     }
 
     return {
@@ -473,6 +487,189 @@ async function* streamChatResponse(sessionId, messages, options) {
     logger.error('Streaming chat error:', error.message);
     throw error;
   }
+}
+
+async function* streamRunLoop(sessionId, content, options = {}) {
+  const session = await ChatSession.findById(sessionId);
+
+  if (!session) {
+    yield { type: 'error', message: 'Session not found' };
+    return;
+  }
+
+  const { temperature, max_tokens, top_p } = {
+    temperature: session.metadata?.temperature || 0.7,
+    max_tokens: session.metadata?.max_tokens || 2048,
+    top_p: session.metadata?.top_p || 0.9,
+    ...options,
+  };
+
+  await session.addMessage('user', content);
+
+  const messages = buildMessages(session);
+  const { tools, openAITools } = await resolveTools(session);
+
+  let ragContext = '';
+  if (session.rag_enabled && session.rag_document_ids.length > 0) {
+    const ragResult = await ragService.searchDocuments(
+      session.rag_document_ids,
+      content
+    );
+    if (ragResult && ragResult.data && ragResult.data.length > 0) {
+      ragContext = ragResult.data
+        .map((doc) => doc.content)
+        .join('\n\n');
+    }
+  }
+
+  const userRoles = options.userRoles || ['user'];
+  const skillsPrompt = await buildSkillsPrompt(userRoles);
+
+  let systemMessage = 'You are a helpful assistant.';
+  if (ragContext) {
+    systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+  }
+  if (skillsPrompt) {
+    systemMessage = skillsPrompt + '\n\n' + systemMessage;
+  }
+
+  let turn = 0;
+  const maxTurns = await getMaxToolTurns();
+  let fullFinalContent = '';
+
+  yield { type: 'turn_start', turn, maxTurns };
+
+  while (turn < maxTurns) {
+    const finalMessages = [
+      { role: 'system', content: systemMessage },
+      ...messages,
+    ];
+
+    let turnContent = '';
+    const accumulatedToolCalls = {};
+    let hasStopReason = false;
+
+    try {
+      for await (const chunk of llamaService.streamChatWithTools(
+        finalMessages,
+        openAITools,
+        { temperature, max_tokens, top_p }
+      )) {
+        const choice = chunk.choices?.[0];
+        if (!choice?.delta) continue;
+
+        if (choice.delta.content) {
+          yield { type: 'chunk', content: choice.delta.content };
+          turnContent += choice.delta.content;
+        }
+
+        if (choice.delta.tool_calls) {
+          for (const tcDelta of choice.delta.tool_calls) {
+            const idx = tcDelta.index ?? Object.keys(accumulatedToolCalls).length - 1;
+
+            if (!accumulatedToolCalls[idx]) {
+              accumulatedToolCalls[idx] = {
+                id: tcDelta.id || `tc_${Date.now()}_${idx}`,
+                type: tcDelta.type || 'function',
+                function: { name: '', arguments: '' },
+              };
+            }
+
+            if (tcDelta.function?.name) {
+              accumulatedToolCalls[idx].function.name += tcDelta.function.name;
+              yield {
+                type: 'tool_call_start',
+                toolCallId: accumulatedToolCalls[idx].id,
+                name: accumulatedToolCalls[idx].function.name,
+              };
+            }
+
+            if (tcDelta.function?.arguments) {
+              accumulatedToolCalls[idx].function.arguments += tcDelta.function.arguments;
+              yield {
+                type: 'tool_call_arg',
+                toolCallId: accumulatedToolCalls[idx].id,
+                args: accumulatedToolCalls[idx].function.arguments,
+              };
+            }
+          }
+        }
+
+        if (choice.finish_reason === 'stop') {
+          hasStopReason = true;
+        }
+      }
+    } catch (streamError) {
+      logger.error('Stream error in runLoop:', streamError.message);
+      yield { type: 'error', message: streamError.message };
+      yield { type: 'done', content: fullFinalContent || '', truncated: true };
+      return;
+    }
+
+    // Execute all accumulated tool calls as a batch (matching non-streaming runLoop behavior)
+    const completedToolCalls = Object.values(accumulatedToolCalls);
+    if (completedToolCalls.length > 0) {
+      const toolCallObjs = completedToolCalls.map((tc) => ({
+        id: tc.id,
+        function: { name: tc.function.name, arguments: JSON.stringify(JSON.parse(tc.function.arguments)) },
+        type: tc.type,
+      }));
+
+      await session.addMessage('assistant', null, {
+        tool_calls: toolCallObjs,
+        model: session.metadata?.model || 'llama-3-8b',
+      });
+
+      for (const tcObj of toolCallObjs) {
+        const result = await executeToolCall(tcObj, session, tools);
+        messages.push(result);
+
+        await session.addMessage('tool', result.content, {
+          tool_call_id: result.tool_call_id,
+        });
+
+        yield { type: 'tool_result', tool_call_id: result.tool_call_id, content: result.content };
+      }
+
+      if (hasStopReason) {
+        // LLM finished with tool calls but no text answer — this shouldn't happen normally
+        // Treat as if it's done since the stream ended
+        fullFinalContent = turnContent || `Executed ${completedToolCalls.length} tool(s).`;
+        break;
+      }
+
+      turn++;
+      if (turn < maxTurns) {
+        yield { type: 'turn_start', turn, maxTurns };
+      }
+      continue;
+    }
+
+    // No tool calls — final answer from the LLM
+    if (hasStopReason || turnContent.length > 0) {
+      await session.addMessage('assistant', turnContent, {
+        model: session.metadata?.model || 'llama-3-8b',
+      });
+      fullFinalContent = turnContent;
+      break;
+    }
+
+    // Empty turn — increment and continue
+    turn++;
+    if (turn < maxTurns) {
+      yield { type: 'turn_start', turn, maxTurns };
+    }
+  }
+
+  const truncated = turn >= maxTurns;
+  if (truncated) {
+    logger.warn(`Max tool turns (${maxTurns}) exceeded for session ${sessionId}`);
+    if (!fullFinalContent) {
+      fullFinalContent = `Response truncated: exceeded maximum tool turns (${maxTurns}). The assistant may be stuck in a loop.`;
+    }
+  }
+
+  yield { type: 'done', content: fullFinalContent, truncated };
 }
 
 async function clearSessionMessages(sessionId) {
@@ -574,6 +771,7 @@ module.exports = {
   getMessages,
   chatWithLLM,
   runLoop,
+  streamRunLoop,
   streamChatResponse,
   clearSessionMessages,
   updateSessionMemory,

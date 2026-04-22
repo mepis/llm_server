@@ -91,6 +91,55 @@ const chatWithTools = async (messages, tools, options = {}) => {
   }
 };
 
+const streamChatWithTools = async function* (messages, tools, options = {}) {
+  try {
+    const response = await axios.post(
+      `${config.llama.url}/v1/chat/completions`,
+      {
+        messages,
+        tools,
+        ...options,
+        stream: true,
+      },
+      {
+        timeout: config.llama.timeout,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        responseType: 'stream',
+      }
+    );
+
+    const stream = response.data;
+    let buffer = '';
+
+    for await (const chunk of stream) {
+      buffer += chunk.toString();
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data: ')) continue;
+
+        const dataStr = trimmed.slice(6);
+        if (dataStr === '[DONE]') return;
+
+        try {
+          const parsed = JSON.parse(dataStr);
+          yield parsed;
+        } catch (parseError) {
+          logger.warn('Failed to parse SSE chunk:', parseError.message);
+        }
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to stream chat completions with tools:', error.message);
+    throw error;
+  }
+};
+
 const getEmbeddings = async (input, model = 'all-MiniLM-L6-v2') => {
   try {
     const response = await axios.post(
@@ -181,6 +230,7 @@ module.exports = {
   getModels,
   getChatCompletions,
   chatWithTools,
+  streamChatWithTools,
   getEmbeddings,
   healthCheck,
   generateAudio,

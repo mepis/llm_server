@@ -222,6 +222,52 @@ const sendToLLM = async (req, res) => {
   }
 };
 
+const sendToLLMStream = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const sessionId = req.params.sessionId || req.params.id;
+    const { message, model, temperature, max_tokens, top_p, use_rag } = req.body;
+
+    const session = await ChatSession.findById(sessionId);
+
+    if (!session || session.user_id.toString() !== userId) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.write(`data: ${JSON.stringify({ type: 'error', message: 'Session not found' })}\n\n`);
+      res.end();
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    try {
+      for await (const event of chatService.streamRunLoop(sessionId, message, {
+        temperature,
+        max_tokens,
+        top_p,
+        userRoles: req.user.roles || ['user'],
+      })) {
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      }
+    } catch (streamError) {
+      logger.error('Stream error in sendToLLMStream:', streamError.message);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: streamError.message })}\n\n`);
+    }
+
+    res.end();
+  } catch (error) {
+    logger.error('Send to LLM stream failed:', error.message);
+    try {
+      res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
+    } catch (_) {}
+    res.end();
+  }
+};
+
 const getToolCalls = async (req, res) => {
   try {
     const userId = req.user.user_id;
@@ -357,6 +403,7 @@ module.exports = {
   addMessage,
   getMessages,
   sendToLLM,
+  sendToLLMStream,
   getToolCalls,
   getToolCall,
   clearMessages,

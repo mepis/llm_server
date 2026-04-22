@@ -40,5 +40,9 @@ module.exports = {
   },
   
   sessionTimeout: parseInt(process.env.SESSION_TIMEOUT) || 86400000,
-  maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760
+  maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760,
+
+  session: {
+    maxToolTurns: parseInt(process.env.MAX_TOOL_TURNS) || 10,
+  }
 };

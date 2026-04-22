@@ -42,9 +42,32 @@ All notable changes to the LLM Server application.
 - **Modified**: `EditSkillView.vue` — toast messages improved ("created/updated successfully"), toast duration set to 4s, better error detail extraction from API responses, navigation delayed 1.5s after save
 - **Modified**: `integrations/opencode/skills/api_designer/SKILL.md` — fixed YAML frontmatter formatting (tools and model fields reordered)
 
-### Backend Changes
-- **Modified**: `src/services/chatService.js` — minor updates to chat session handling
-- **Modified**: `frontend/package.json` / `package-lock.json` — dependency updates
+### Streaming Chat
+- **Added**: `sendStreamingMessage` in `chatStore` — SSE-based streaming with client-side parsing of `data:` lines
+- **Added**: `POST /api/chats/:id/llm/stream` endpoint via `chatController.sendToLLMStream` and `chatService.streamRunLoop`
+- **Modified**: `ChatView.vue` — updated to use streaming endpoint for LLM responses
+
+### Admin Settings (Full Implementation)
+- **Added**: Complete `AdminSettingsView.vue` replacing "settings coming soon" placeholder with three tabs: User Preferences, System Settings, and Integrations Health
+- **Added**: Default model selection, theme/color picker, and session config in User Preferences tab
+- **Added**: System settings CRUD (prompt templates, rate limiting, session timeout) in System Settings tab
+- **Added**: Integration health status display for Llama, TTS, and Matrix in Integrations tab
+
+### Health Checks & Config Management
+- **Added**: `GET /api/system/health` endpoint checking health of Llama, TTS, and Matrix integrations with latency and status
+- **Added**: `Config` model (`src/models/Config.js`) for persistent key-value settings
+- **Added**: `configController` with CRUD endpoints for system config
+- **Added**: `seedConfig` script to initialize default config values on startup
+- **Modified**: `database.js` — added `session.maxToolTurns` config (from `MAX_TOOL_TURNS` env, default 10)
+
+### Cleanup
+- **Removed**: `docs/design/tts-migration-qwen3.md` — migrated plan no longer needed
+- **Removed**: `integrations/opencode/skills/documentation-writer/SKILL.md` — using built-in skill instead
+
+### Other Changes
+- **Modified**: `frontend/src/axios.js` / `auth.js` — minor fixes to auth token handling
+- **Modified**: `src/services/llamaService.js` — updates to Llama integration
+- **Modified**: `package.json` — dependency update
 
 ---
 

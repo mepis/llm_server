@@ -14,26 +14,28 @@
 
           <div v-if="message.role === 'user'" class="message-text" v-html="markdownToHtml(message.content)"></div>
 
-          <div v-else-if="message.role === 'assistant' && message.content" class="message-text">
-            <span v-html="markdownToHtml(message.content)"></span>
-            <button
-              @click="speakMessage(message.content, index)"
-              :class="['speaker-button', { speaking: isSpeaking }]"
-              :disabled="isSpeaking && !speakingIndex.includes(index)"
-              title="Speak"
-            >
-              <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
-            </button>
-          </div>
+          <div v-else-if="message.role === 'assistant'">
+            <div v-if="message.content" class="message-text">
+              <span v-html="markdownToHtml(message.content)"></span>
+              <button
+                @click="speakMessage(message.content, index)"
+                :class="['speaker-button', { speaking: isSpeaking }]"
+                :disabled="isSpeaking && !speakingIndex.includes(index)"
+                title="Speak"
+              >
+                <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
+              </button>
+            </div>
 
-          <div v-else-if="message.role === 'assistant' && message.tool_calls" class="tool-calls-section">
-            <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
-              <div class="tool-call-header">
-                <i class="pi pi-cog"></i>
-                <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
-              </div>
-              <div v-if="tc.function?.arguments" class="tool-call-input">
-                <pre>{{ JSON.stringify(JSON.parse(tc.function.arguments), null, 2) }}</pre>
+            <div v-if="message.tool_calls && message.tool_calls.length > 0" class="tool-calls-section">
+              <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
+                <div class="tool-call-header">
+                  <i class="pi pi-cog"></i>
+                  <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
+                </div>
+                <div v-if="tc.function?.arguments" class="tool-call-input">
+                  <pre>{{ parseToolArgs(tc.function.arguments) }}</pre>
+                </div>
               </div>
             </div>
           </div>
@@ -57,7 +59,7 @@
           <div class="message-time">{{ formatTime(message.timestamp) }}</div>
         </div>
       </div>
-      <div v-if="loading" class="message assistant">
+      <div v-if="loading && !hasStreamingContent" class="message assistant">
         <div class="message-avatar">AI</div>
         <div class="message-content">
           <div class="message-role">assistant</div>
@@ -110,6 +112,24 @@ let currentAudio = null
 let dotsInterval = null
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
+
+const hasStreamingContent = computed(() => {
+  const lastMsg = messages.value[messages.value.length - 1]
+  if (!lastMsg || lastMsg.role !== 'assistant') return false
+  if (lastMsg.content && lastMsg.content.length > 0) return true
+  if (lastMsg.tool_calls && lastMsg.tool_calls.length > 0) return true
+  return false
+})
+
+const parseToolArgs = (argsStr) => {
+  if (!argsStr) return ''
+  try {
+    const parsed = JSON.parse(argsStr)
+    return JSON.stringify(parsed, null, 2)
+  } catch {
+    return argsStr
+  }
+}
 
 const formatTime = (timestamp) => {
   if (!timestamp) return ''
@@ -201,7 +221,7 @@ const sendMessage = async () => {
   newMessage.value = ''
 
   try {
-    await chatStore.sendMessage(content)
+    await chatStore.sendStreamingMessage(content)
   } catch (error) {
     console.error('Failed to send message:', error)
     if (chatStore.currentChat && chatStore.currentChat.messages.length > 0) {

@@ -128,6 +128,129 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
+    async sendStreamingMessage(content) {
+      this.loading = true
+      this.error = null
+
+      if (!this.currentChat) {
+        const newChat = await this.createSession()
+        this.currentChat = newChat
+      }
+
+      const userMsg = { role: 'user', content, timestamp: new Date().toISOString() }
+      if (!this.currentChat.messages) {
+        this.currentChat.messages = []
+      }
+      this.currentChat.messages.push(userMsg)
+
+      const assistantMsg = { role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
+      this.currentChat.messages.push(assistantMsg)
+
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`/api/chats/${this.currentChat.chat_id}/llm/stream`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message: content }),
+        })
+
+        if (!response.ok) {
+          const errBody = await response.json().catch(() => ({}))
+          throw new Error(errBody.error || errBody.message || `HTTP ${response.status}`)
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let fullContent = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed.startsWith('data: ')) continue
+
+            try {
+              const data = JSON.parse(trimmed.slice(6))
+
+              if (data.type === 'chunk') {
+                fullContent += data.content
+                assistantMsg.content = fullContent
+              } else if (data.type === 'tool_call_start') {
+                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
+                let tc = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                if (!tc) {
+                  tc = { id: data.toolCallId, function: { name: '', arguments: '' } }
+                  assistantMsg.tool_calls.push(tc)
+                }
+                tc.function.name = data.name
+              } else if (data.type === 'tool_call_arg') {
+                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
+                let tc = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                if (tc) {
+                  tc.function.arguments = data.args
+                }
+              } else if (data.type === 'tool_call_complete') {
+                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
+                const existing = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                if (existing) {
+                  existing.function.arguments = JSON.stringify(data.input)
+                } else {
+                  assistantMsg.tool_calls.push({
+                    id: data.toolCallId,
+                    function: { name: data.function?.name || '', arguments: JSON.stringify(data.input) },
+                  })
+                }
+              } else if (data.type === 'tool_result') {
+                const toolMessage = {
+                  role: 'tool',
+                  tool_call_id: data.tool_call_id,
+                  content: data.content,
+                  timestamp: new Date().toISOString(),
+                }
+                this.currentChat.messages.push(toolMessage)
+              } else if (data.type === 'done') {
+                assistantMsg.content = data.content || ''
+                if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
+                  delete assistantMsg.tool_calls
+                }
+              } else if (data.type === 'error') {
+                throw new Error(data.message)
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE event:', parseError)
+            }
+          }
+        }
+
+        return { success: true, data: fullContent || assistantMsg.content }
+      } catch (error) {
+        this.error = error.message || 'Failed to send message'
+
+        this.currentChat.messages.pop()
+        if (this.currentChat.messages.length > 0) {
+          const lastMsg = this.currentChat.messages[this.currentChat.messages.length - 1]
+          if (lastMsg.role === 'user') {
+            this.currentChat.messages.pop()
+          }
+        }
+
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
     async loadToolCalls(chatId, messageId) {
       this.loading = true
       this.error = null
