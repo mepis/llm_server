@@ -3,7 +3,7 @@ model=Qwen3.5-122B-A10B-UD-IQ2_XXS.gguf
 
 # Host Configs
 port=11434
-host=100.115.205.84
+host=100.106.131.63
 
 # Hardware Configs
 mainGpu=0
