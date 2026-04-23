@@ -5,68 +5,38 @@
         <h2>Welcome to Chat</h2>
         <p>Start a conversation with the AI assistant</p>
       </div>
-      <div v-for="(message, index) in messages" :key="index" :class="['message', message.role]">
-        <div class="message-avatar">
-          {{ message.role === 'user' ? 'U' : message.role === 'tool' ? 'T' : 'AI' }}
-        </div>
+      <MessageBubble
+        v-for="message in messages"
+        :key="message.id"
+        :role="message.role"
+        :timestamp="message.timestamp"
+        :is-streaming="loading && message.role === 'assistant' && !hasStreamingContent"
+      >
+        <UserMessage
+          v-if="message.role === 'user'"
+          :content="message.content"
+        />
+        <AssistantMessage
+          v-else-if="message.role === 'assistant'"
+          :content="message.content"
+          :tool-calls="message.tool_calls || []"
+          :message-id="message.id"
+          :is-streaming="loading && hasStreamingContent"
+          :is-speaking="isSpeaking"
+          :speaking-index="speakingIndex"
+          @speak="(text) => speakMessage(text, message.id)"
+        />
+        <ToolResultCard
+          v-else-if="message.role === 'tool'"
+          :content="message.content || ''"
+          :tool-call-id="message.tool_call_id || ''"
+        />
+      </MessageBubble>
+      <div v-if="loading && !hasStreamingContent" class="message assistant streaming">
+        <div class="message-avatar"><i class="pi pi-robot"></i></div>
         <div class="message-content">
-          <div class="message-role">{{ message.role === 'user' ? authStore.user?.username || 'User' : message.role }}</div>
-
-          <div v-if="message.role === 'user'" class="message-text" v-html="markdownToHtml(message.content)"></div>
-
-          <div v-else-if="message.role === 'assistant'">
-            <div v-if="message.content" class="message-text">
-              <span v-html="markdownToHtml(message.content)"></span>
-              <button
-                @click="speakMessage(message.content, index)"
-                :class="['speaker-button', { speaking: isSpeaking }]"
-                :disabled="isSpeaking && !speakingIndex.includes(index)"
-                title="Speak"
-              >
-                <i :class="isSpeaking && speakingIndex.includes(index) ? 'pi pi-pause-circle' : 'pi pi-volume-up'"></i>
-              </button>
-            </div>
-
-            <div v-if="message.tool_calls && message.tool_calls.length > 0" class="tool-calls-section">
-              <div v-for="tc in message.tool_calls" :key="tc.id || tc.tool_call_id" class="tool-call-item">
-                <div class="tool-call-header">
-                  <i class="pi pi-cog"></i>
-                  <span>Calling {{ tc.function?.name || tc.tool_name }}</span>
-                </div>
-                <div v-if="tc.function?.arguments" class="tool-call-input">
-                  <pre>{{ parseToolArgs(tc.function.arguments) }}</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else-if="message.role === 'tool'" class="tool-result">
-            <div class="tool-result-header">
-              <i class="pi pi-check-circle"></i>
-              <span>Tool Result</span>
-              <Button
-                text
-                size="small"
-                :label="expandedMessages.has(message.timestamp + index) ? 'Collapse' : 'Expand'"
-                @click="toggleExpand(message.timestamp + index)"
-              />
-            </div>
-            <div class="tool-result-content" :class="{ collapsed: !expandedMessages.has(message.timestamp + index) }">
-              <pre>{{ message.content }}</pre>
-            </div>
-          </div>
-
-          <div class="message-time">{{ formatTime(message.timestamp) }}</div>
-        </div>
-      </div>
-      <div v-if="loading && !hasStreamingContent" class="message assistant">
-        <div class="message-avatar">AI</div>
-        <div class="message-content">
-          <div class="message-role">assistant</div>
-          <div class="message-text thinking-container">
-            <span class="thinking-label">thinking</span>
-            <span class="thinking-dots">{{ thinkingDots }}</span>
-          </div>
+          <div class="message-role">Assistant</div>
+          <ThinkingIndicator />
         </div>
       </div>
     </div>
@@ -92,24 +62,22 @@
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
-import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
-import Button from 'primevue/button'
 import axios from 'axios'
-import { markdownToHtml } from '@/utils/markdown'
+import MessageBubble from '@/components/chat/MessageBubble.vue'
+import UserMessage from '@/components/chat/UserMessage.vue'
+import AssistantMessage from '@/components/chat/AssistantMessage.vue'
+import ToolResultCard from '@/components/chat/ToolResultCard.vue'
+import ThinkingIndicator from '@/components/chat/ThinkingIndicator.vue'
 
 const chatStore = useChatStore()
-const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
 const loading = ref(false)
-const expandedMessages = ref(new Set())
 const isSpeaking = ref(false)
 const speakingIndex = ref([])
-const thinkingDots = ref('')
 let currentAudio = null
-let dotsInterval = null
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
 
@@ -121,37 +89,11 @@ const hasStreamingContent = computed(() => {
   return false
 })
 
-const parseToolArgs = (argsStr) => {
-  if (!argsStr) return ''
-  try {
-    const parsed = JSON.parse(argsStr)
-    return JSON.stringify(parsed, null, 2)
-  } catch {
-    return argsStr
-  }
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 const scrollToBottom = async () => {
   await nextTick()
   if (messagesContainer.value) {
     messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
   }
-}
-
-const toggleExpand = (key) => {
-  const set = expandedMessages.value
-  if (set.has(key)) {
-    set.delete(key)
-  } else {
-    set.add(key)
-  }
-  expandedMessages.value = new Set(set)
 }
 
 const stopSpeaking = () => {
@@ -163,7 +105,7 @@ const stopSpeaking = () => {
   speakingIndex.value = []
 }
 
-const playAudio = async (text, index) => {
+const playAudio = async (text, messageId) => {
   stopSpeaking()
 
   try {
@@ -191,7 +133,7 @@ const playAudio = async (text, index) => {
       }
       await currentAudio.play()
       isSpeaking.value = true
-      speakingIndex.value = [index]
+      speakingIndex.value = [messageId]
     }
   } catch (error) {
     console.error('Failed to generate audio:', error.message || error)
@@ -199,24 +141,18 @@ const playAudio = async (text, index) => {
   }
 }
 
-const speakMessage = async (text, index) => {
-  if (isSpeaking.value && speakingIndex.value.includes(index)) {
+const speakMessage = async (text, messageId) => {
+  if (isSpeaking.value && speakingIndex.value.includes(messageId)) {
     stopSpeaking()
     return
   }
-  await playAudio(text, index)
+  await playAudio(text, messageId)
 }
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || loading.value) return
 
   loading.value = true
-  thinkingDots.value = ''
-  let dotCount = 0
-  dotsInterval = setInterval(() => {
-    dotCount = (dotCount + 1) % 6
-    thinkingDots.value = '.'.repeat(dotCount)
-  }, 500)
   const content = newMessage.value.trim()
   newMessage.value = ''
 
@@ -235,8 +171,6 @@ const sendMessage = async () => {
     }
   } finally {
     loading.value = false
-    clearInterval(dotsInterval)
-    thinkingDots.value = ''
   }
 }
 
@@ -258,7 +192,7 @@ watch(messages, async (newMessages, oldMessages) => {
 
   const lastMsg = newMessages[newLength - 1]
   if (lastMsg?.role === 'assistant' && lastMsg?.content) {
-    playAudio(lastMsg.content, newLength - 1)
+    playAudio(lastMsg.content, lastMsg.id)
   }
 
   prevMessageCount.value = newLength
@@ -270,14 +204,6 @@ watch(messages, async (newMessages, oldMessages) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.chat-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: margin-left 0.3s ease;
 }
 
 .chat-messages {
@@ -300,289 +226,6 @@ watch(messages, async (newMessages, oldMessages) => {
   font-size: 1.5rem;
   color: #374151;
   margin-bottom: 0.5rem;
-}
-
-.message {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.message.user {
-  flex-direction: row-reverse;
-}
-
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.message.user .message-avatar {
-  background: #2d6a4f;
-  color: white;
-}
-
-.message.assistant .message-avatar {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.message.tool .message-avatar {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.message-content {
-  flex: 1;
-  max-width: 600px;
-}
-
-.message-role {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-
-.message-text {
-  color: #374151;
-  line-height: 1.6;
-}
-
-.message-text :deep(h1), .message-text :deep(h2), .message-text :deep(h3),
-.message-text :deep(h4), .message-text :deep(h5), .message-text :deep(h6) {
-  margin: 0.75rem 0 0.5rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.message-text :deep(h1) { font-size: 1.5rem; }
-.message-text :deep(h2) { font-size: 1.25rem; }
-.message-text :deep(h3) { font-size: 1.125rem; }
-
-.message-text :deep(p) {
-  margin: 0.5rem 0;
-}
-
-.message-text :deep(ul), .message-text :deep(ol) {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-
-.message-text :deep(li) {
-  margin: 0.25rem 0;
-}
-
-.message-text :deep(li > p) {
-  margin: 0.25rem 0;
-}
-
-.message-text :deep(strong) {
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.message-text :deep(em) {
-  font-style: italic;
-}
-
-.message-text :deep(a) {
-  color: #2d6a4f;
-  text-decoration: underline;
-}
-
-.message-text :deep(a:hover) {
-  color: #22543d;
-}
-
-.message-text :deep(blockquote) {
-  margin: 0.5rem 0;
-  padding: 0.5rem 1rem;
-  border-left: 3px solid #d1d5db;
-  color: #6b7280;
-}
-
-.message-text :deep(code) {
-  background: #f3f4f6;
-  padding: 0.15rem 0.35rem;
-  border-radius: 3px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.875em;
-  color: #1f2937;
-}
-
-.message-text :deep(pre) {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin: 0.75rem 0;
-  overflow-x: auto;
-}
-
-.message-text :deep(pre code) {
-  background: none;
-  padding: 0;
-  font-size: 0.8rem;
-  color: #374151;
-}
-
-.message-text :deep(hr) {
-  border: none;
-  border-top: 1px solid #e5e7eb;
-  margin: 1rem 0;
-}
-
-.message-text :deep(img) {
-  max-width: 100%;
-  border-radius: 6px;
-  margin: 0.5rem 0;
-}
-
-.thinking-container {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0;
-}
-
-.thinking-label {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.thinking-dots {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-@keyframes bounce {
-  0%, 80%, 100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1);
-  }
-}
-
-.message-time {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 0.5rem;
-}
-
-.speaker-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: #9ca3af;
-  cursor: pointer;
-  margin-left: 0.5rem;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
-.speaker-button:hover:not(:disabled) {
-  background: #f3f4f6;
-  color: #2d6a4f;
-}
-
-.speaker-button.speaking {
-  color: #2d6a4f;
-}
-
-.speaker-button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.tool-calls-section {
-  margin-top: 0.5rem;
-}
-
-.tool-call-item {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.tool-call-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #166534;
-  margin-bottom: 0.5rem;
-}
-
-.tool-call-input {
-  margin-top: 0.5rem;
-}
-
-.tool-call-input pre {
-  background: #f9fafb;
-  padding: 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  overflow-x: auto;
-  color: #374151;
-  margin: 0;
-}
-
-.tool-result {
-  margin-top: 0.5rem;
-}
-
-.tool-result-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #92400e;
-  margin-bottom: 0.5rem;
-}
-
-.tool-result-content {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 6px;
-  padding: 0.75rem;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.tool-result-content.collapsed {
-  max-height: 60px;
-  overflow: hidden;
-}
-
-.tool-result-content pre {
-  margin: 0;
-  font-size: 0.8rem;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #374151;
 }
 
 .chat-input-container {
@@ -659,21 +302,6 @@ watch(messages, async (newMessages, oldMessages) => {
 
   .empty-state h2 {
     font-size: 1.25rem;
-  }
-
-  .message {
-    padding: 0.75rem;
-    gap: 0.75rem;
-  }
-
-  .message-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 0.75rem;
-  }
-
-  .message-content {
-    max-width: 100%;
   }
 
   .chat-input-container {

@@ -16,6 +16,13 @@ export const useChatStore = defineStore('chat', {
       try {
         const response = await apiClient.post('/chats', { session_name: name })
         const session = response.data.data
+        if (session?.messages) {
+          for (const msg of session.messages) {
+            if (!msg.id) {
+              msg.id = msg._id || crypto.randomUUID()
+            }
+          }
+        }
         this.sessions.unshift(session)
         this.currentChat = session
         return session
@@ -48,7 +55,14 @@ export const useChatStore = defineStore('chat', {
       try {
         const response = await apiClient.get(`/chats/${chatId}`)
         this.currentChat = response.data.data
-        return response.data.data
+        if (this.currentChat?.messages) {
+          for (const msg of this.currentChat.messages) {
+            if (!msg.id) {
+              msg.id = msg._id || crypto.randomUUID()
+            }
+          }
+        }
+        return this.currentChat
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to load chat'
         throw error
@@ -67,6 +81,7 @@ export const useChatStore = defineStore('chat', {
         }
 
         const userMessage = {
+          id: crypto.randomUUID(),
           role: 'user',
           content,
           timestamp: new Date().toISOString()
@@ -84,6 +99,7 @@ export const useChatStore = defineStore('chat', {
 
         if (data?.tool_calls && data.tool_calls.length > 0) {
           const assistantMessage = {
+            id: crypto.randomUUID(),
             role: 'assistant',
             content: null,
             tool_calls: data.tool_calls,
@@ -94,6 +110,7 @@ export const useChatStore = defineStore('chat', {
           if (data.tool_results) {
             for (const toolResult of data.tool_results) {
               const toolMessage = {
+                id: crypto.randomUUID(),
                 role: 'tool',
                 tool_call_id: toolResult.tool_call_id,
                 content: toolResult.content,
@@ -107,6 +124,7 @@ export const useChatStore = defineStore('chat', {
         }
 
         const assistantMessage = {
+          id: crypto.randomUUID(),
           role: 'assistant',
           content: data,
           timestamp: new Date().toISOString()
@@ -137,13 +155,15 @@ export const useChatStore = defineStore('chat', {
         this.currentChat = newChat
       }
 
-      const userMsg = { role: 'user', content, timestamp: new Date().toISOString() }
+      const userMsg = { id: crypto.randomUUID(), role: 'user', content, timestamp: new Date().toISOString() }
       if (!this.currentChat.messages) {
         this.currentChat.messages = []
       }
       this.currentChat.messages.push(userMsg)
 
-      const assistantMsg = { role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
+      let assistantMsgIndex = 0
+      let toolResultsYielded = false
+      const assistantMsg = { id: crypto.randomUUID(), role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
       this.currentChat.messages.push(assistantMsg)
 
       try {
@@ -165,11 +185,10 @@ export const useChatStore = defineStore('chat', {
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
         let buffer = ''
-        let fullContent = ''
 
         while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+          const { done: streamDone, value } = await reader.read()
+          if (streamDone) break
 
           buffer += decoder.decode(value, { stream: true })
 
@@ -184,35 +203,57 @@ export const useChatStore = defineStore('chat', {
               const data = JSON.parse(trimmed.slice(6))
 
               if (data.type === 'chunk') {
-                fullContent += data.content
-                assistantMsg.content = fullContent
+                const lastAssistant = this.currentChat.messages[assistantMsgIndex]
+                if (toolResultsYielded || (lastAssistant && lastAssistant.role === 'assistant' && lastAssistant.tool_calls && lastAssistant.tool_calls.length > 0)) {
+                  assistantMsgIndex++
+                  const newMsg = { id: crypto.randomUUID(), role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
+                  this.currentChat.messages.push(newMsg)
+                  toolResultsYielded = false
+                }
+                if (this.currentChat.messages[assistantMsgIndex]) {
+                  this.currentChat.messages[assistantMsgIndex].content += data.content
+                }
               } else if (data.type === 'tool_call_start') {
-                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
-                let tc = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                const currentAssistant = this.currentChat.messages[assistantMsgIndex]
+                if (!currentAssistant) continue
+                if (toolResultsYielded) {
+                  assistantMsgIndex++
+                  const newMsg = { id: crypto.randomUUID(), role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
+                  this.currentChat.messages.push(newMsg)
+                  toolResultsYielded = false
+                }
+                if (!this.currentChat.messages[assistantMsgIndex].tool_calls) this.currentChat.messages[assistantMsgIndex].tool_calls = []
+                let tc = this.currentChat.messages[assistantMsgIndex].tool_calls.find(t => t.id === data.toolCallId)
                 if (!tc) {
                   tc = { id: data.toolCallId, function: { name: '', arguments: '' } }
-                  assistantMsg.tool_calls.push(tc)
+                  this.currentChat.messages[assistantMsgIndex].tool_calls.push(tc)
                 }
                 tc.function.name = data.name
               } else if (data.type === 'tool_call_arg') {
-                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
-                let tc = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                const currentAssistant = this.currentChat.messages[assistantMsgIndex]
+                if (!currentAssistant) continue
+                if (!currentAssistant.tool_calls) currentAssistant.tool_calls = []
+                let tc = currentAssistant.tool_calls.find(t => t.id === data.toolCallId)
                 if (tc) {
                   tc.function.arguments = data.args
                 }
               } else if (data.type === 'tool_call_complete') {
-                if (!assistantMsg.tool_calls) assistantMsg.tool_calls = []
-                const existing = assistantMsg.tool_calls.find(t => t.id === data.toolCallId)
+                const currentAssistant = this.currentChat.messages[assistantMsgIndex]
+                if (!currentAssistant) continue
+                if (!currentAssistant.tool_calls) currentAssistant.tool_calls = []
+                const existing = currentAssistant.tool_calls.find(t => t.id === data.toolCallId)
                 if (existing) {
                   existing.function.arguments = JSON.stringify(data.input)
                 } else {
-                  assistantMsg.tool_calls.push({
+                  currentAssistant.tool_calls.push({
                     id: data.toolCallId,
                     function: { name: data.function?.name || '', arguments: JSON.stringify(data.input) },
                   })
                 }
               } else if (data.type === 'tool_result') {
+                toolResultsYielded = true
                 const toolMessage = {
+                  id: crypto.randomUUID(),
                   role: 'tool',
                   tool_call_id: data.tool_call_id,
                   content: data.content,
@@ -220,9 +261,12 @@ export const useChatStore = defineStore('chat', {
                 }
                 this.currentChat.messages.push(toolMessage)
               } else if (data.type === 'done') {
-                assistantMsg.content = data.content || ''
-                if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-                  delete assistantMsg.tool_calls
+                if (this.currentChat.messages[assistantMsgIndex]) {
+                  this.currentChat.messages[assistantMsgIndex].content = data.content || ''
+                  if (!this.currentChat.messages[assistantMsgIndex].tool_calls ||
+                      this.currentChat.messages[assistantMsgIndex].tool_calls.length === 0) {
+                    delete this.currentChat.messages[assistantMsgIndex].tool_calls
+                  }
                 }
               } else if (data.type === 'error') {
                 throw new Error(data.message)
@@ -233,7 +277,7 @@ export const useChatStore = defineStore('chat', {
           }
         }
 
-        return { success: true, data: fullContent || assistantMsg.content }
+        return { success: true, data: this.currentChat.messages[assistantMsgIndex]?.content || '' }
       } catch (error) {
         this.error = error.message || 'Failed to send message'
 
