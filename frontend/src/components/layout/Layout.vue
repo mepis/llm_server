@@ -21,7 +21,6 @@ import Sidebar from '@/components/layout/Sidebar.vue'
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 2rem;
   background: #f3f4f6;
   margin-left: 250px;
   transition: margin-left 0.3s ease;

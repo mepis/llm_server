@@ -4,7 +4,44 @@ All notable changes to the LLM Server application.
 
 ---
 
-## [Unreleased] - 2026-04-22
+## [Unreleased] - 2026-04-23
+
+### Streaming Chat Improvements
+
+#### Session Subject Auto-Generation
+- **Added**: `generateSessionSubject` in `chatService` — auto-generates session names from the first user message for "New Chat" sessions
+- **Added**: Subject generation runs after both `runLoop` and `streamRunLoop` complete; updated session name is yielded back to the frontend via the SSE 'done' event
+- **Modified**: Frontend chat store merges the new subject into the session list and `currentChat` on stream completion
+
+#### Tool Result Merging
+- **Added**: Tool messages collapsed into assistant message `tool_results` arrays during session load (`listSessions`, `loadChat`) and streaming (`sendStreamingMessage`)
+- **Removed**: Standalone `ToolResultCard` component — tool results now display inline within `AssistantMessage.vue` as collapsible details
+
+#### Streaming Refinements
+- **Added**: `rawOutput` tracking on assistant messages during streaming; displayed via "Raw LLM Output" collapsible in debug mode
+- **Added**: Intermediate assistant messages from multi-turn streaming are unified into a single message with combined tool calls and results
+- **Modified**: Error recovery in `sendStreamingMessage` uses index-based splice instead of pop for cleaner cleanup
+
+### Chat History Pagination
+
+- **Added**: Server-side pagination to `GET /chats` via `getSessionsByUser(page, limit)` returning `{ sessions, total, page, limit, totalPages }`
+- **Added**: `page` and `limit` query params to `GET /chats` controller endpoint
+- **Added**: ChatHistoryView now shows configurable page size (10/20/50) with PrimeVue Paginator component
+- **Added**: Session list items display message count and truncated last assistant message preview
+
+### User Preferences
+
+- **Added**: `chat_page_size` field to User model settings (enum: 10, 20, 50)
+- **Added**: `PATCH /api/users/me` route for partial profile updates
+- **Added**: ChatHistoryView loads and persists preferred page size via `settingsStore.updateUserPreferences()`
+- **Added**: Debug mode toggle in ChatView (`settingsStore.debugMode`) — controls raw output visibility
+
+### UI Enhancements
+
+- **Added**: Error banner with dismiss button in ChatView for streaming errors
+- **Added**: Inline scroll-to-bottom button in ChatView when scrolled up
+- **Added**: `username` prop passed through to MessageBubble from auth store
+- **Removed**: `ToolResultCard.vue` component (replaced by inline tool results in AssistantMessage)
 
 ### Features
 

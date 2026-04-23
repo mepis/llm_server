@@ -1,14 +1,19 @@
 <template>
   <div class="chat-container">
+    <div v-if="chatStore.error" class="error-banner">
+      {{ chatStore.error }}
+      <button @click="chatStore.error = null">&times;</button>
+    </div>
     <div class="chat-messages" ref="messagesContainer">
-      <div v-if="messages.length === 0" class="empty-state">
+      <div v-if="messages.length === 0 && !loading" class="empty-state">
         <h2>Welcome to Chat</h2>
         <p>Start a conversation with the AI assistant</p>
       </div>
       <MessageBubble
-        v-for="message in messages"
+        v-for="message in visibleMessages"
         :key="message.id"
         :role="message.role"
+        :username="authStore.user?.username || ''"
         :timestamp="message.timestamp"
         :is-streaming="loading && message.role === 'assistant' && !hasStreamingContent"
       >
@@ -20,16 +25,14 @@
           v-else-if="message.role === 'assistant'"
           :content="message.content"
           :tool-calls="message.tool_calls || []"
+          :tool-results="message.tool_results || []"
+          :raw-output="message.rawOutput || ''"
+          :debug-mode="settingsStore.debugMode"
           :message-id="message.id"
           :is-streaming="loading && hasStreamingContent"
           :is-speaking="isSpeaking"
           :speaking-index="speakingIndex"
           @speak="(text) => speakMessage(text, message.id)"
-        />
-        <ToolResultCard
-          v-else-if="message.role === 'tool'"
-          :content="message.content || ''"
-          :tool-call-id="message.tool_call_id || ''"
         />
       </MessageBubble>
       <div v-if="loading && !hasStreamingContent" class="message assistant streaming">
@@ -52,6 +55,13 @@
         <input type="checkbox" :checked="settingsStore.autoPlayTTS" @change="settingsStore.setAutoPlayTTS($event.target.checked)" />
         <span>Auto-play</span>
       </label>
+      <label class="auto-play-toggle">
+        <input type="checkbox" :checked="settingsStore.debugMode" @change="settingsStore.setDebugMode($event.target.checked)" />
+        <span>Debug</span>
+      </label>
+      <button v-if="showScrollButton" @click="handleScrollToBottom" class="scroll-bottom-inline" title="Scroll to bottom">
+        <i class="pi pi-chevron-down"></i>
+      </button>
       <button @click="sendMessage" :disabled="loading || !newMessage.trim()" class="send-button">
         <i class="pi pi-arrow-right"></i>
       </button>
@@ -60,17 +70,18 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import axios from 'axios'
 import MessageBubble from '@/components/chat/MessageBubble.vue'
 import UserMessage from '@/components/chat/UserMessage.vue'
 import AssistantMessage from '@/components/chat/AssistantMessage.vue'
-import ToolResultCard from '@/components/chat/ToolResultCard.vue'
 import ThinkingIndicator from '@/components/chat/ThinkingIndicator.vue'
 
 const chatStore = useChatStore()
+const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 const messagesContainer = ref(null)
 const newMessage = ref('')
@@ -81,13 +92,23 @@ let currentAudio = null
 
 const messages = computed(() => chatStore.currentChat?.messages || [])
 
+ const visibleMessages = computed(() => messages.value)
+
 const hasStreamingContent = computed(() => {
-  const lastMsg = messages.value[messages.value.length - 1]
-  if (!lastMsg || lastMsg.role !== 'assistant') return false
-  if (lastMsg.content && lastMsg.content.length > 0) return true
-  if (lastMsg.tool_calls && lastMsg.tool_calls.length > 0) return true
-  return false
+  return messages.value.some(m => m.role === 'assistant' && (m.content && m.content.length > 0 || m.tool_calls && m.tool_calls.length > 0))
 })
+
+const showScrollButton = ref(false)
+const scrollBottom = () => {
+  const el = messagesContainer.value
+  if (!el) return
+  showScrollButton.value = el.scrollTop + el.clientHeight < el.scrollHeight - 10
+}
+
+const handleScrollToBottom = async () => {
+  await scrollToBottom()
+  showScrollButton.value = false
+}
 
 const scrollToBottom = async () => {
   await nextTick()
@@ -160,21 +181,13 @@ const sendMessage = async () => {
     await chatStore.sendStreamingMessage(content)
   } catch (error) {
     console.error('Failed to send message:', error)
-    if (chatStore.currentChat && chatStore.currentChat.messages.length > 0) {
-      const lastMsg = chatStore.currentChat.messages[chatStore.currentChat.messages.length - 1]
-      if (lastMsg.role === 'user') {
-        chatStore.currentChat.messages.pop()
-      }
-    }
-    if (chatStore.error) {
-      console.error('Chat error:', chatStore.error)
-    }
   } finally {
     loading.value = false
   }
 }
 
 const prevMessageCount = ref(0)
+
 
 watch(messages, async (newMessages, oldMessages) => {
   const newLength = newMessages?.length || 0
@@ -197,6 +210,21 @@ watch(messages, async (newMessages, oldMessages) => {
 
   prevMessageCount.value = newLength
 }, { deep: true })
+
+onMounted(async () => {
+  if (!chatStore.currentChat && chatStore.sessions.length === 0) {
+    try {
+      await chatStore.listSessions()
+    } catch (e) {
+      console.error('Failed to load sessions:', e)
+    }
+  }
+
+  const el = messagesContainer.value
+  if (el) {
+    el.addEventListener('scroll', scrollBottom, { passive: true })
+  }
+})
 </script>
 
 <style scoped>
@@ -204,6 +232,27 @@ watch(messages, async (newMessages, oldMessages) => {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.error-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: #991b1b;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
 }
 
 .chat-messages {
@@ -238,6 +287,7 @@ watch(messages, async (newMessages, oldMessages) => {
 
 .chat-input-container textarea {
   flex: 1;
+  min-width: 0;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -318,6 +368,24 @@ watch(messages, async (newMessages, oldMessages) => {
     width: 44px;
     height: 44px;
   }
+}
+
+.scroll-bottom-inline {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: #2d6a4f;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.scroll-bottom-inline:hover {
+  background: #22543d;
 }
 
 @media (max-width: 480px) {

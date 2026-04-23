@@ -18,12 +18,13 @@ import { computed } from 'vue'
 
 const props = defineProps({
   role: { type: String, required: true },
+  username: { type: String, default: '' },
   timestamp: { type: String, default: '' },
   isStreaming: { type: Boolean, default: false },
 })
 
 const roleLabel = computed(() => {
-  if (props.role === 'user') return props.role || 'User'
+  if (props.role === 'user') return props.username || 'User'
   if (props.role === 'tool') return 'Tool Result'
   return 'Assistant'
 })

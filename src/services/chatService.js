@@ -438,6 +438,19 @@ async function runLoop(sessionId, content, options = {}) {
       }
     }
 
+    if (session.session_name === 'New Chat') {
+      try {
+        const msgs = Array.isArray(session.messages) ? session.messages : [];
+        const subject = await generateSessionSubject(msgs);
+        if (subject && subject.trim()) {
+          await session.updateOne({ session_name: subject.trim() });
+          logger.info(`Auto-generated subject for session ${sessionId}: "${subject}"`);
+        }
+      } catch (err) {
+        logger.error('Failed to generate/update session subject:', err.message);
+      }
+    }
+
     return {
       success: true,
       data: finalContent,
@@ -669,7 +682,22 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     }
   }
 
-  yield { type: 'done', content: fullFinalContent, truncated };
+  let newSubject = null;
+  if (session.session_name === 'New Chat') {
+    try {
+      const msgs = Array.isArray(session.messages) ? session.messages : [];
+      const subject = await generateSessionSubject(msgs);
+      if (subject && subject.trim()) {
+        await session.updateOne({ session_name: subject.trim() });
+        logger.info(`Auto-generated subject for session ${sessionId}: "${subject}"`);
+        newSubject = subject.trim();
+      }
+    } catch (err) {
+      logger.error('Failed to generate/update session subject:', err.message);
+    }
+  }
+
+  yield { type: 'done', content: fullFinalContent, truncated, subject: newSubject };
 }
 
 async function clearSessionMessages(sessionId) {
@@ -712,15 +740,41 @@ async function updateSessionMemory(sessionId, memoryData) {
   }
 }
 
-async function getSessionsByUser(userId) {
+async function getSessionsByUser(userId, options = {}) {
   try {
-    const sessions = await ChatSession.find({ user_id: userId })
+    const { page = 1, limit = 10 } = options;
+    const query = { user_id: userId };
+
+    const total = await ChatSession.countDocuments(query);
+    const skip = (page - 1) * limit;
+
+    const sessions = await ChatSession.find(query)
       .sort({ created_at: -1 })
-      .select('-messages');
+      .skip(skip)
+      .limit(limit);
+
+    const result = sessions.map(session => {
+      const msgs = session.messages || [];
+      const lastAssistant = [...msgs].reverse().find(m => m.role === 'assistant');
+      return {
+        chat_id: session._id.toString(),
+        session_name: session.session_name,
+        message_count: msgs.length,
+        last_message: lastAssistant ? (lastAssistant.content.length > 50 ? lastAssistant.content.substring(0, 50) + '...' : lastAssistant.content) : '',
+        created_at: session.created_at,
+        updated_at: session.updated_at,
+      };
+    });
 
     return {
       success: true,
-      data: sessions,
+      data: {
+        sessions: result,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
     };
   } catch (error) {
     logger.error('Get user sessions failed:', error);
@@ -743,6 +797,27 @@ async function deleteSession(sessionId) {
   } catch (error) {
     logger.error('Delete session failed:', error.message);
     throw error;
+  }
+}
+
+async function generateSessionSubject(messages) {
+  try {
+    const userMessages = messages
+      .filter(m => m.role === 'user' && typeof m.content === 'string' && m.content.trim().length > 0)
+      .slice(0, 2);
+
+    if (userMessages.length === 0) return null;
+
+    const firstUserMsg = userMessages[0].content.trim();
+    if (firstUserMsg.length <= 60) {
+      return firstUserMsg;
+    }
+
+    const trimmed = firstUserMsg.substring(0, 57).replace(/\s+\S*$/, '') + '...';
+    return trimmed;
+  } catch (error) {
+    logger.error('Generate session subject failed:', error.message);
+    return null;
   }
 }
 
@@ -778,4 +853,5 @@ module.exports = {
   getSessionsByUser,
   deleteSession,
   getToolCalls,
+  generateSessionSubject,
 };

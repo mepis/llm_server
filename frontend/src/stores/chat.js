@@ -1,9 +1,21 @@
 import { defineStore } from 'pinia'
 import apiClient from '@/axios'
+import { useAuthStore } from '@/stores/auth'
+
+if (typeof crypto !== 'undefined' && !crypto.randomUUID) {
+  crypto.randomUUID = function () {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16
+      const v = c === 'x' ? r : (r & 0x3) | 0x8
+      return v.toString(16)
+    })
+  }
+}
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
     sessions: [],
+    pagination: { total: 0, page: 1, limit: 10, totalPages: 0 },
     currentChat: null,
     loading: false,
     error: null
@@ -17,11 +29,22 @@ export const useChatStore = defineStore('chat', {
         const response = await apiClient.post('/chats', { session_name: name })
         const session = response.data.data
         if (session?.messages) {
+          const merged = []
           for (const msg of session.messages) {
             if (!msg.id) {
               msg.id = msg._id || crypto.randomUUID()
             }
+            if (msg.role === 'tool') {
+              const lastAssistant = merged.find(m => m.role === 'assistant')
+              if (lastAssistant) {
+                if (!lastAssistant.tool_results) lastAssistant.tool_results = []
+                lastAssistant.tool_results.push({ tool_call_id: msg.tool_call_id, content: msg.content })
+              }
+            } else {
+              merged.push(msg)
+            }
           }
+          session.messages = merged
         }
         this.sessions.unshift(session)
         this.currentChat = session
@@ -34,12 +57,19 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    async listSessions() {
+    async listSessions(options = {}) {
       this.loading = true
       this.error = null
       try {
-        const response = await apiClient.get('/chats')
-        this.sessions = response.data.data || []
+        const response = await apiClient.get('/chats', { params: options })
+        const data = response.data.data || {}
+        this.sessions = data.sessions || []
+        this.pagination = {
+          total: data.total,
+          page: data.page,
+          limit: data.limit,
+          totalPages: data.totalPages
+        }
         return this.sessions
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to list sessions'
@@ -56,11 +86,22 @@ export const useChatStore = defineStore('chat', {
         const response = await apiClient.get(`/chats/${chatId}`)
         this.currentChat = response.data.data
         if (this.currentChat?.messages) {
+          const merged = []
           for (const msg of this.currentChat.messages) {
             if (!msg.id) {
               msg.id = msg._id || crypto.randomUUID()
             }
+            if (msg.role === 'tool') {
+              const lastAssistant = merged.find(m => m.role === 'assistant')
+              if (lastAssistant) {
+                if (!lastAssistant.tool_results) lastAssistant.tool_results = []
+                lastAssistant.tool_results.push({ tool_call_id: msg.tool_call_id, content: msg.content })
+              }
+            } else {
+              merged.push(msg)
+            }
           }
+          this.currentChat.messages = merged
         }
         return this.currentChat
       } catch (error) {
@@ -159,15 +200,21 @@ export const useChatStore = defineStore('chat', {
       if (!this.currentChat.messages) {
         this.currentChat.messages = []
       }
+      const userMsgIndex = this.currentChat.messages.length
       this.currentChat.messages.push(userMsg)
 
-      let assistantMsgIndex = 0
+      let assistantMsgIndex = this.currentChat.messages.length
       let toolResultsYielded = false
       const assistantMsg = { id: crypto.randomUUID(), role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
       this.currentChat.messages.push(assistantMsg)
 
       try {
-        const token = localStorage.getItem('token')
+        let intermediateCount = 0
+        const authStore = useAuthStore()
+        const token = authStore.token
+        if (!token) {
+          throw new Error('Not authenticated')
+        }
         const response = await fetch(`/api/chats/${this.currentChat.chat_id}/llm/stream`, {
           method: 'POST',
           headers: {
@@ -209,9 +256,14 @@ export const useChatStore = defineStore('chat', {
                   const newMsg = { id: crypto.randomUUID(), role: 'assistant', content: '', tool_calls: [], timestamp: new Date().toISOString() }
                   this.currentChat.messages.push(newMsg)
                   toolResultsYielded = false
+                  intermediateCount++
                 }
                 if (this.currentChat.messages[assistantMsgIndex]) {
                   this.currentChat.messages[assistantMsgIndex].content += data.content
+                  if (!this.currentChat.messages[assistantMsgIndex].rawOutput) {
+                    this.currentChat.messages[assistantMsgIndex].rawOutput = ''
+                  }
+                  this.currentChat.messages[assistantMsgIndex].rawOutput += data.content
                 }
               } else if (data.type === 'tool_call_start') {
                 const currentAssistant = this.currentChat.messages[assistantMsgIndex]
@@ -252,21 +304,42 @@ export const useChatStore = defineStore('chat', {
                 }
               } else if (data.type === 'tool_result') {
                 toolResultsYielded = true
-                const toolMessage = {
-                  id: crypto.randomUUID(),
-                  role: 'tool',
-                  tool_call_id: data.tool_call_id,
-                  content: data.content,
-                  timestamp: new Date().toISOString(),
+                const currentMsg = this.currentChat.messages[assistantMsgIndex]
+                if (currentMsg) {
+                  if (!currentMsg.tool_results) currentMsg.tool_results = []
+                  currentMsg.tool_results.push({ tool_call_id: data.tool_call_id, content: data.content })
                 }
-                this.currentChat.messages.push(toolMessage)
               } else if (data.type === 'done') {
-                if (this.currentChat.messages[assistantMsgIndex]) {
-                  this.currentChat.messages[assistantMsgIndex].content = data.content || ''
-                  if (!this.currentChat.messages[assistantMsgIndex].tool_calls ||
-                      this.currentChat.messages[assistantMsgIndex].tool_calls.length === 0) {
-                    delete this.currentChat.messages[assistantMsgIndex].tool_calls
-                  }
+                const newSubject = data.subject
+                const startIdx = assistantMsgIndex - intermediateCount
+                let unified = this.currentChat.messages[assistantMsgIndex] ||
+                  { id: crypto.randomUUID(), role: 'assistant', content: '', timestamp: new Date().toISOString() }
+
+                unified.content = data.content || ''
+
+                const allToolCalls = []
+                const allToolResults = []
+                for (let i = startIdx; i <= assistantMsgIndex; i++) {
+                  const msg = this.currentChat.messages[i]
+                  if (!msg || msg.role !== 'assistant') continue
+                  if (msg.tool_calls && msg.tool_calls.length) allToolCalls.push(...msg.tool_calls)
+                  if (msg.tool_results && msg.tool_results.length) allToolResults.push(...msg.tool_results)
+                }
+
+                unified.tool_calls = allToolCalls.length ? allToolCalls : undefined
+                unified.tool_results = allToolResults.length ? allToolResults : undefined
+
+                this.currentChat.messages.splice(startIdx, intermediateCount + 1, unified)
+                assistantMsgIndex = startIdx
+                intermediateCount = 0
+
+                if (newSubject && newSubject.trim()) {
+                  this.sessions.forEach(s => {
+                    if (s.chat_id === this.currentChat.chat_id || s._id?.toString() === this.currentChat.chat_id) {
+                      s.session_name = newSubject.trim()
+                    }
+                  })
+                  this.currentChat.session_name = newSubject.trim()
                 }
               } else if (data.type === 'error') {
                 throw new Error(data.message)
@@ -281,12 +354,11 @@ export const useChatStore = defineStore('chat', {
       } catch (error) {
         this.error = error.message || 'Failed to send message'
 
-        this.currentChat.messages.pop()
-        if (this.currentChat.messages.length > 0) {
-          const lastMsg = this.currentChat.messages[this.currentChat.messages.length - 1]
-          if (lastMsg.role === 'user') {
-            this.currentChat.messages.pop()
-          }
+        const assistantMsgIndex = this.currentChat.messages.findIndex(
+          (m, i) => i >= userMsgIndex && m.role === 'assistant'
+        )
+        if (assistantMsgIndex !== -1) {
+          this.currentChat.messages.splice(assistantMsgIndex, 1)
         }
 
         throw error

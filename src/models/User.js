@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     language: {
       type: String,
       default: 'en'
+    },
+    chat_page_size: {
+      type: Number,
+      default: 10,
+      enum: [10, 20, 50]
     }
   },
   created_at: {

@@ -32,9 +32,11 @@ const createSession = async (req, res) => {
 const getUserSessions = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    
-    const result = await chatService.getSessionsByUser(userId);
-    
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+
+    const result = await chatService.getSessionsByUser(userId, { page, limit });
+
     res.json({
       success: true,
       data: result.data

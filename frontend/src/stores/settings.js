@@ -4,6 +4,8 @@ import apiClient from '@/axios'
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     autoPlayTTS: localStorage.getItem('autoPlayTTS') === 'true',
+    hideToolMessages: localStorage.getItem('hideToolMessages') === 'true',
+    debugMode: localStorage.getItem('debugMode') === 'true',
     userPreferences: null,
     configSettings: [],
     llamaModels: [],
@@ -16,6 +18,16 @@ export const useSettingsStore = defineStore('settings', {
     setAutoPlayTTS(value) {
       this.autoPlayTTS = value
       localStorage.setItem('autoPlayTTS', String(value))
+    },
+
+    setHideToolMessages(value) {
+      this.hideToolMessages = value
+      localStorage.setItem('hideToolMessages', String(value))
+    },
+
+    setDebugMode(value) {
+      this.debugMode = value
+      localStorage.setItem('debugMode', String(value))
     },
 
     async fetchUserPreferences() {

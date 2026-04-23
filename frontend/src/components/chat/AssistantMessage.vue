@@ -20,6 +20,20 @@
         :is-streaming="isStreaming"
       />
     </div>
+
+    <div v-if="toolResults && toolResults.length > 0" class="tool-results-section">
+      <details class="inline-tool-result" v-for="tr in toolResults" :key="tr.tool_call_id">
+        <summary class="result-trigger">Tool Result: {{ (tr.tool_call_id || '').slice(-8) }}</summary>
+        <pre>{{ tr.content }}</pre>
+      </details>
+    </div>
+
+    <div v-if="debugMode && rawOutput" class="debug-raw-output">
+      <details>
+        <summary>Raw LLM Output</summary>
+        <pre>{{ rawOutput }}</pre>
+      </details>
+    </div>
   </div>
 </template>
 
@@ -31,6 +45,9 @@ import ToolCallCard from './ToolCallCard.vue'
 const props = defineProps({
   content: { type: String, default: '' },
   toolCalls: { type: Array, default: () => [] },
+  toolResults: { type: Array, default: () => [] },
+  rawOutput: { type: String, default: '' },
+  debugMode: { type: Boolean, default: false },
   messageId: { type: String, default: '' },
   isStreaming: { type: Boolean, default: false },
   isSpeaking: { type: Boolean, default: false },
@@ -146,5 +163,72 @@ const htmlContent = computed(() => markdownToHtml(props.content))
 
 .tool-calls-section {
   margin-top: 0.75rem;
+}
+
+.tool-results-section {
+  margin-top: 0.75rem;
+}
+
+.inline-tool-result {
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.result-trigger {
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.result-trigger:hover {
+  background: #fef3c7;
+  border-radius: 8px;
+}
+
+.inline-tool-result pre {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
+  border-top: 1px solid #fde68a;
+}
+
+.debug-raw-output {
+  margin-top: 0.75rem;
+  border-radius: 8px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+}
+
+.debug-raw-output summary {
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.debug-raw-output summary:hover {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.debug-raw-output pre {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
+  border-top: 1px solid #d1d5db;
 }
 </style>
