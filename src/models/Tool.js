@@ -46,8 +46,7 @@ const toolSchema = new mongoose.Schema({
   },
   roles: {
     type: [String],
-    default: ['user'],
-    enum: ['user', 'admin', 'system']
+    default: ['user']
   },
   created_at: {
     type: Date,

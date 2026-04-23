@@ -6,4 +6,5 @@ torchaudio
 soundfile
 librosa
 numpy
-flash-attn  # optional - if unavailable, model loads without flash attention fallback
+flash-attn  # optional - requires CUDA 12.x, may fail to build from source on newer Python versions
+

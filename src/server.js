@@ -9,6 +9,7 @@ const logger = require('./utils/logger');
 const rateLimiter = require('./config/rateLimiter');
 const { validateEnvironment } = require('./utils/environment');
 const { initTTSClient, shutdownTTS } = require('./services/llamaService');
+const roleService = require('./services/roleService');
 
 validateEnvironment();
 
@@ -53,6 +54,8 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     await db.connectDB();
+
+    await roleService.ensureBuiltinRoles();
 
     initTTSClient();
 

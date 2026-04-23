@@ -323,6 +323,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useRoleStore } from '@/stores/role'
 import { useToast } from 'primevue/usetoast'
 import Toast from 'primevue/toast'
 import Button from 'primevue/button'
@@ -334,10 +335,11 @@ import Column from 'primevue/column'
 import Dropdown from 'primevue/dropdown'
 
 const userStore = useUserStore()
+const roleStore = useRoleStore()
 const toast = useToast()
 
 const searchQuery = ref('')
-const availableRoles = ['user', 'admin', 'system']
+const availableRoles = computed(() => roleStore.roles.map(r => r.name))
 
 // Create form
 const createDialogVisible = ref(false)
@@ -392,6 +394,14 @@ const formatDate = (dateStr) => {
     month: 'short',
     day: 'numeric'
   })
+}
+
+const loadRoles = async () => {
+  try {
+    await roleStore.listRoles()
+  } catch (error) {
+    console.error('Failed to load roles:', error)
+  }
 }
 
 const loadUsers = async () => {
@@ -547,6 +557,7 @@ const resetPassword = async () => {
 }
 
 onMounted(() => {
+  loadRoles()
   loadUsers()
 })
 </script>

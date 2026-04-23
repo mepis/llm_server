@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const roleService = require('../services/roleService');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
 
@@ -48,9 +49,9 @@ const registerUser = async (username, email, password) => {
       throw new Error('Username or email already exists');
     }
 
-    const validRoles = ['user', 'admin', 'system'];
     for (const role of roles) {
-      if (!validRoles.includes(role)) {
+      const valid = await roleService.isValidRole(role);
+      if (!valid) {
         throw new Error(`Invalid role: ${role}`);
       }
     }
@@ -202,10 +203,9 @@ const deleteUser = async (userId) => {
 
 const setUserRole = async (userId, role) => {
   try {
-    const validRoles = ['user', 'admin', 'system'];
-    
-    if (!validRoles.includes(role)) {
-      throw new Error('Invalid role');
+    const valid = await roleService.isValidRole(role);
+    if (!valid) {
+      throw new Error(`Invalid role: ${role}`);
     }
     
     const user = await User.findByIdAndUpdate(
@@ -232,10 +232,9 @@ const setUserRole = async (userId, role) => {
 
 const removeUserRole = async (userId, role) => {
   try {
-    const validRoles = ['user', 'admin', 'system'];
-    
-    if (!validRoles.includes(role)) {
-      throw new Error('Invalid role');
+    const valid = await roleService.isValidRole(role);
+    if (!valid) {
+      throw new Error(`Invalid role: ${role}`);
     }
     
     const user = await User.findByIdAndUpdate(

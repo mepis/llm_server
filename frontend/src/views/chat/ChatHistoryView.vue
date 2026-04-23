@@ -3,7 +3,7 @@
     <main class="history-main">
       <div class="history-header">
         <h1>Chat History</h1>
-        <Button label="New Chat" icon="pi pi-plus" @click="createNewChat" />
+        <Button label="Chat" icon="pi pi-plus" @click="createNewChat" />
       </div>
       <div v-if="loading && sessions.length === 0" class="loading-state">
         <p>Loading chats...</p>
@@ -55,6 +55,27 @@
         />
       </div>
     </main>
+
+    <Dialog
+      v-model:visible="deleteDialogVisible"
+      header="Confirm Delete"
+      modal
+      :style="{ width: '400px' }"
+    >
+      <p class="delete-message">
+        Are you sure you want to delete chat
+        <strong>"{{ deleteChatTarget?.session_name || 'Untitled Chat' }}"</strong>? This action cannot be undone.
+      </p>
+      <template #footer>
+        <Button label="Cancel" outlined @click="deleteDialogVisible = false" />
+        <Button
+          label="Delete"
+          severity="danger"
+          @click="executeDelete"
+          :disabled="loading"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -66,6 +87,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useAuthStore } from '@/stores/auth'
 
 import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
 import Paginator from 'primevue/paginator'
 
 const router = useRouter()
@@ -73,6 +95,8 @@ const chatStore = useChatStore()
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 const loading = ref(false)
+const deleteDialogVisible = ref(false)
+const deleteChatTarget = ref(null)
 
 const sessions = computed(() => chatStore.sessions)
 const pagination = computed(() => ({ ...chatStore.pagination }))
@@ -126,7 +150,7 @@ const loadChat = async (chatId) => {
 
 const createNewChat = async () => {
   try {
-    const newChat = await chatStore.createSession()
+    const newChat = await chatStore.createSession('New Chat', false)
     currentChatId.value = newChat.chat_id
     router.push('/chat')
   } catch (error) {
@@ -134,14 +158,20 @@ const createNewChat = async () => {
   }
 }
 
-const deleteChat = async (chatId) => {
-  if (!confirm('Are you sure you want to delete this chat?')) return
-  
+const deleteChat = (chatId) => {
+  const session = sessions.value.find(s => s.chat_id === chatId)
+  deleteChatTarget.value = session ? { chat_id: chatId, session_name: session.session_name } : { chat_id: chatId, session_name: 'Untitled Chat' }
+  deleteDialogVisible.value = true
+}
+
+const executeDelete = async () => {
+  const chatId = deleteChatTarget.value.chat_id
   try {
     await chatStore.deleteChat(chatId)
     if (currentChatId.value === chatId) {
       currentChatId.value = null
     }
+    deleteDialogVisible.value = false
   } catch (error) {
     console.error('Failed to delete chat:', error)
   }
@@ -294,6 +324,12 @@ onMounted(async () => {
 .date {
   font-size: 0.75rem;
   color: #9ca3af;
+}
+
+.delete-message {
+  margin: 0 0 1rem 0;
+  color: #374151;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {

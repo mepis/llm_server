@@ -133,6 +133,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useSkillStore } from '@/stores/skill';
 import { useToolStore } from '@/stores/tool';
+import { useRoleStore } from '@/stores/role';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
 import Button from 'primevue/button';
@@ -146,10 +147,11 @@ const route = useRoute();
 const router = useRouter();
 const skillStore = useSkillStore();
 const toolStore = useToolStore();
+const roleStore = useRoleStore();
 const toast = useToast();
 
 const isEditing = computed(() => !!route.params.name);
-const availableRoles = ['user', 'admin', 'system'];
+const availableRoles = computed(() => roleStore.roles.map(r => r.name));
 
 const builtinToolNames = ['bash', 'read', 'write', 'glob', 'grep', 'question', 'todo', 'skill'];
 
@@ -223,7 +225,7 @@ const selectedRoles = ref([]);
 const errors = ref({});
 
 onMounted(async () => {
-  await toolStore.listTools();
+  await Promise.all([toolStore.listTools(), roleStore.listRoles()]);
 
   if (isEditing.value) {
     try {

@@ -17,6 +17,7 @@ const monitorRoutes = require('./monitor');
 const skillRoutes = require('./skill');
 const configRoutes = require('./config');
 const systemRoutes = require('./system');
+const roleRoutes = require('./roles');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -32,5 +33,6 @@ router.use('/monitor', monitorRoutes);
 router.use('/skills', skillRoutes);
 router.use('/config', configRoutes);
 router.use('/system', systemRoutes);
+router.use('/roles', roleRoutes);
 
 module.exports = router;

@@ -743,7 +743,7 @@ async function updateSessionMemory(sessionId, memoryData) {
 async function getSessionsByUser(userId, options = {}) {
   try {
     const { page = 1, limit = 10 } = options;
-    const query = { user_id: userId };
+    const query = { user_id: userId, 'messages.0': { $exists: true } };
 
     const total = await ChatSession.countDocuments(query);
     const skip = (page - 1) * limit;

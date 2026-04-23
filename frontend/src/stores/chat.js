@@ -22,35 +22,51 @@ export const useChatStore = defineStore('chat', {
   }),
 
   actions: {
-    async createSession(name = 'New Chat') {
+    async createSession(name = 'New Chat', persist = true) {
       this.loading = true
       this.error = null
       try {
-        const response = await apiClient.post('/chats', { session_name: name })
-        const session = response.data.data
-        if (session?.messages) {
-          const merged = []
-          for (const msg of session.messages) {
-            if (!msg.id) {
-              msg.id = msg._id || crypto.randomUUID()
-            }
-            if (msg.role === 'tool') {
-              const lastAssistant = merged.find(m => m.role === 'assistant')
-              if (lastAssistant) {
-                if (!lastAssistant.tool_results) lastAssistant.tool_results = []
-                lastAssistant.tool_results.push({ tool_call_id: msg.tool_call_id, content: msg.content })
+        let session
+        if (persist) {
+          const response = await apiClient.post('/chats', { session_name: name })
+          session = response.data.data
+          if (session?.messages) {
+            const merged = []
+            for (const msg of session.messages) {
+              if (!msg.id) {
+                msg.id = msg._id || crypto.randomUUID()
               }
-            } else {
-              merged.push(msg)
+              if (msg.role === 'tool') {
+                const lastAssistant = merged.find(m => m.role === 'assistant')
+                if (lastAssistant) {
+                  if (!lastAssistant.tool_results) lastAssistant.tool_results = []
+                  lastAssistant.tool_results.push({ tool_call_id: msg.tool_call_id, content: msg.content })
+                }
+              } else {
+                merged.push(msg)
+              }
             }
+            session.messages = merged
           }
-          session.messages = merged
+        } else {
+          session = {
+            chat_id: crypto.randomUUID(),
+            session_name: name,
+            messages: [],
+            _unsaved: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
         }
         this.sessions.unshift(session)
         this.currentChat = session
         return session
       } catch (error) {
-        this.error = error.response?.data?.message || 'Failed to create session'
+        if (persist) {
+          this.error = error.response?.data?.message || 'Failed to create session'
+        } else {
+          this.error = 'Failed to create session'
+        }
         throw error
       } finally {
         this.loading = false
@@ -119,6 +135,8 @@ export const useChatStore = defineStore('chat', {
         if (!this.currentChat) {
           const newChat = await this.createSession()
           this.currentChat = newChat
+        } else if (this.currentChat._unsaved) {
+          await this.persistUnsavedSession(this.currentChat.chat_id, 'New Chat')
         }
 
         const userMessage = {
@@ -187,6 +205,43 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
+    async persistUnsavedSession(chatId, name) {
+      try {
+        const response = await apiClient.post('/chats', { session_name: name })
+        const persistedSession = response.data.data
+        if (persistedSession?.messages) {
+          const merged = []
+          for (const msg of persistedSession.messages) {
+            if (!msg.id) {
+              msg.id = msg._id || crypto.randomUUID()
+            }
+            if (msg.role === 'tool') {
+              const lastAssistant = merged.find(m => m.role === 'assistant')
+              if (lastAssistant) {
+                if (!lastAssistant.tool_results) lastAssistant.tool_results = []
+                lastAssistant.tool_results.push({ tool_call_id: msg.tool_call_id, content: msg.content })
+              }
+            } else {
+              merged.push(msg)
+            }
+          }
+          persistedSession.messages = merged
+        }
+        this.sessions.forEach(s => {
+          if (s.chat_id === chatId || s._unsaved) {
+            Object.assign(s, persistedSession)
+            delete s._unsaved
+          }
+        })
+        if (this.currentChat?.chat_id === chatId) {
+          this.currentChat = persistedSession
+        }
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to save session'
+        throw error
+      }
+    },
+
     async sendStreamingMessage(content) {
       this.loading = true
       this.error = null
@@ -194,6 +249,8 @@ export const useChatStore = defineStore('chat', {
       if (!this.currentChat) {
         const newChat = await this.createSession()
         this.currentChat = newChat
+      } else if (this.currentChat._unsaved) {
+        await this.persistUnsavedSession(this.currentChat.chat_id, 'New Chat')
       }
 
       const userMsg = { id: crypto.randomUUID(), role: 'user', content, timestamp: new Date().toISOString() }
@@ -401,10 +458,12 @@ export const useChatStore = defineStore('chat', {
       this.error = null
       try {
         await apiClient.delete(`/chats/${chatId}`)
-        this.sessions = this.sessions.filter(s => s._id.toString() !== chatId)
-        if (this.currentChat?._id.toString() === chatId) {
+        this.sessions = this.sessions.filter(s => s.chat_id !== chatId)
+        this.pagination.total = Math.max(0, this.pagination.total - 1)
+        if (this.currentChat?.chat_id === chatId) {
           this.currentChat = null
         }
+        await this.listSessions({ page: this.pagination.page, limit: this.pagination.limit })
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete chat'
         throw error

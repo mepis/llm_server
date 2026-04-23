@@ -110,6 +110,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToolStore } from '@/stores/tool';
+import { useRoleStore } from '@/stores/role';
 import { useToast } from 'primevue/usetoast';
 import Toast from 'primevue/toast';
 import Button from 'primevue/button';
@@ -120,10 +121,11 @@ import Checkbox from 'primevue/checkbox';
 const route = useRoute();
 const router = useRouter();
 const toolStore = useToolStore();
+const roleStore = useRoleStore();
 const toast = useToast();
 
 const isNew = computed(() => !route.params.id);
-const availableRoles = ['user', 'admin', 'system'];
+const availableRoles = computed(() => roleStore.roles.map(r => r.name));
 
 const toolForm = reactive({
   name: '',
@@ -137,7 +139,7 @@ const selectedRoles = ref([]);
 const errors = ref({});
 
 onMounted(async () => {
-  await toolStore.listTools();
+  await Promise.all([toolStore.listTools(), roleStore.listRoles()]);
 
   if (!isNew.value) {
     try {

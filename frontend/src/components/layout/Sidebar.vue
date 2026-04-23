@@ -12,8 +12,12 @@
         <nav class="nav-links">
           <router-link to="/chat" class="nav-link" @click="closeAfterNav">
             <i class="pi pi-comments"></i>
-            <span>New Chat</span>
+            <span>Chat</span>
           </router-link>
+          <div class="nav-link sidebar-new-chat-link" @click="createNewChat">
+            <i class="pi pi-plus"></i>
+            <span>New Chat</span>
+          </div>
           <router-link to="/chat/history" class="nav-link" @click="closeAfterNav">
             <i class="pi pi-history"></i>
             <span>History</span>
@@ -65,6 +69,10 @@
             <i class="pi pi-users"></i>
             <span>Users</span>
           </router-link>
+          <router-link to="/admin/roles" class="nav-link" @click="closeAfterNav">
+            <i class="pi pi-id-card"></i>
+            <span>Roles</span>
+          </router-link>
           <router-link to="/admin/settings" class="nav-link" @click="closeAfterNav">
             <i class="pi pi-cog"></i>
             <span>Settings</span>
@@ -85,12 +93,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useChatStore } from '@/stores/chat'
 import { useSidebar } from '@/composables/useSidebar'
 import Button from 'primevue/button'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const { isMobile, sidebarOpen, closeSidebar } = useSidebar()
 
 const user = computed(() => authStore.user)
@@ -104,6 +114,15 @@ const closeAfterNav = () => {
 const handleLogout = () => {
   authStore.logout()
   router.push('/login')
+}
+
+const createNewChat = async () => {
+  try {
+    const newChat = await chatStore.createSession()
+    router.push('/chat')
+  } catch (error) {
+    console.error('Failed to create chat:', error)
+  }
 }
 </script>
 
@@ -194,6 +213,15 @@ const handleLogout = () => {
 
 .nav-link i {
   font-size: 1.1rem;
+}
+
+.sidebar-new-chat-link {
+  cursor: pointer;
+}
+
+.sidebar-new-chat-link:hover {
+  background: rgba(45, 106, 79, 0.1);
+  color: #2d6a4f;
 }
 
 .sidebar-backdrop {
