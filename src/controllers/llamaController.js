@@ -38,7 +38,7 @@ const createChatCompletion = async (req, res) => {
 const createEmbedding = async (req, res) => {
   try {
     const { input, model } = req.body;
-    const embedding = await llamaService.getEmbeddings(input, { model });
+    const embedding = await llamaService.getEmbeddings(input, model);
     res.json({ success: true, data: embedding });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

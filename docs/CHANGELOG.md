@@ -6,10 +6,25 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-24
 
-#### Infrastructure & Misc
-- **Modified**: `integrations/llama/install.sh` — Switched default model from gemma-4-26B-A4B-it-MXFP4_MOE to gemma-4-26B-A4B; commented out Qwen3.6-35B-A3B-MXFP4_MOE
-- **Deleted**: `integrations/llama/models/gemma-4-26B-A4B-it-MXFP4_MOE.sh` — Replaced by gemma-4-26B-A4B.sh
-- **Added**: `.agents/notes/cross-reference-log.md`, `.agents/plans/tmp/phase1.0-todo.md` — Agent planning artifacts
+### RAG & Llama Integration Improvements
+
+#### RAG System Refactor
+- **Modified**: `src/controllers/ragController.js` — Switched to `memoryStorage` for uploads; removed manual directory management
+- **Modified**: `src/models/RAGDocument.js` — Refactored chunking and status updates
+- **Modified**: `src/routes/rag.js` — Added `multer` middleware to the document upload route
+- **Modified**: `src/services/ragService.js` — Implemented background document processing; updated to use `fileBuffer` for uploads
+- **Modified**: `frontend/src/views/rag/RAGDocumentsView.vue` — Simplified file upload logic in `handleFileUpload`
+
+#### Llama & Embeddings Support
+- **Added**: `src/config/database.js` — Added `embeddingsUrl` and `embeddingsModel` to `llama` configuration
+- **Modified**: `src/controllers/llamaController.js` — Updated `createEmbedding` to pass model directly to service
+- **Modified**: `src/services/llamaService.js` — Updated `getEmbeddings` to use configuration-driven URL and model defaults
+- **Modified**: `integrations/llama/run.sh` — Changed default execution to use an embedding model script
+
+#### Infrastructure & Integrations
+- **Modified**: `integrations/init_ubuntu.sh` — Updated to install Intel OneAPI and CUDA 13.2
+- **Added**: `integrations/llama/install_embedding_server.sh` — New script for embedding server setup
+- **Added**: `integrations/llama/models/Qwen3-Embedding-4B-Q8_0.sh` — New embedding model installation script
 
 ## [Unreleased] - 2026-04-23
 
@@ -69,6 +84,8 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-21
+
 ### Streaming Chat Improvements
 
 #### Session Subject Auto-Generation
@@ -87,20 +104,19 @@ All notable changes to the LLM Server application.
 
 ### Chat History Pagination
 
+#### Session Subject Auto-Generation
 - **Added**: Server-side pagination to `GET /chats` via `getSessionsByUser(page, limit)` returning `{ sessions, total, page, limit, totalPages }`
 - **Added**: `page` and `limit` query params to `GET /chats` controller endpoint
 - **Added**: ChatHistoryView now shows configurable page size (10/20/50) with PrimeVue Paginator component
 - **Added**: Session list items display message count and truncated last assistant message preview
 
 ### User Preferences
-
-- **Added**: `chat_page_size` field to User model settings (enum: 10, 20, 50)
+- **Added**: `chat_page_size` field in User model settings (enum: 10, 20, 50)
 - **Added**: `PATCH /api/users/me` route for partial profile updates
 - **Added**: ChatHistoryView loads and persists preferred page size via `settingsStore.updateUserPreferences()`
 - **Added**: Debug mode toggle in ChatView (`settingsStore.debugMode`) — controls raw output visibility
 
 ### UI Enhancements
-
 - **Added**: Error banner with dismiss button in ChatView for streaming errors
 - **Added**: Inline scroll-to-bottom button in ChatView when scrolled up
 - **Added**: `username` prop passed through to MessageBubble from auth store
@@ -130,15 +146,15 @@ All notable changes to the LLM Server application.
 - **Modified**: `SkillsView.vue` — removed inline dialog form; replaced with `RouterLink` navigation to edit page for New/Edit actions
 - **Modified**: `src/services/skillService.js` — sanitizes skill names consistently via `sanitizedName` variable before filesystem operations; `getSkillByName` now matches both original and sanitized names
 
-#### Tool Builder (Dedicated Create/Edit Page)
+### Tool Builder (Dedicated Create/Edit Page)
 - **Added**: `frontend/src/views/tools/EditToolView.vue` — dedicated create/edit page for tools with form validation, code editor, and parameter configuration
 - **Added**: Router routes `/tools/new` and `/tools/:id/edit` with admin guard (`requiresAdmin: true`)
 - **Modified**: `ToolsView.vue` — removed inline dialog form; replaced with `RouterLink` navigation to edit page for New/Edit actions
 
-#### Skill Service (Name Matching)
+### Skill Service (Name Matching)
 - **Modified**: `src/services/skillService.js` — `getSkillByName`, `updateSkill`, and `deleteSkill` now try multiple name sanitization strategies (removing hyphens, removing underscores) to find skill files with various naming conventions
 
-#### Other Improvements
+### Other Improvements
 - **Modified**: `EditSkillView.vue` — toast messages improved ("created/updated successfully"), toast duration set to 4s, better error detail extraction from API responses, navigation delayed 1.5s after save
 - **Modified**: `integrations/opencode/skills/api_designer/SKILL.md` — fixed YAML frontmatter formatting (tools and model fields reordered)
 
@@ -146,12 +162,6 @@ All notable changes to the LLM Server application.
 - **Added**: `sendStreamingMessage` in `chatStore` — SSE-based streaming with client-side parsing of `data:` lines
 - **Added**: `POST /api/chats/:id/llm/stream` endpoint via `chatController.sendToLLMStream` and `chatService.streamRunLoop`
 - **Modified**: `ChatView.vue` — updated to use streaming endpoint for LLM responses
-
-### Admin Settings (Full Implementation)
-- **Added**: Complete `AdminSettingsView.vue` replacing "settings coming soon" placeholder with three tabs: User Preferences, System Settings, and Integrations Health
-- **Added**: Default model selection, theme/color picker, and session config in User Preferences tab
-- **Added**: System settings CRUD (prompt templates, rate limiting, session timeout) in System Settings tab
-- **Added**: Integration health status display for Llama, TTS, and Matrix in Integrations tab
 
 ### Health Checks & Config Management
 - **Added**: `GET /api/system/health` endpoint checking health of Llama, TTS, and Matrix integrations with latency and status
@@ -171,7 +181,7 @@ All notable changes to the LLM Server application.
 
 ---
 
-## [Unreleased] - 2026-04-21
+## [Unreleased] - 2026-04-20
 
 ### Major Changes
 
@@ -188,17 +198,18 @@ All notable changes to the LLM Server application.
 - **Modified**: `src/routes/llama.js` — Added `GET /tts/speakers` endpoint for listing available preset speakers
 - **Modified**: `.env.example` and `.env` — Replaced `CHATTERBOX_*` environment variables with `TTS_*` (`TTS_SERVER_URL`, `TTS_TIMEOUT`, `TTS_DEFAULT_SPEAKER`)
 - **Modified**: `AGENTS.md` — Updated TTS gotcha to reflect Qwen3-TTS external service architecture
+- **Added**: `integrations/llama/models/` — TTS model scripts (`download-tts.sh`, `run-tts.sh`) and speaker reference (`en_male_1.json`)
 
-### Voice Modes
+#### Voice Modes
 - CustomVoice (preset speakers: Ryan, Aiden, Vivian, Serena, etc.)
 - VoiceDesign (text prompt-based voice)
 - Base (voice cloning from reference audio via `speakerAudio` parameter)
 
-### API Changes
+#### API Changes
 - **New endpoint**: `GET /api/llama/tts/speakers` — Returns available speaker presets with their languages and descriptions
 - **Existing endpoint**: `POST /api/llama/tts` — Now accepts optional `speaker` and `language` body fields in addition to `text` and `speakerAudio`
 
-### Testing
+#### Testing
 - **Verified**: All 8 backend model tests pass
 - **Verified**: All 30 RBAC integration tests pass
 - **Verified**: All 10 E2E Playwright tests pass (home, login, register, health, auth flows, route access)
@@ -206,21 +217,7 @@ All notable changes to the LLM Server application.
 - **Verified**: Speakers endpoint returns 500 when TTS server unreachable
 - **Verified**: All frontend routes load correctly with authentication
 
----
-
-## [Unreleased] - 2026-04-20
-
-### Features
-
-#### Chatterbox TTS Integration
-- **Added**: `src/services/chatterbox/` — Python gRPC server for Chatterbox text-to-speech (`tts_service.py`, `tts.proto`)
-- **Added**: `src/services/llamaService.js` — gRPC client initialization and lifecycle management for Chatterbox service
-- **Added**: `src/server.js` — Auto-spawn Chatterbox on startup with health check; graceful shutdown via SIGTERM/SIGINT handlers
-- **Added**: Database config extension with `chatterbox` settings (`grpcHost`, `grpcPort`, `speakerFile`, `temperature`, `topP`, `topK`)
-- **Added**: `.env.example` — New TTS environment variables (`CHATTERBOX_GRPC_HOST`, `CHATTERBOX_GRPC_PORT`, `CHATTERBOX_SPEAKER_FILE`, `CHATTERBOX_TEMPERATURE`, `CHATTERBOX_TOP_P`, `CHATTERBOX_TOP_K`, `TTS_SPEAKER_FILE`)
-- **Added**: `integrations/llama/models/` — TTS model scripts (`download-tts.sh`, `run-tts.sh`) and speaker reference (`en_male_1.json`)
-
-#### Frontend E2E Testing
+### Frontend E2E Testing
 - **Verified**: All 15 routes load without JavaScript errors (home, login, register, chat, chat-history, rag-documents, rag-queries, prompts, tools, skills, logs, monitor, debug, admin-users, admin-settings)
 - **Verified**: Auth flow — login redirects to `/chat`, logout returns to `/login`, router guards enforce auth correctly
 - **Verified**: Admin-only sections visible for admin users, hidden for regular users
@@ -245,7 +242,6 @@ All notable changes to the LLM Server application.
 - **Fixed**: `frontend/src/stores/chat.js` - Added `response.data.data` to `sendMessage()` action for correct data extraction.
 
 ### Summary
-
 | Category | Bugs Fixed |
 |----------|-----------|
 | ChatSession Model | 1 |
@@ -323,13 +319,12 @@ All stores were storing `response.data` (the full API response `{ success: true,
 - **Added**: `src/tool/glob.js` — Glob tool: file pattern matching with `**` recursive support
 - **Added**: `src/tool/grep.js` — Grep tool: regex search across files with context lines and include filtering
 - **Added**: `src/tool/question.js` — Question tool: prompts user for input via `ctx.ask()`
-- **Added**: `src/tool/todo.js` — Todo tool: task list management (add/complete/remove/list) persisted in session metadata
+- **Added**: `src/tool/todo.js` — Task list management (add/complete/remove/list) persisted in session metadata
 - **Added**: `src/models/ToolCall.js` — New model tracking tool calls with state machine (pending → running → completed/error)
 - **Added**: `src/services/llamaService.js` — New `chatWithTools()` method passing `tools` array to Llama.cpp `/v1/chat/completions`
 - **Added**: `src/services/chatService.js` — New `runLoop()` function implementing the tool-calling loop (up to 10 turns), `resolveTools()` for tool resolution, `getToolCalls()` endpoint
 - **Added**: `src/controllers/chatController.js` — New `getToolCalls` and `getToolCall` endpoints
 - **Modified**: `src/models/ChatSession.js` — Added `tool` role to message enum, `tool_calls` and `tool_call_id` fields, updated `addMessage()` to handle tool calls
-- **Added**: `src/routes/chat.js` — New `GET /:id/tool-calls` and `GET /:id/tool-calls/:toolCallId` routes
 - **Modified**: `src/routes/tool.js` — Reordered routes so `POST /call/:toolId` matches before `GET /:toolId`
 - **Modified**: `src/controllers/toolController.js` — Rewired to use `toolService` for real execution
 - **Modified**: `src/services/toolService.js` — Added real `callTool()` with Zod validation and `AsyncFunction` execution
@@ -337,24 +332,17 @@ All stores were storing `response.data` (the full API response `{ success: true,
 - **Modified**: `frontend/src/stores/chat.js` — New `sendMessage()` handling tool calls, `loadToolCalls()`, `loadToolCall()`
 - **Modified**: `frontend/src/stores/tool.js` — Fixed execute endpoint to `/tools/call/${toolId}`
 - **Modified**: `frontend/src/views/chat/ChatView.vue` — Added tool call display with collapsible tool results section
-- **Added**: `package.json` — Dependencies: `zod`, `glob`
 
 ### Tool RBAC Access Control
-
 - **Added**: `src/models/Tool.js` - New `roles` field (array, enum: `user`, `admin`, `system`, default `['user']`). Made `user_id` optional. Added `roles` index.
 - **Added**: `src/services/toolService.js` - Replaced all ownership-based (`user_id`) queries with role-based queries using `{ roles: { $in: userRoles } }`. Renamed `getUserTools` to `getAccessibleTools`. Admin-only operations (update/delete) query by `_id` without role filtering.
 - **Added**: `src/controllers/toolController.js` - Pass `req.user.roles` to service for read/call operations. Accept `roles` from request body in `createTool`. Return 403 for access-denied errors.
 - **Added**: `src/routes/tool.js` - `POST /`, `PUT /:id`, `DELETE /:id` now use `rbac.requireAdmin`. `GET /`, `GET /:id`, `POST /call/:id` use `authMiddleware` with role-based service filtering.
 - **Added**: `frontend/src/stores/tool.js` - Added `hasAdminRole` and `canExecuteTool` getters. All actions handle role-based access.
 - **Added**: `frontend/src/views/tools/ToolsView.vue` - Role-gated buttons (New Tool/Edit/Delete for admin only, Execute gated by tool roles). Shows role badges on tool cards. Shows "Access denied" when user lacks role.
-- **Fixed**: `frontend/src/components/layout/Sidebar.vue` - Changed `user?.role` to `user?.roles?.[0]` (was always undefined, breaking admin section visibility).
-- **Added**: `frontend/src/axios.js` - Added 403 interceptor to handle access denied responses.
 - **Fixed**: `src/services/toolService.js` - Tool code execution was failing for full function declarations. Added normalization to strip function wrapper before `AsyncFunction` evaluation.
 
----
-
 ### Summary
-
 | Category | Bugs Fixed |
 |----------|-----------|
 | Authentication | 3 |
@@ -367,33 +355,13 @@ All stores were storing `response.data` (the full API response `{ success: true,
 | Tool Calling | 24 |
 | **Total** | **50** |
 
-### Agent Instructions
+---
 
-- **Modified**: `AGENTS.md` - Added "Commit & Push" section requiring changelog update before every commit and push operation.
-
-## [Documentation Update] - 2026-04-19
+## [Unreleased] - 2026-04-19
 
 ### Documentation Improvements
 
-- **Added**: Comprehensive diagrams to all documentation pages including architecture, features, components, API, technical, and QA pages
-- **Added**: Wiki-style cross-references between all documentation pages
-- **Added**: Tag system with 40+ tags organized by categories (authentication, security, features, integration, infrastructure, technical, error handling, QA, workflow)
-- **Added**: `docs/tags-index.md` - Comprehensive tag-based navigation index organized by categories
-- **Added**: Feature-based and role-based tag cross-reference diagrams
-- **Added**: Quick navigation guides for different developer roles (auth, chat, RAG, frontend, DevOps, QA, debugging)
-- **Added**: Diagrams to `docs/qa/api-testing-examples.md` - API testing architecture and test flow diagrams
-- **Added**: Diagrams to `docs/qa/practical-examples.md` - Complete RAG workflow diagram
-- **Enhanced**: `docs/features/user-management.md` - Simplified role hierarchy diagram
-- **Enhanced**: `docs/features/matrix-integration.md` - Enhanced webhook configuration flow
-- **Enhanced**: `docs/components/pinia-stores.md` - Added component lifecycle diagram
-- **Enhanced**: `docs/technical/configuration-guide.md` - Enhanced DB connection pool lifecycle diagram
-- **Enhanced**: `docs/api/api-endpoints.md` - Added response streaming flow diagram
-- **Updated**: `AGENTS.md` - Added comprehensive documentation reference section linking to all docs
-- **Fixed**: `docs/tags-index.md` - Fixed path mismatch (`./api-endpoints.md` → `./api/api-endpoints.md`)
-- **Added**: `docs/index.md` - Documentation improvement checklist for future enhancements
-
-### Documentation Structure
-
+#### Documentation Structure
 ```
 docs/
 ├── index.md                    # Main entry point with quick links and architecture overview
@@ -430,4 +398,5 @@ docs/
 │   ├── api-testing-examples.md # Test cases
 │   └── practical-examples.md   # Usage patterns
 └── llama.cpp_docs/             # Llama.cpp reference docs (15 files)
+```
 ```

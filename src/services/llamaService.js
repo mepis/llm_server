@@ -140,10 +140,10 @@ const streamChatWithTools = async function* (messages, tools, options = {}) {
   }
 };
 
-const getEmbeddings = async (input, model = 'all-MiniLM-L6-v2') => {
+const getEmbeddings = async (input, model = config.llama.embeddingsModel) => {
   try {
     const response = await axios.post(
-      `${config.llama.url}/v1/embeddings`,
+      config.llama.embeddingsUrl,
       {
         model,
         input: Array.isArray(input) ? input : [input],

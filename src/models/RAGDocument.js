@@ -82,15 +82,8 @@ ragDocumentSchema.index({ status: 1 });
 ragDocumentSchema.index({ 'chunked_content.chunk_index': 1 });
 ragDocumentSchema.index({ group_ids: 1, status: 1 });
 
-ragDocumentSchema.methods.addChunk = function(chunkData) {
+  ragDocumentSchema.methods.addChunk = function(chunkData) {
   this.chunked_content.push(chunkData);
-  return this.save();
-};
-
-ragDocumentSchema.methods.setEmbeddings = function(embeddings) {
-  this.embeddings = embeddings;
-  this.status = 'indexed';
-  this.processed_at = new Date();
   return this.save();
 };
 

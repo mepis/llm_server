@@ -4,7 +4,7 @@ const authMiddleware = require('../middleware/auth');
 
 const ragController = require('../controllers/ragController');
 
-router.post('/documents', authMiddleware, ragController.uploadDocument);
+router.post('/documents', authMiddleware, ragController.upload.single('file'), ragController.uploadDocument);
 router.get('/documents', authMiddleware, ragController.getUserDocuments);
 router.get('/documents/:documentId', authMiddleware, ragController.getDocument);
 router.delete('/documents/:documentId', authMiddleware, ragController.deleteDocument);

@@ -20,6 +20,9 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
     }
     
     const fileDir = path.join(__dirname, '..', '..', 'uploads', 'documents');
+    if (!fs.existsSync(fileDir)) {
+      fs.mkdirSync(fileDir, { recursive: true });
+    }
     const filePath = path.join(fileDir, `${Date.now()}-${filename}`);
     
     fs.writeFileSync(filePath, fileBuffer);
@@ -82,6 +85,11 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
     });
     
     logger.info(`Document uploaded: ${document._id} by user ${userId}`);
+
+    // Start processing in the background
+    processDocument(document._id).catch(err => {
+      logger.error(`Background processing failed for document ${document._id}: ${err.message}`);
+    });
     
     return {
       success: true,
@@ -113,23 +121,25 @@ const processDocument = async (documentId) => {
     
     const chunks = chunkText(document.content, 500);
     
-    const embeddings = [];
+    const newChunks = [];
     
     for (const chunk of chunks) {
       const embeddingResponse = await llamaService.getEmbeddings(chunk);
       const embedding = embeddingResponse.data[0]?.embedding;
       
       if (embedding) {
-        embeddings.push(embedding);
-        await document.addChunk({
+        newChunks.push({
           text: chunk,
           embedding,
-          chunk_index: embeddings.length - 1
+          chunk_index: newChunks.length
         });
       }
     }
     
-    await document.setEmbeddings(embeddings);
+    document.chunked_content.push(...newChunks);
+    document.status = 'indexed';
+    document.processed_at = new Date();
+    await document.save();
     
     logger.info(`Document processed: ${documentId}`);
     
@@ -139,7 +149,13 @@ const processDocument = async (documentId) => {
     };
   } catch (error) {
     logger.error('Document processing failed:', error.message);
-    await document.setProcessingError(error.message);
+    
+    // Re-fetch document to ensure it's available for error logging
+    const document = await RAGDocument.findById(documentId);
+    if (document) {
+      await document.setProcessingError(error.message);
+    }
+    
     throw error;
   }
 };

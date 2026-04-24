@@ -92,10 +92,7 @@ const handleFileUpload = async (event) => {
 
   loading.value = true
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    await ragStore.uploadDocument(formData)
+    await ragStore.uploadDocument(file)
     
     event.target.value = ''
   } catch (error) {

@@ -24,6 +24,8 @@ module.exports = {
   llama: {
     url: process.env.LLAMA_SERVER_URL || 'http://localhost:8082',
     timeout: parseInt(process.env.LLAMA_TIMEOUT) || 30000,
+    embeddingsUrl: process.env.LLAMA_EMBEDDINGS_URL || `${process.env.LLAMA_SERVER_URL || 'http://localhost:8082'}/v1/embeddings`,
+    embeddingsModel: process.env.LLAMA_EMBEDDINGS_MODEL || 'all-MiniLM-L6-v2',
   },
 
   tts: {
