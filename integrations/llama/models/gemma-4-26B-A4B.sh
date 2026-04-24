@@ -1,5 +1,5 @@
 #!/bin/bash
-model=gemma-4-26B-A4B-it-MXFP4_MOE.gguf
+model=gemma-4-26B-A4B-it-UD-Q8_K_XL.gguf
 
 # Host Configs
 port=11434
@@ -28,9 +28,11 @@ cd llama.cpp/build/bin/
 export CUDA_SCALE_LAUNCH_QUEUES=8x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-# export CUDACXX=$(which nvcc)
+export LLAMA_ARG_FIT=on
+export LLAMA_ARG_FIT_TARGET=512
+export LLAMA_ARG_FIT_CTX=262144
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 2 --cpu-range 0-7 --cpu-strict 1 --kv-unified --batch-size 4096 --ubatch-size 1024 --reasoning on
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --prio 2 --cpu-range 0-7 --cpu-strict 1 --kv-unified --batch-size 256 --ubatch-size 256 --reasoning on
 
 
 # NCCL_DEBUG=INFO ./llama-server -m /home/jon/llm_server/integrations/llama/models/Qwen3.5-27B-IQ4_NL.gguf --port 11434 --host 100.115.205.84 -c 131072 -ngl 999 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --temp 1 --top-p 0.95 --cont-batching --min-p 0.0 --top-k 64 --threads 8 --prio 2 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 4096 --ubatch-size 1024 

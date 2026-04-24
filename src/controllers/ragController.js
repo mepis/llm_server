@@ -28,12 +28,20 @@ const upload = multer({
       'text/markdown',
       'application/pdf',
       'application/json',
-      'text/csv'
+      'text/csv',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type'));
+      const ext = path.extname(file.originalname).toLowerCase().slice(1);
+      const allowedExtensions = ['txt', 'md', 'pdf', 'json', 'csv', 'docx', 'xlsx'];
+      if (allowedExtensions.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type'));
+      }
     }
   }
 });
@@ -150,7 +158,7 @@ const searchDocuments = async (req, res) => {
       });
     }
     
-    const result = await ragService.searchDocuments(userId, query, top_k || 10);
+    const result = await ragService.searchDocuments(userId, query, top_k || 10, filter_document_ids);
     
     res.json({
       success: true,

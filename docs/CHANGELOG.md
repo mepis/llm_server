@@ -4,7 +4,70 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-24
+
+#### Infrastructure & Misc
+- **Modified**: `integrations/llama/install.sh` — Switched default model from gemma-4-26B-A4B-it-MXFP4_MOE to gemma-4-26B-A4B; commented out Qwen3.6-35B-A3B-MXFP4_MOE
+- **Deleted**: `integrations/llama/models/gemma-4-26B-A4B-it-MXFP4_MOE.sh` — Replaced by gemma-4-26B-A4B.sh
+- **Added**: `.agents/notes/cross-reference-log.md`, `.agents/plans/tmp/phase1.0-todo.md` — Agent planning artifacts
+
 ## [Unreleased] - 2026-04-23
+
+### RAG Operations & Per-User Persistent Memory (New Features)
+
+#### Document Parsing Infrastructure
+- **Added**: `src/services/documentParser.js` — File type parsers for PDF, DOCX, XLSX, CSV, TXT, MD, JSON with proper text extraction
+- **Added**: `pdf-parse@^1.1.0`, `mammoth@^1.8.0`, `xlsx@^0.18.5` to package.json dependencies
+- **Modified**: `src/services/ragService.js` — Replaced `fileBuffer.toString('utf8')` with DocumentParser; on parse error sets status='failed' with error_message
+- **Modified**: `src/controllers/ragController.js` — Added DOCX and XLSX MIME types to fileFilter + extension-based fallback acceptance
+- **Modified**: `src/models/RAGDocument.js` — Added 'xlsx' to file_type enum; added `sheets: [String]` and `parse_error: String` to metadata
+
+#### Document Groups + RBAC (Custom Permission Model)
+- **Added**: `src/models/DocumentGroup.js` — Document group model with owner/editor/viewer roles, visibility (private/team/public), compound unique index on name+owner_id
+- **Added**: `src/services/documentGroupService.js` — CRUD operations for groups with Mongoose session atomicity for transferOwnership
+- **Added**: `src/controllers/documentGroupController.js` — 10 REST endpoints for group management
+- **Added**: `src/routes/documentGroups.js` — Document groups routes mounted at `/api/document-groups/*`
+- **Modified**: `src/models/RAGDocument.js` — Added `group_ids: [ObjectId]` field and compound index `{ group_ids: 1, status: 1 }`
+- **Modified**: `src/services/ragService.js` — `searchDocuments()` now searches personal docs AND group-accessible documents when documentIds not provided
+
+#### Citation System
+- **Added**: `src/utils/citationBuilder.js` — Citation ID assignment, source list formatting, deterministic fallback injection
+- **Modified**: `src/services/ragService.js` — `searchDocuments()` returns structured results with per-chunk citation data and deduplicated sources array
+- **Modified**: `src/services/chatService.js` — All three chat functions (chatWithLLM, runLoop, streamRunLoop) now extract and store citation metadata in assistant message `metadata.citations`
+- **Added**: Citation instruction to system message prompting LLM to include `[1]`, `[2]` markers
+
+#### Multi-Layer Persistent Memory System
+- **Added**: `src/models/UserMemory.js` — Three-layer memory model (episodic/semantic/procedural) with TTL index for episodic, text search on keywords/tags, recency-based TTL extension
+- **Added**: `src/services/memoryManager.js` — CRUD operations for all three layers with context budget enforcement (300 tokens total), keyword extraction
+- **Added**: `src/utils/memoryExtractor.js` — Automatic memory extraction from conversations with PII redaction and keyword-based fallback extractor when llama.cpp unavailable
+- **Added**: `src/controllers/memoryController.js` — 6 REST endpoints for memory management
+- **Added**: `src/routes/memory.js` — Memory routes mounted at `/api/memory/*`
+- **Modified**: `src/services/chatService.js` — Added `buildUserMemoryContext()` and `triggerAutomaticMemoryExtraction()` integrated into runLoop and streamRunLoop
+- **Modified**: `src/routes/api.js` — Registered documentGroups and memory route modules
+
+#### Frontend Updates
+- **Added**: `frontend/src/stores/documentGroups.js` — Pinia store for document groups with all CRUD actions
+- **Added**: `frontend/src/stores/memory.js` — Pinia store for memories with layer filtering and extraction
+- **Added**: `frontend/src/views/document-groups/DocumentGroupsView.vue` — Group management UI with tabs for members and documents
+- **Added**: `frontend/src/views/memory/MemoriesView.vue` — Three-layer memory browsing UI with search and manual extraction
+- **Modified**: `frontend/src/router/index.js` — Added `/document-groups` and `/memory` routes; added `:docId` param to RAGDocumentsView route
+- **Modified**: `frontend/src/components/layout/Sidebar.vue` — Added Document Groups and Memory menu items under Knowledge section
+- **Modified**: `frontend/src/stores/chat.js` — Updated streaming done handler to extract citation metadata from SSE responses
+
+#### Bug Fix (Phase 1.0)
+- **Fixed**: `src/services/ragService.js` — `searchDocuments()` signature changed from `(userId, query)` to `(userId, query, limit = 10, documentIds = [])`
+- **Fixed**: `src/services/chatService.js` — Fixed three call sites where `session.rag_document_ids` (array of ObjectIds) was passed as first argument instead of `session.user_id.toString()`
+- **Fixed**: `src/controllers/ragController.js` — Now passes `filter_document_ids` from request body to search function
+
+#### Documentation Updates
+- **Added**: `docs/features/document-groups.md` — Document groups feature docs with schema diagram, RBAC matrix, workflow diagrams, API endpoints
+- **Added**: `docs/features/persistent-memory.md` — Persistent memory docs with three-layer explanation, UserMemory schema, extraction workflow, context budget management
+- **Added**: `docs/features/citation-system.md` — Citation system docs with format specification, system message template, integration points
+- **Modified**: `docs/features/rag-system.md` — Added xlsx support, sheets tracking, parse_error handling to supported file types and schema
+- **Modified**: `docs/architecture/database-schema.md` — Added DocumentGroups and UserMemories collections with field tables
+- **Modified**: `docs/tags-index.md` — Added document-groups, persistent-memory, citations tags
+
+---
 
 ### Streaming Chat Improvements
 

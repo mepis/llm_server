@@ -373,6 +373,11 @@ export const useChatStore = defineStore('chat', {
                   { id: crypto.randomUUID(), role: 'assistant', content: '', timestamp: new Date().toISOString() }
 
                 unified.content = data.content || ''
+                if (data.citations && data.citations.length > 0) {
+                  unified.metadata = { ...unified.metadata, citations: data.citations }
+                } else if (!unified.metadata) {
+                  unified.metadata = {}
+                }
 
                 const allToolCalls = []
                 const allToolResults = []

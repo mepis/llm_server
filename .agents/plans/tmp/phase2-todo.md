@@ -179,6 +179,11 @@ Enable document sharing between users through document groups with role-based ac
   - DELETE /api/document-groups/:id/documents/:did
   - Validate edit permission
 
+- [ ] Implement `getAccessibleDocs(req, res)`:
+  - GET /api/document-groups/accessible
+  - Returns all documents the user can access (own + group-accessible + public)
+  - Deduplicated list with source info
+
 **Acceptance criteria:**
 - All endpoints return `{ success: true, data: ... }` format
 - Unauthorized requests return 403 with 'Insufficient permissions'
@@ -208,6 +213,7 @@ Enable document sharing between users through document groups with role-based ac
   router.post('/:id/transfer', authMiddleware, documentGroupController.transferOwnership);
   router.post('/:id/documents', authMiddleware, documentGroupController.addDocumentToGroup);
   router.delete('/:id/documents/:did', authMiddleware, documentGroupController.removeDocumentFromGroup);
+  router.get('/accessible', authMiddleware, documentGroupController.getAccessibleDocs);
   
   module.exports = router;
   ```

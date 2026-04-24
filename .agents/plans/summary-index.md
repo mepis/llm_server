@@ -45,10 +45,11 @@ Three sub-agent reviews identified **53 total issues** across backend, frontend,
 
 | File | Description |
 |------|-------------|
-| [.agents/plans/tmp/phase1-todo.md](./plans/tmp/phase1-todo.md) | Phase 1: Document parsing infrastructure — 5 detailed tasks with acceptance criteria |
+| [.agents/plans/tmp/phase1.0-todo.md](./plans/tmp/phase1.0-todo.md) | Phase 1.0: Bug fix — ragService.searchDocuments() call signature fix in chatService (4 tasks) |
+| [.agents/plans/tmp/phase1-todo.md](./plans/tmp/phase1-todo.md) | Phase 1: Document parsing infrastructure — 6 detailed tasks including JSON parser with acceptance criteria |
 | [.agents/plans/tmp/phase2-todo.md](./plans/tmp/phase2-todo.md) | Phase 2: Document groups + RBAC — 6 detailed tasks covering models, services, controllers, routes |
-| [.agents/plans/tmp/phase3-todo.md](./plans/tmp/phase3-todo.md) | Phase 3: Citation system — 5 tasks for back-end citation building and frontend display |
-| [.agents/plans/tmp/phase4-todo.md](./plans/tmp/phase4-todo.md) | Phase 4: Multi-layer memory system — 7 detailed tasks for models, services, extractors, routes |
+| [.agents/plans/tmp/phase3-todo.md](./plans/tmp/phase3-todo.md) | Phase 3: Citation system — 5 tasks for back-end citation building and AssistantMessage component display |
+| [.agents/plans/tmp/phase4-todo.md](./plans/tmp/phase4-todo.md) | Phase 4: Multi-layer memory system — 7 detailed tasks with TTL extension hook on UserMemory model |
 | [.agents/plans/tmp/phase5-todo.md](./plans/tmp/phase5-todo.md) | Phase 5: Frontend updates — 7 tasks covering views, stores, routing, chat integration |
 | [.agents/plans/tmp/phase6-todo.md](./plans/tmp/phase6-todo.md) | Phase 6: Integration testing + documentation — test scenarios, performance tests, doc updates |
 
@@ -58,6 +59,7 @@ Three sub-agent reviews identified **53 total issues** across backend, frontend,
 |------|-------------|
 | [.agents/notes/discoveries.md](./notes/discoveries.md) | **Codebase analysis** — current RAG system status, gaps vs requirements, existing infrastructure to leverage |
 | [.agents/notes/review-findings-round1.md](./notes/review-findings-round1.md) | **Round 1 review** — 53 issues from 3 sub-agent reviews with severity levels and fixes applied |
+| [.agents/notes/cross-reference-log.md](./notes/cross-reference-log.md) | **Cross-reference log** — documents what each file covers, cross-references, file ownership map, API endpoint references |
 
 ### Existing Codebase (Reference for Implementation)
 
@@ -109,6 +111,11 @@ Week 4: Phase 5 (frontend) + Phase 6 (testing + docs)
 **Parallel tracks**: Phases 1, 2, and 4 can start in parallel after Phase 1.0 bug fix. Phase 3 depends on both 1 and 2 being complete. Phase 5 depends on all backend phases. Phase 6 runs last.
 
 ---
+
+## Phase 1.0 Changes (2026-04-23)
+
+- Created `.agents/plans/tmp/phase1.0-todo.md` — dedicated todo list for the ragService.searchDocuments() call signature bug fix
+- All phase plans verified for cross-reference consistency after Round 1 review fixes
 
 ## All New Files Summary (Backend)
 

@@ -80,9 +80,69 @@ frontend/src/
 
 ## Documentation
 
-- `docs/` — comprehensive documentation with diagrams and tag-based navigation
-- `docs/index.md` — main index
-- `docs/tags-index.md` — tag-based navigation organized by category
+All documentation is in `docs/` with diagrams, tags, and wiki-style cross-references.
+
+### Index & Navigation
+- `docs/index.md` — main index with categorized links and summaries
+- `docs/tags-index.md` — tag-based navigation organized by category (auth, chat, rag, memory, etc.)
+
+### Feature Documentation (15 pages)
+- `docs/features/authentication.md` — login, registration, JWT, RBAC
+- `docs/features/user-management.md` — CRUD, profiles, role assignment
+- `docs/features/chat-sessions.md` — sessions, messages, streaming, tool calls
+- `docs/features/llm-integration.md` — Llama.cpp inference, embeddings
+- `docs/features/rag-system.md` — document processing, chunking, semantic search
+- `docs/features/prompt-management.md` — prompt templates with variables
+- `docs/features/tool-support.md` — custom tools, Zod validation, builtin tools
+- `docs/features/system-monitoring.md` — logs, health checks, performance
+- `docs/features/matrix-integration.md` — Matrix bot, webhooks, room chat
+- `docs/features/audio-generation.md` — TTS via Qwen3-TTS external service
+- `docs/features/config-management.md` — application settings CRUD
+- `docs/features/role-management.md` — role CRUD with cascade deletion
+- `docs/features/document-groups.md` — cross-user document sharing with permissions
+- `docs/features/persistent-memory.md` — three-layer memory (episodic, semantic, procedural)
+- `docs/features/citation-system.md` — RAG source attribution
+
+### Component Documentation (3 pages)
+- `docs/components/frontend-components.md` — Vue 3 components
+- `docs/components/pinia-stores.md` — Pinia state management stores
+- `docs/components/middleware.md` — auth, RBAC, rate limiting middleware
+
+### Architecture Documentation (5 pages)
+- `docs/architecture/system-architecture.md` — system design overview
+- `docs/architecture/database-schema.md` — MongoDB collections and indexes
+- `docs/architecture/worker-threads.md` — Piscina pool implementation
+- `docs/architecture/security-design.md` — password hashing, JWT, validation
+- `docs/architecture/deep-dive.md` — complete request flow walkthrough
+
+### API Reference (3 pages)
+- `docs/api/api-endpoints.md` — complete REST API specification
+- `docs/api/request-response-formats.md` — standard response patterns
+- `docs/api/error-handling.md` — error codes and strategies
+
+### Function Documentation (6 pages)
+- `docs/functions/chat-service-functions.md` — all chatService functions
+- `docs/functions/llama-service-functions.md` — all llamaService functions
+- `docs/functions/tool-service-functions.md` — tool CRUD, registry, execution
+- `docs/functions/document-parser-functions.md` — parsePDF, parseDOCX, parseXLSX, etc.
+- `docs/functions/skill-service-functions.md` — skill discovery and CRUD
+- `docs/functions/document-group-functions.md` — group CRUD, member management
+
+### Technical Reference (5 pages)
+- `docs/technical/configuration-guide.md` — environment variables and setup
+- `docs/technical/deployment-guide.md` — Docker and production deployment
+- `docs/technical/performance-guide.md` — optimization strategies
+- `docs/technical/troubleshooting.md` — common issues and solutions
+- `docs/technical/platform-info.md` — requirements, dependencies, port config
+
+### QA & Examples (2 pages)
+- `docs/qa/api-testing-examples.md` — curl test examples for all endpoints
+- `docs/qa/practical-examples.md` — real-world usage scenarios with code
+
+### Llama.cpp Reference
+- `docs/llama.cpp_docs/` — Llama.cpp server documentation (server, cli, quantize, build)
+
+### Changelog
 - `docs/CHANGELOG.md` — update with timestamps for bug fixes and new features
 
 ## Commit & Push

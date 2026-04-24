@@ -1,5 +1,7 @@
 # LLM Server - Developer Documentation
 
+tags: [index, overview]
+
 Welcome to the LLM Server developer documentation. This comprehensive guide covers all aspects of the application, from architecture to implementation details.
 
 ---
@@ -7,53 +9,71 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 ## Quick Links
 
 ### Feature Documentation
-- [Authentication & Authorization](./features/authentication.md) - User login, registration, JWT tokens, and RBAC
-- [User Management](./features/user-management.md) - CRUD operations, profile updates, role assignment
-- [Chat Sessions](./features/chat-sessions.md) - Conversation management with streaming responses
-- [LLM Integration](./features/llm-integration.md) - Llama.cpp inference, embeddings, model management
-- [RAG System](./features/rag-system.md) - Document processing, embeddings, semantic search
-- [Prompt Management](./features/prompt-management.md) - Prompt templates with variables and tags
-- [Tool Support](./features/tool-support.md) - Custom tool creation, execution, and parameters
-- [System Monitoring](./features/system-monitoring.md) - Logs, health checks, performance metrics
-- [Matrix Integration](./features/matrix-integration.md) - Matrix bot, webhook handling, room chat
+
+- [Authentication & Authorization](./features/authentication.md) - User login, registration, JWT tokens, and RBAC role-based access control
+- [User Management](./features/user-management.md) - CRUD operations, profile updates, role assignment, and password reset
+- [Chat Sessions](./features/chat-sessions.md) - Conversation management with streaming responses and tool call support
+- [LLM Integration](./features/llm-integration.md) - Llama.cpp inference, embeddings, model management, and audio generation
+- [RAG System](./features/rag-system.md) - Document processing, chunking, embeddings, and semantic search
+- [Prompt Management](./features/prompt-management.md) - Prompt templates with variables, settings, and tags
+- [Tool Support](./features/tool-support.md) - Custom tool creation, execution, Zod parameter validation, and builtin tools
+- [System Monitoring](./features/system-monitoring.md) - Logs, health checks, performance metrics, and system dashboard
+- [Matrix Integration](./features/matrix-integration.md) - Matrix bot, webhook handling, room chat, and message processing
+- [Audio Generation](./features/audio-generation.md) - Text-to-speech via Qwen3-TTS external service with speaker listing
+- [Config Management](./features/config-management.md) - Application settings CRUD across server, database, auth, llama, tts, matrix categories
+- [Role Management](./features/role-management.md) - Role CRUD with cascade deletion and builtin roles (user, admin, system)
+- [Document Groups](./features/document-groups.md) - Cross-user document sharing with visibility levels and member permissions
+- [Persistent Memory](./features/persistent-memory.md) - Three-layer memory system: episodic, semantic, procedural with auto-extraction
+- [Citation System](./features/citation-system.md) - Source attribution from RAG searches with bracketed inline citations
 
 ### Component Documentation
-- [Frontend Components](./components/frontend-components.md) - Vue 3 components and layouts
-- [Pinia Stores](./components/pinia-stores.md) - State management stores
-- [Middleware](./components/middleware.md) - Authentication, RBAC, rate limiting
+
+- [Frontend Components](./components/frontend-components.md) - Vue 3 components: MessageBubble, ToolCallCard, ThinkingIndicator, Layout
+- [Pinia Stores](./components/pinia-stores.md) - State management stores for auth, chat, logs, RAG, tools, memory, and more
+- [Middleware](./components/middleware.md) - Authentication (JWT), RBAC (authorize/requireAdmin/requireSystem), rate limiting
 
 ### Architecture
-- [System Architecture](./architecture/system-architecture.md) - Complete system design and data flow
-- [Database Schema](./architecture/database-schema.md) - MongoDB collections and indexes
-- [Worker Threads](./architecture/worker-threads.md) - Piscina pool and task distribution
-- [Security Design](./architecture/security-design.md) - Password hashing, JWT, validation
+
+- [System Architecture](./architecture/system-architecture.md) - Complete system design, component relationships, and data flow overview
+- [Database Schema](./architecture/database-schema.md) - MongoDB collections, fields, indexes, and relationships for all models
+- [Worker Threads](./architecture/worker-threads.md) - Piscina pool implementation for argon2 hashing and bash execution
+- [Security Design](./architecture/security-design.md) - Password hashing (argon2id), JWT flow, validation design, and RBAC patterns
+- [Architecture Deep Dive](./architecture/deep-dive.md) - Complete request flow walkthrough, worker architecture, database relationships, security layers, and streaming system
 
 ### API Reference
-- [API Endpoints](./api/api-endpoints.md) - Complete REST API specification
-- [Request/Response Formats](./api/request-response-formats.md) - Standard response patterns
-- [Error Handling](./api/error-handling.md) - Error codes and handling strategies
+
+- [API Endpoints](./api/api-endpoints.md) - Complete REST API specification with all routes, methods, and authentication requirements
+- [Request/Response Formats](./api/request-response-formats.md) - Standard response patterns wrapping data in `{ success: true, data: ... }`
+- [Error Handling](./api/error-handling.md) - Error codes, validation errors, and error handling strategies
+
+### Function Documentation
+
+- [Chat Service Functions](./functions/chat-service-functions.md) - All chatService functions: createSession, runLoop, streamRunLoop, chatWithLLM, and more
+- [Llama Service Functions](./functions/llama-service-functions.md) - All llamaService functions: getModels, chatWithTools, streaming, embeddings, healthCheck
+- [Tool Service Functions](./functions/tool-service-functions.md) - Tool CRUD, call execution with Zod validation, builtin/custom tool registry
+- [Document Parser Functions](./functions/document-parser-functions.md) - parsePDF, parseDOCX, parseXLSX, parseCSV, parseTXT, parseMD, parseJSON
+- [Skill Service Functions](./functions/skill-service-functions.md) - Skill discovery from filesystem, caching, CRUD for SKILL.md-based skills
+- [Document Group Functions](./functions/document-group-functions.md) - Group CRUD, member management, ownership transfer with MongoDB transactions
 
 ### Technical Reference
-- [Configuration Guide](./technical/configuration-guide.md) - Environment variables and setup
-- [Deployment Guide](./technical/deployment-guide.md) - Docker, production setup
-- [Performance Guide](./technical/performance-guide.md) - Optimization strategies
-- [Troubleshooting](./technical/troubleshooting.md) - Common issues and solutions
 
-### QA
-- [API Testing Examples](./qa/api-testing-examples.md) - API test cases and examples
-- [Practical Examples](./qa/practical-examples.md) - Real-world usage examples
+- [Configuration Guide](./technical/configuration-guide.md) - Environment variables (.env), setup instructions, and initialization scripts
+- [Deployment Guide](./technical/deployment-guide.md) - Docker setup, production deployment, and environment configuration
+- [Performance Guide](./technical/performance-guide.md) - Optimization strategies, caching, query performance, and scaling
+- [Troubleshooting](./technical/troubleshooting.md) - Common issues, debugging tips, and known gotchas
+- [Platform Information](./technical/platform-info.md) - Platform requirements, dependency matrix, port configuration, env variables reference, data flow diagrams
+
+### QA & Testing
+
+- [API Testing Examples](./qa/api-testing-examples.md) - curl examples for auth, chat, RAG, tools, user management, memory, and monitor endpoints
+- [Practical Examples](./qa/practical-examples.md) - Real-world scenarios: multi-turn tool chat, RAG Q&A, SSE streaming code, custom tools, memory enhancement
 
 ---
 
 ## Table of Contents
 
 ### [Index](#table-of-contents)
-- [Features](#features)
-- [Components](#components)
-- [Architecture](#architecture)
-- [API](#api)
-- [Technical](#technical)
-- [QA](#qa)
+See the top section for categorized quick links.
 
 ### Tags Index
 - [Authentication & Security](./tags-index.md#authentication--security)
@@ -62,8 +82,11 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 - [Integration](./tags-index.md#integration)
 - [Infrastructure](./tags-index.md#infrastructure)
 - [Technical Components](./tags-index.md#technical-components)
+- [Error Handling](./tags-index.md#error-handling)
+- [QA & Testing](./tags-index.md#qa--testing)
+- [Workflow](./tags-index.md#workflow)
 
-### Features
+### Features (15 pages)
 - [Authentication & Authorization](./features/authentication.md)
 - [User Management](./features/user-management.md)
 - [Chat Sessions](./features/chat-sessions.md)
@@ -73,30 +96,46 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 - [Tool Support](./features/tool-support.md)
 - [System Monitoring](./features/system-monitoring.md)
 - [Matrix Integration](./features/matrix-integration.md)
+- [Audio Generation](./features/audio-generation.md)
+- [Config Management](./features/config-management.md)
+- [Role Management](./features/role-management.md)
+- [Document Groups](./features/document-groups.md)
+- [Persistent Memory](./features/persistent-memory.md)
+- [Citation System](./features/citation-system.md)
 
-### Components
+### Components (3 pages)
 - [Frontend Components](./components/frontend-components.md)
 - [Pinia Stores](./components/pinia-stores.md)
 - [Middleware](./components/middleware.md)
 
-### Architecture
+### Architecture (5 pages)
 - [System Architecture](./architecture/system-architecture.md)
 - [Database Schema](./architecture/database-schema.md)
 - [Worker Threads](./architecture/worker-threads.md)
 - [Security Design](./architecture/security-design.md)
+- [Architecture Deep Dive](./architecture/deep-dive.md)
 
-### API
+### API (3 pages)
 - [API Endpoints](./api/api-endpoints.md)
 - [Request/Response Formats](./api/request-response-formats.md)
 - [Error Handling](./api/error-handling.md)
 
-### Technical
+### Functions (6 pages)
+- [Chat Service Functions](./functions/chat-service-functions.md)
+- [Llama Service Functions](./functions/llama-service-functions.md)
+- [Tool Service Functions](./functions/tool-service-functions.md)
+- [Document Parser Functions](./functions/document-parser-functions.md)
+- [Skill Service Functions](./functions/skill-service-functions.md)
+- [Document Group Functions](./functions/document-group-functions.md)
+
+### Technical (5 pages)
 - [Configuration Guide](./technical/configuration-guide.md)
 - [Deployment Guide](./technical/deployment-guide.md)
 - [Performance Guide](./technical/performance-guide.md)
 - [Troubleshooting](./technical/troubleshooting.md)
+- [Platform Information](./technical/platform-info.md)
 
-### QA
+### QA (2 pages)
 - [API Testing Examples](./qa/api-testing-examples.md)
 - [Practical Examples](./qa/practical-examples.md)
 
@@ -112,8 +151,8 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 │  │  (Vue 3)     │    │(matrix-js-sdk)│    │   Clients   │      │
 │  └──────────────┘    └──────────────┘    └──────────────┘      │
 └─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
+                               │
+                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    API Gateway Layer                             │
 │  ┌─────────────────────────────────────────────────────────┐   │
@@ -124,39 +163,105 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 │  │  └─────────────┘  └─────────────┘  └─────────────┘     │   │
 │  └─────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
+                               │
+               ┌───────────────┼───────────────┐
+               ▼               ▼               ▼
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
 │  Business Logic │ │   Worker Pool   │ │   Data Layer    │
-│  ┌───────────┐  │ │ ┌───────────┐  │ │ ┌────────────┐ │
-│  │ User      │  │ │ │ Argon2     │  │ │ │ MongoDB    │ │
-│  │ Service   │──┼──│ │ Worker    │  │ │ │ Collection │ │
-│  └───────────┘  │ │ └───────────┘  │ │ └────────────┘ │
-│  ┌───────────┐  │ │ │ Llama      │  │ │                │
-│  │ Chat      │  │ │ │ Inference  │  │ │ Llama.cpp     │
-│  │ Service   │──┼──│ │ Worker    │  │ │ Server        │
-│  └───────────┘  │ │ └───────────┘  │ │ (Port 8082)   │
-│  ┌───────────┐  │ │ ┌───────────┐  │ │               │
-│  │ RAG       │  │ │ │ Llama     │  │ │               │
-│  │ Service   │──┼──│ │ Embeddings│  │ │               │
-│  └───────────┘  │ │   Worker    │  │ │               │
-│  ┌───────────┐  │ │             │  │ │               │
-│  │ Prompt    │  │ └─────────────┘  │ └──────────────┘ │
-│  │ Service   │  │                  │                  │
-│  ┌───────────┐  │                  │                  │
-│  │ Tool      │  │                  │                  │
-│  │ Service   │  │                  │                  │
-│  └───────────┘  │                  │                  │
-│  ┌───────────┐  │                  │                  │
-│  │ Matrix    │  │                  │                  │
-│  │ Service   │  │                  │                  │
-│  └───────────┘  │                  │                  │
-│  ┌───────────┐  │                  │                  │
-│  │ Log       │  │                  │                  │
-│  │ Service   │  │                  │                  │
-│  └───────────┘  │                  │                  │
+│  ┌───────────┐  │ │ ┌───────────┐  │ │ ┌────────────┐ │ │
+│  │ User      │  │ │ │ Argon2     │  │ │ │ MongoDB    │ │ │
+│  │ Service   │──┼──│ │ Worker    │  │ │ │ Collection │ │ │
+│  └───────────┘  │ │ └───────────┘  │ │ └────────────┘ │ │
+│  ┌───────────┐  │ │ │ Llama      │  │ │                │ │
+│  │ Chat      │  │ │ │ Inference  │  │ │ Llama.cpp     │ │
+│  │ Service   │──┼──│ │ Worker    │  │ │ Server        │ │
+│  └───────────┘  │ │ └───────────┘  │ │ (Port 8082)   │ │
+│  ┌───────────┐  │ │ ┌───────────┐  │ │               │ │
+│  │ RAG       │  │ │ │ Llama     │  │ │ TTS Server    │ │
+│  │ Service   │──┼──│ │ Embeddings│  │ │ (Qwen3-TTS)  │ │
+│  └───────────┘  │ │   Worker    │  │ │               │ │
+│  ┌───────────┐  │ │             │  │ └──────────────┘ │
+│  │ Prompt    │  │ └─────────────┘                      │
+│  │ Service   │  │                                      │
+│  ┌───────────┐  │      Piscina (2-4 threads)           │
+│  │ Tool      │  │                                      │
+│  │ Service   │  │                                      │
+│  └───────────┘  │                                      │
+│  ┌───────────┐  │                                      │
+│  │ Matrix    │  │                                      │
+│  │ Service   │  │                                      │
+│  └───────────┘  │                                      │
+│  ┌───────────┐  │                                      │
+│  │ Log       │  │                                      │
+│  │ Service   │  │                                      │
+│  └───────────┘  │                                      │
+│  ┌───────────┐  │                                      │
+│  │ Memory    │  │                                      │
+│  │ Manager   │  │                                      │
+│  └───────────┘  │                                      │
+│  ┌───────────┐  │                                      │
+│  │ Document  │  │                                      │
+│  │ Parser    │  │                                      │
+│  └───────────┘  │                                      │
 └─────────────────┘  └───────────────┘ └─────────────────┘
+```
+
+---
+
+## Documentation Structure
+
+```
+docs/
+├── features/           # Feature documentation (15 pages)
+│   ├── authentication.md
+│   ├── user-management.md
+│   ├── chat-sessions.md
+│   ├── llm-integration.md
+│   ├── rag-system.md
+│   ├── prompt-management.md
+│   ├── tool-support.md
+│   ├── system-monitoring.md
+│   ├── matrix-integration.md
+│   ├── audio-generation.md
+│   ├── config-management.md
+│   ├── role-management.md
+│   ├── document-groups.md
+│   ├── persistent-memory.md
+│   └── citation-system.md
+├── components/         # Component documentation (3 pages)
+│   ├── frontend-components.md
+│   ├── pinia-stores.md
+│   └── middleware.md
+├── architecture/       # Architecture documentation (5 pages)
+│   ├── system-architecture.md
+│   ├── database-schema.md
+│   ├── worker-threads.md
+│   ├── security-design.md
+│   └── deep-dive.md
+├── api/               # API documentation (3 pages)
+│   ├── api-endpoints.md
+│   ├── request-response-formats.md
+│   └── error-handling.md
+├── functions/         # Function-level documentation (6 pages)
+│   ├── chat-service-functions.md
+│   ├── llama-service-functions.md
+│   ├── tool-service-functions.md
+│   ├── document-parser-functions.md
+│   ├── skill-service-functions.md
+│   └── document-group-functions.md
+├── technical/         # Technical documentation (5 pages)
+│   ├── configuration-guide.md
+│   ├── deployment-guide.md
+│   ├── performance-guide.md
+│   ├── troubleshooting.md
+│   └── platform-info.md
+├── qa/               # QA and examples (2 pages)
+│   ├── api-testing-examples.md
+│   └── practical-examples.md
+├── llama.cpp_docs/   # Llama.cpp reference documentation
+├── index.md          # This file
+├── tags-index.md     # Tag-based navigation
+└── CHANGELOG.md      # Release changelog
 ```
 
 ---
@@ -173,6 +278,12 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 - `tools` - Custom tool execution
 - `monitoring` - System monitoring and logging
 - `matrix` - Matrix integration
+- `audio` - Text-to-speech audio generation
+- `config` - Application configuration management
+- `roles` - Role-based access control management
+- `document-groups` - Cross-user document sharing
+- `memory` - Persistent cross-session memory
+- `citations` - Source attribution in responses
 
 ### User Role Tags
 - `user` - Standard user capabilities
@@ -188,6 +299,8 @@ Welcome to the LLM Server developer documentation. This comprehensive guide cove
 - `argon2` - Password hashing
 - `jwt` - JWT authentication
 - `matrix` - Matrix protocol
+- `zod` - Schema validation
+- `sse` - Server-sent events streaming
 
 ---
 
@@ -203,7 +316,10 @@ npm install
 cd frontend && npm install
 
 # Create admin user
-npm run seed-admin
+npm run seed-admin    # creates admin/admin123 (password: admin123)
+
+# Initialize configuration defaults
+npm run seed-config
 
 # Start servers
 npm run dev
@@ -218,134 +334,14 @@ PORT=3000
 MONGODB_URI=mongodb://localhost:27017/llm_server
 LLAMA_SERVER_URL=http://localhost:8082
 JWT_SECRET=your-secret-key
+FRONTEND_URL=http://localhost:5173
 ```
 
-See [Configuration Guide](./technical/configuration-guide.md) for all available environment variables.
-
----
-
-## Documentation Structure
-
-```
-docs/
-├── features/          # Feature documentation pages
-│   ├── authentication.md
-│   ├── user-management.md
-│   ├── chat-sessions.md
-│   ├── llm-integration.md
-│   ├── rag-system.md
-│   ├── prompt-management.md
-│   ├── tool-support.md
-│   ├── system-monitoring.md
-│   └── matrix-integration.md
-├── components/        # Component documentation
-│   ├── frontend-components.md
-│   ├── pinia-stores.md
-│   └── middleware.md
-├── architecture/      # Architecture documentation
-│   ├── system-architecture.md
-│   ├── database-schema.md
-│   ├── worker-threads.md
-│   └── security-design.md
-├── api/              # API documentation
-│   ├── api-endpoints.md
-│   ├── request-response-formats.md
-│   └── error-handling.md
-├── technical/        # Technical documentation
-│   ├── configuration-guide.md
-│   ├── deployment-guide.md
-│   ├── performance-guide.md
-│   └── troubleshooting.md
-├── qa/               # QA and examples
-│   ├── api-testing-examples.md
-│   └── practical-examples.md
-└── index.md          # This file
-```
+See [Configuration Guide](./technical/configuration-guide.md) for all available environment variables and [Platform Information](./technical/platform-info.md) for the complete reference.
 
 ---
 
 ## Related Documentation
 
-- [Llama.cpp Documentation](../llama.cpp_docs/) - Llama.cpp server documentation
-- [API Design Document](../design_documents/design.md) - Original API specification
-- [Todo List](../design_documents/todo.md) - Implementation roadmap
-
----
-
-## Documentation Improvement Checklist
-
-### ✅ Completed Improvements
-
-#### Diagram Enhancements
-- [x] **Simplified User Management Role Hierarchy** - Reduced from 195 lines to clean diamond shape
-- [x] **Added Webhook Configuration Flow** - Detailed Matrix webhook setup with step-by-step flow
-- [x] **Added Component Lifecycle Diagrams** - Pinia store initialization and usage patterns
-- [x] **Added Database Connection Pool Diagram** - MongoDB pool lifecycle and configuration
-- [x] **Added Response Streaming Flow** - Chat message chunking and SSE streaming
-
-#### Tag System Updates
-- [x] **Core Tags** - `user-management`, `auth`, `chat`, `llm`, `rag`, `prompts`, `tools`, `matrix`, `mongodb`, `piscina`, `vue3`, `nodejs`, `express`, `state-management`
-- [x] **Technical Tags** - `caching`, `streaming`, `pagination`, `batch-operations`, `query-optimization`
-- [x] **Workflow Tags** - `workflows`, `multi-turn-chat`, `complete-pipeline`, `retry-patterns`
-
-#### Cross-Reference Verification
-- [x] **Verified All Secondary Pages** - 24 out of 25 pages exist, fixed 1 path mismatch
-- [x] **Updated Tag Index** - Added comprehensive tag descriptions and categories
-
-### 📋 Future Enhancement Suggestions
-
-#### Additional Diagrams to Consider
-- [ ] Add webhook configuration flow for API rate limiting
-- [ ] Add component lifecycle diagram for Vue components
-- [ ] Add database indexing strategy diagram
-- [ ] Add caching layer architecture diagram (Redis/Memcached)
-- [ ] Add SSL/TLS certificate management flow
-
-#### Additional Technical Tags to Consider
-- [ ] `caching` - Response caching strategies (Redis, in-memory)
-- [ ] `streaming` - SSE and WebSocket streaming patterns
-- [ ] `pagination` - Cursor-based and offset pagination
-- [ ] `batch-operations` - Bulk data processing
-- [ ] `query-optimization` - Indexes, aggregations, projections
-
-#### Workflow Tags to Consider
-- [ ] `workflows` - Multi-step business workflows
-- [ ] `multi-turn-chat` - Conversation state management
-- [ ] `complete-pipeline` - End-to-end request/response flow
-- [ ] `retry-patterns` - Exponential backoff and retry logic
-
-#### Infrastructure Tags to Consider
-- [ ] `kubernetes` - K8s deployment patterns
-- [ ] `docker-networking` - Container networking setup
-- [ ] `ssl-tls` - Certificate management and HTTPS
-- [ ] `load-balancing` - Nginx, HAProxy configuration
-
-#### Testing Tags to Consider
-- [ ] `playwright` - E2E testing setup
-- [ ] `jest` - Unit testing patterns
-- [ ] `api-automation` - API test automation
-- [ ] `integration-tests` - Integration test patterns
-
-### 📊 Current Documentation Statistics
-
-- **Total Files**: 25 documentation files
-- **Total Lines**: ~3,500 lines of documentation
-- **Diagram Coverage**: 15+ diagrams across all sections
-- **Tag Categories**: 3 main categories (Core, Technical, Workflow)
-- **Cross-Reference Accuracy**: 96% (24/25 pages verified)
-
-### 🎯 Quality Metrics
-
-- **Diagram Readability**: ✅ High (simplified complex diagrams)
-- **Tag Completeness**: ✅ Medium-High (30+ tags covering main topics)
-- **Cross-Reference Accuracy**: ✅ High (96% verified)
-- **Content Coverage**: ✅ Comprehensive (features, components, API, technical, QA)
-
----
-
-## Related Documentation
-
-- [Llama.cpp Documentation](../llama.cpp_docs/) - Llama.cpp server documentation
-- [API Design Document](../design_documents/design.md) - Original API specification
-- [Todo List](../design_documents/todo.md) - Implementation roadmap
-
+- [Llama.cpp Documentation](./llama.cpp_docs/) - Llama.cpp server documentation
+- [AGENTS.md](../AGENTS.md) - Agent-specific instructions with architecture overview

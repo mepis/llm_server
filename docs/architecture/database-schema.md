@@ -369,8 +369,61 @@ The LLM Server uses MongoDB as its primary database. All collections are organiz
 │  │  • service + log_level (Compound)                        │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  DocumentGroups:                                         │   │
+│  │  • _id (Unique)                                          │   │
+│  │  • owner_id (Indexed)                                    │   │
+│  │  • visibility (Indexed)                                  │   │
+│  │  • members.user_id (Indexed)                             │   │
+│  │  • name + owner_id (Compound Unique)                    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  UserMemories:                                           │   │
+│  │  • _id (Unique)                                          │   │
+│  │  • user_id + layer + created_at (Compound)               │   │
+│  │  • metadata.expires_at (TTL Index)                       │   │
+│  │  • keywords/tags (Text Search)                           │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## New Collections (2026-04-23)
+
+### DocumentGroups Collection
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `_id` | ObjectId | Unique identifier |
+| `name` | String | Group name (unique per owner) |
+| `description` | String | Group description |
+| `owner_id` | ObjectId (ref: User) | Group creator/owner |
+| `visibility` | Enum | private, team, public |
+| `members` | Array | [{ user_id (ref: User), role (owner/editor/viewer) }] |
+| `documents` | Array | [{ document_id (ref: RAGDocument), added_by, added_at }] |
+| `created_at` | Timestamp | Auto-generated |
+| `updated_at` | Timestamp | Auto-generated |
+
+### UserMemories Collection
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `_id` | ObjectId | Unique identifier |
+| `user_id` | ObjectId (ref: User) | Memory owner |
+| `layer` | Enum | episodic, semantic, procedural |
+| `content` | String | PII-redacted memory content |
+| `embedding` | [Number] | Vector embedding for semantic search |
+| `metadata.source_session_id` | ObjectId (ref: ChatSession) | Source session reference |
+| `metadata.keywords` | String[] | Extracted keywords |
+| `metadata.confidence` | Number | 0-1 confidence score |
+| `metadata.expires_at` | Timestamp | TTL for episodic memories (30 days) |
+| `metadata.access_count` | Number | Track access frequency |
+| `tags` | String[] | For text search |
+| `created_at` | Timestamp | Auto-generated |
+| `updated_at` | Timestamp | Auto-generated |
 
 ---
 

@@ -1,8 +1,10 @@
 const RAGDocument = require('../models/RAGDocument');
+const DocumentGroup = require('../models/DocumentGroup');
 const llamaService = require('./llamaService');
 const logger = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
+const documentParser = require('./documentParser');
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -11,7 +13,7 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
     const { description, tags = [] } = options;
     
     const fileExtension = path.extname(filename).toLowerCase().slice(1);
-    const validExtensions = ['pdf', 'txt', 'doc', 'docx', 'md', 'json', 'csv'];
+    const validExtensions = ['pdf', 'txt', 'doc', 'docx', 'md', 'json', 'csv', 'xlsx'];
     
     if (!validExtensions.includes(fileExtension)) {
       throw new Error('Invalid file type');
@@ -22,7 +24,51 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
     
     fs.writeFileSync(filePath, fileBuffer);
     
-    const fileContent = fileBuffer.toString('utf8');
+    let fileContent;
+    let metadataExtras = {};
+    
+    try {
+      const parsed = await documentParser.parseFile(fileBuffer, fileExtension);
+      fileContent = parsed.text;
+      
+      if (parsed.sheetNames) {
+        metadataExtras.sheets = parsed.sheetNames;
+      }
+    } catch (parseError) {
+      logger.error(`Document parsing failed for ${filename}:`, parseError.message || parseError);
+      
+      const errorMessage = parseError.type === 'encrypted' 
+        ? parseError.message 
+        : (parseError.message || 'Unknown parsing error');
+      
+      const document = await RAGDocument.create({
+        user_id: userId,
+        filename,
+        file_type: fileExtension,
+        file_size: fileBuffer.length,
+        file_path: filePath,
+        content: '',
+        metadata: {
+          description,
+          tags,
+          parse_error: errorMessage
+        },
+        status: 'failed'
+      });
+      
+      logger.info(`Document failed to parse: ${document._id} by user ${userId}`);
+      
+      return {
+        success: true,
+        data: document
+      };
+    }
+    
+    const metadata = {
+      description,
+      tags,
+      ...metadataExtras
+    };
     
     const document = await RAGDocument.create({
       user_id: userId,
@@ -31,10 +77,7 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
       file_size: fileBuffer.length,
       file_path: filePath,
       content: fileContent,
-      metadata: {
-        description,
-        tags
-      },
+      metadata,
       status: 'processing'
     });
     
@@ -122,7 +165,7 @@ const chunkText = (text, chunkSize = 500) => {
   return chunks;
 };
 
-const searchDocuments = async (userId, query, limit = 10) => {
+const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
   try {
     const queryEmbedding = await llamaService.getEmbeddings(query);
     const queryVector = queryEmbedding.data[0]?.embedding;
@@ -131,29 +174,92 @@ const searchDocuments = async (userId, query, limit = 10) => {
       throw new Error('Failed to generate query embedding');
     }
     
-    const documents = await RAGDocument.find({
-      user_id: userId,
-      status: 'indexed'
-    });
+    let filterQuery = { status: 'indexed' };
+    if (documentIds && documentIds.length > 0) {
+      filterQuery._id = { $in: documentIds.map(id => typeof id === 'string' ? require('mongoose').Types.ObjectId(id) : id) };
+    } else {
+      const personalDocs = await RAGDocument.find({ user_id: userId, status: 'indexed' });
+      
+      const userGroups = await DocumentGroup.find({
+        $or: [
+          { owner_id: userId },
+          { 'members.user_id': userId }
+        ]
+      });
+      
+      const groupDocIds = [];
+      for (const group of userGroups) {
+        for (const docRef of group.documents) {
+          if (!groupDocIds.includes(docRef.document_id.toString())) {
+            groupDocIds.push(docRef.document_id);
+          }
+        }
+      }
+      
+      let accessibleDocs = [...personalDocs];
+      if (groupDocIds.length > 0) {
+        const groupDocs = await RAGDocument.find({ _id: { $in: groupDocIds }, status: 'indexed' });
+        accessibleDocs = [...personalDocs, ...groupDocs];
+      }
+      
+      const uniqueDocsMap = new Map();
+      for (const doc of accessibleDocs) {
+        uniqueDocsMap.set(doc._id.toString(), doc);
+      }
+      
+      filterQuery._id = { $in: Array.from(uniqueDocsMap.keys()) };
+    }
     
-    const scoredDocuments = documents.map(doc => {
+    const documents = await RAGDocument.find(filterQuery);
+    
+    const allResults = [];
+    const sourcesMap = new Map();
+    
+    for (const doc of documents) {
       let maxSimilarity = 0;
       
       for (const chunk of doc.chunked_content || []) {
         if (chunk.embedding && chunk.embedding.length === queryVector.length) {
           const similarity = cosineSimilarity(queryVector, chunk.embedding);
+          if (similarity > 0.1) {
+            allResults.push({
+              text: chunk.text,
+              document_id: doc._id.toString(),
+              filename: doc.filename,
+              file_type: doc.file_type,
+              chunk_index: chunk.chunk_index,
+              similarity,
+              sheet_name: doc.metadata?.sheets?.[chunk.chunk_index] || null
+            });
+          }
           maxSimilarity = Math.max(maxSimilarity, similarity);
         }
       }
       
-      return { ...doc.toObject(), similarity: maxSimilarity };
-    });
+      if (!sourcesMap.has(doc._id.toString())) {
+        sourcesMap.set(doc._id.toString(), {
+          document_id: doc._id.toString(),
+          filename: doc.filename,
+          file_type: doc.file_type,
+          total_chunks_used: 0,
+          sheets: doc.metadata?.sheets || []
+        });
+      }
+    }
+    
+    const sortedResults = allResults.sort((a, b) => b.similarity - a.similarity).slice(0, limit);
+    
+    for (const result of sortedResults) {
+      const source = sourcesMap.get(result.document_id);
+      if (source) source.total_chunks_used += 1;
+    }
     
     return {
       success: true,
-      data: scoredDocuments
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, limit)
+      data: {
+        results: sortedResults,
+        sources: Array.from(sourcesMap.values())
+      }
     };
   } catch (error) {
     logger.error('Document search failed:', error.message);

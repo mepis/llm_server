@@ -18,6 +18,8 @@ const skillRoutes = require('./skill');
 const configRoutes = require('./config');
 const systemRoutes = require('./system');
 const roleRoutes = require('./roles');
+const documentGroupRoutes = require('./documentGroups');
+const memoryRoutes = require('./memory');
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
@@ -34,5 +36,7 @@ router.use('/skills', skillRoutes);
 router.use('/config', configRoutes);
 router.use('/system', systemRoutes);
 router.use('/roles', roleRoutes);
+router.use('/document-groups', documentGroupRoutes);
+router.use('/memory', memoryRoutes);
 
 module.exports = router;

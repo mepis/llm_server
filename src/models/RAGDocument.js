@@ -14,8 +14,8 @@ const ragDocumentSchema = new mongoose.Schema({
   file_type: {
     type: String,
     required: true,
-    enum: ['pdf', 'txt', 'doc', 'docx', 'md', 'json', 'csv'],
-    match: /^(pdf|txt|doc|docx|md|json|csv)$/
+    enum: ['pdf', 'txt', 'doc', 'docx', 'md', 'json', 'csv', 'xlsx'],
+    match: /^(pdf|txt|doc|docx|md|json|csv|xlsx)$/
   },
   file_size: {
     type: Number,
@@ -43,7 +43,9 @@ const ragDocumentSchema = new mongoose.Schema({
     description: String,
     tags: [String],
     created_at: Date,
-    modified_at: Date
+    modified_at: Date,
+    sheets: [String],
+    parse_error: String
   },
   status: {
     type: String,
@@ -65,7 +67,11 @@ const ragDocumentSchema = new mongoose.Schema({
   embedding_model: {
     type: String,
     default: 'all-MiniLM-L6-v2'
-  }
+  },
+  group_ids: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'DocumentGroup'
+  }]
 }, {
   timestamps: true
 });
@@ -74,6 +80,7 @@ ragDocumentSchema.index({ user_id: 1, created_at: -1 });
 ragDocumentSchema.index({ filename: 1 });
 ragDocumentSchema.index({ status: 1 });
 ragDocumentSchema.index({ 'chunked_content.chunk_index': 1 });
+ragDocumentSchema.index({ group_ids: 1, status: 1 });
 
 ragDocumentSchema.methods.addChunk = function(chunkData) {
   this.chunked_content.push(chunkData);

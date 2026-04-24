@@ -35,6 +35,14 @@
             <i class="pi pi-search"></i>
             <span>Queries</span>
           </router-link>
+          <router-link to="/document-groups" class="nav-link" @click="closeAfterNav">
+            <i class="pi pi-folder-open"></i>
+            <span>Document Groups</span>
+          </router-link>
+          <router-link to="/memory" class="nav-link" @click="closeAfterNav">
+            <i class="pi pi-database"></i>
+            <span>Memory</span>
+          </router-link>
         </nav>
       </div>
       <div class="sidebar-section">

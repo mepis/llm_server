@@ -7,7 +7,72 @@ const llamaService = require('./llamaService');
 const toolRegistry = require('../tool/registry');
 const { getBuiltinTools } = require('../tool');
 const skillService = require('./skillService');
+const memoryManager = require('./memoryManager');
+const memoryExtractor = require('../utils/memoryExtractor');
+const citationBuilder = require('../utils/citationBuilder');
 const logger = require('../utils/logger');
+
+const MEMORY_EXTRACTION_THRESHOLD = parseInt(process.env.MEMORY_EXTRACTION_THRESHOLD) || 10;
+
+async function buildUserMemoryContext(userId, query) {
+  try {
+    const result = await memoryManager.getAllMemoriesForContext(userId, query);
+    
+    if (result.success && result.data.systemContent) {
+      return {
+        memoryContext: `\n\n${result.data.systemContent}`,
+        memorySources: result.data.memorySources || []
+      };
+    }
+    
+    return { memoryContext: '', memorySources: [] };
+  } catch (error) {
+    logger.error('Build user memory context failed:', error.message);
+    return { memoryContext: '', memorySources: [] };
+  }
+}
+
+async function triggerAutomaticMemoryExtraction(session, userId) {
+  try {
+    const msgCount = Array.isArray(session.messages) ? session.messages.length : 0;
+    
+    if (msgCount < MEMORY_EXTRACTION_THRESHOLD) return;
+    
+    try {
+      const filteredMessages = session.messages.filter(
+        m => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0
+      );
+      
+      if (filteredMessages.length < 2) return;
+      
+      const extracted = await memoryExtractor.extractFromConversation(filteredMessages);
+      
+      for (const episodic of extracted.episodic) {
+        if (episodic.confidence >= 0.5) {
+          await memoryManager.addEpisodicMemory(userId, episodic.content, session._id);
+        }
+      }
+      
+      for (const semantic of extracted.semantic) {
+        if (semantic.confidence >= 0.5) {
+          await memoryManager.addSemanticMemory(userId, semantic.content, semantic.keywords);
+        }
+      }
+      
+      for (const procedural of extracted.procedural) {
+        if (procedural.confidence >= 0.5) {
+          await memoryManager.addProceduralMemory(userId, procedural.content, procedural.keywords);
+        }
+      }
+      
+      logger.info(`Auto memory extraction for session ${session._id}: ${extracted.episodic.length} episodic, ${extracted.semantic.length} semantic, ${extracted.procedural.length} procedural`);
+    } catch (extractError) {
+      logger.error(`Memory extraction failed for session ${session._id}:`, extractError.message);
+    }
+  } catch (error) {
+    logger.error('Trigger automatic memory extraction failed:', error.message);
+  }
+}
 
 async function getMaxToolTurns() {
   try {
@@ -257,15 +322,19 @@ async function chatWithLLM(sessionId, content, options = {}) {
     const { tools, openAITools } = await resolveTools(session);
 
     let ragContext = '';
+    let ragCitations = [];
     if (session.rag_enabled && session.rag_document_ids.length > 0) {
       const ragResult = await ragService.searchDocuments(
-        session.rag_document_ids,
-        content
+        session.user_id.toString(),
+        content,
+        5,
+        session.rag_document_ids
       );
-      if (ragResult && ragResult.data && ragResult.data.length > 0) {
-        ragContext = ragResult.data
-          .map((doc) => doc.content)
-          .join('\n\n');
+      if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
+        ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
+        
+        const citationData = citationBuilder.buildCitations(ragResult.data);
+        ragCitations = citationData.citations;
       }
     }
 
@@ -274,7 +343,7 @@ async function chatWithLLM(sessionId, content, options = {}) {
 
     let systemMessage = 'You are a helpful assistant.';
     if (ragContext) {
-      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers. Cite your sources using bracketed numbers [1], [2] etc.`;
     }
     if (skillsPrompt) {
       systemMessage = skillsPrompt + '\n\n' + systemMessage;
@@ -299,6 +368,13 @@ async function chatWithLLM(sessionId, content, options = {}) {
       await session.addMessage('assistant', null, {
         tool_calls: toolCalls,
         model: session.metadata?.model || 'llama-3-8b',
+        citations: ragCitations.map(c => ({
+          source_id: c.source.document_id,
+          filename: c.source.filename,
+          chunk_index: c.source.chunk_index,
+          similarity: c.source.similarity,
+          sheet_name: c.source.sheet_name
+        }))
       });
 
       const toolResults = [];
@@ -321,6 +397,13 @@ async function chatWithLLM(sessionId, content, options = {}) {
 
     await session.addMessage('assistant', contentText, {
       model: session.metadata?.model || 'llama-3-8b',
+      citations: ragCitations.map(c => ({
+        source_id: c.source.document_id,
+        filename: c.source.filename,
+        chunk_index: c.source.chunk_index,
+        similarity: c.source.similarity,
+        sheet_name: c.source.sheet_name
+      }))
     });
 
     return {
@@ -357,24 +440,33 @@ async function runLoop(sessionId, content, options = {}) {
     const { tools, openAITools } = await resolveTools(session);
 
     let ragContext = '';
+    let ragCitations = [];
     if (session.rag_enabled && session.rag_document_ids.length > 0) {
       const ragResult = await ragService.searchDocuments(
-        session.rag_document_ids,
-        content
+        session.user_id.toString(),
+        content,
+        5,
+        session.rag_document_ids
       );
-      if (ragResult && ragResult.data && ragResult.data.length > 0) {
-        ragContext = ragResult.data
-          .map((doc) => doc.content)
-          .join('\n\n');
+      if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
+        ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
+        
+        const citationData = citationBuilder.buildCitations(ragResult.data);
+        ragCitations = citationData.citations;
       }
     }
 
+    const memoryContext = await buildUserMemoryContext(session.user_id.toString(), content);
+    
     const userRoles = options.userRoles || ['user'];
     const skillsPrompt = await buildSkillsPrompt(userRoles);
 
     let systemMessage = 'You are a helpful assistant.';
+    if (memoryContext.memoryContext) {
+      systemMessage += memoryContext.memoryContext;
+    }
     if (ragContext) {
-      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+      systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers. Cite your sources using bracketed numbers [1], [2] etc.`;
     }
     if (skillsPrompt) {
       systemMessage = skillsPrompt + '\n\n' + systemMessage;
@@ -408,6 +500,13 @@ async function runLoop(sessionId, content, options = {}) {
         await session.addMessage('assistant', null, {
           tool_calls: toolCalls,
           model: session.metadata?.model || 'llama-3-8b',
+          citations: ragCitations.map(c => ({
+            source_id: c.source.document_id,
+            filename: c.source.filename,
+            chunk_index: c.source.chunk_index,
+            similarity: c.source.similarity,
+            sheet_name: c.source.sheet_name
+          }))
         });
 
         for (const tc of toolCalls) {
@@ -425,6 +524,13 @@ async function runLoop(sessionId, content, options = {}) {
 
       await session.addMessage('assistant', contentText, {
         model: session.metadata?.model || 'llama-3-8b',
+        citations: ragCitations.map(c => ({
+          source_id: c.source.document_id,
+          filename: c.source.filename,
+          chunk_index: c.source.chunk_index,
+          similarity: c.source.similarity,
+          sheet_name: c.source.sheet_name
+        }))
       });
 
       finalContent = contentText;
@@ -449,6 +555,12 @@ async function runLoop(sessionId, content, options = {}) {
       } catch (err) {
         logger.error('Failed to generate/update session subject:', err.message);
       }
+    }
+
+    try {
+      await triggerAutomaticMemoryExtraction(session, userId);
+    } catch (memErr) {
+      logger.error('Memory extraction after runLoop failed:', memErr.message);
     }
 
     return {
@@ -523,24 +635,33 @@ async function* streamRunLoop(sessionId, content, options = {}) {
   const { tools, openAITools } = await resolveTools(session);
 
   let ragContext = '';
+  let ragCitations = [];
   if (session.rag_enabled && session.rag_document_ids.length > 0) {
     const ragResult = await ragService.searchDocuments(
-      session.rag_document_ids,
-      content
+      session.user_id.toString(),
+      content,
+      5,
+      session.rag_document_ids
     );
-    if (ragResult && ragResult.data && ragResult.data.length > 0) {
-      ragContext = ragResult.data
-        .map((doc) => doc.content)
-        .join('\n\n');
+    if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
+      ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
+      
+      const citationData = citationBuilder.buildCitations(ragResult.data);
+      ragCitations = citationData.citations;
     }
   }
+
+  const memoryContext = await buildUserMemoryContext(session.user_id.toString(), content);
 
   const userRoles = options.userRoles || ['user'];
   const skillsPrompt = await buildSkillsPrompt(userRoles);
 
   let systemMessage = 'You are a helpful assistant.';
+  if (memoryContext.memoryContext) {
+    systemMessage += memoryContext.memoryContext;
+  }
   if (ragContext) {
-    systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers.`;
+    systemMessage += `\n\nHere is relevant context from the knowledge base:\n\n${ragContext}\n\nUse this context to provide accurate answers. Cite your sources using bracketed numbers [1], [2] etc.`;
   }
   if (skillsPrompt) {
     systemMessage = skillsPrompt + '\n\n' + systemMessage;
@@ -631,6 +752,13 @@ async function* streamRunLoop(sessionId, content, options = {}) {
       await session.addMessage('assistant', null, {
         tool_calls: toolCallObjs,
         model: session.metadata?.model || 'llama-3-8b',
+        citations: ragCitations.map(c => ({
+          source_id: c.source.document_id,
+          filename: c.source.filename,
+          chunk_index: c.source.chunk_index,
+          similarity: c.source.similarity,
+          sheet_name: c.source.sheet_name
+        }))
       });
 
       for (const tcObj of toolCallObjs) {
@@ -662,6 +790,13 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     if (hasStopReason || turnContent.length > 0) {
       await session.addMessage('assistant', turnContent, {
         model: session.metadata?.model || 'llama-3-8b',
+        citations: ragCitations.map(c => ({
+          source_id: c.source.document_id,
+          filename: c.source.filename,
+          chunk_index: c.source.chunk_index,
+          similarity: c.source.similarity,
+          sheet_name: c.source.sheet_name
+        }))
       });
       fullFinalContent = turnContent;
       break;
@@ -695,6 +830,12 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     } catch (err) {
       logger.error('Failed to generate/update session subject:', err.message);
     }
+  }
+
+  try {
+    await triggerAutomaticMemoryExtraction(session, session.user_id.toString());
+  } catch (memErr) {
+    logger.error('Memory extraction after streamRunLoop failed:', memErr.message);
   }
 
   yield { type: 'done', content: fullFinalContent, truncated, subject: newSubject };

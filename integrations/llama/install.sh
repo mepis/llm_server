@@ -3,7 +3,7 @@ CURRENT_DIR=$(pwd)
 
 ## GEMMA ##
 ##--------
-# MODEL=gemma-4-26B-A4B-it-MXFP4_MOE.sh
+MODEL=gemma-4-26B-A4B.sh
 
 ## NEMOTRON ##
 ##--------
@@ -11,7 +11,7 @@ CURRENT_DIR=$(pwd)
 
 ## QWEN ##
 ##--------
-MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
+# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-122B-A10B-UD-IQ2_XXS.sh
 # MODEL=Qwen3.5-122B-A10B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh

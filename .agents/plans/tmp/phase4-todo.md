@@ -62,8 +62,15 @@ Implement a three-layer persistent memory system per user that survives across c
   - `{ tags: 1 }` — text search across memory tags
 
 - [ ] Add instance methods:
-  - `recordAccess()` — increments access_count, updates last_accessed
+  - `recordAccess()` — increments access_count, updates last_accessed; if access_count % 5 === 0 AND layer === 'episodic', extends expires_at by 7 days (recency-based TTL extension)
   - `isExpired()` — returns true if expires_at is set and past
+  
+- [ ] Add post-find hook to auto-record access:
+  ```javascript
+  userMemorySchema.post('find', function(docs) {
+    docs.forEach(doc => doc.recordAccess());
+  });
+  ```
   
 - [ ] Add static methods:
   - `getByLayer(userId, layer, limit)` — get memories for a specific layer

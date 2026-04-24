@@ -46,9 +46,25 @@ const router = createRouter({
           component: () => import('../views/rag/RAGDocumentsView.vue')
         },
         {
+          path: 'rag/documents/:docId?',
+          name: 'rag-document-detail',
+          component: () => import('../views/rag/RAGDocumentsView.vue'),
+          props: true
+        },
+        {
           path: 'rag/queries',
           name: 'rag-queries',
           component: () => import('../views/rag/RAGQueriesView.vue')
+        },
+        {
+          path: 'document-groups',
+          name: 'document-groups',
+          component: () => import('../views/document-groups/DocumentGroupsView.vue')
+        },
+        {
+          path: 'memory',
+          name: 'memory',
+          component: () => import('../views/memory/MemoriesView.vue')
         },
         {
           path: 'prompts',

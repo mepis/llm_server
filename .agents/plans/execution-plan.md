@@ -20,18 +20,21 @@ Extend the existing LLM Server with production-grade RAG operations and per-user
 
 ## Progress
 
-- [x] Codebase research — 2026-04-23 — completed
-- [x] Discovery notes written — 2026-04-23 — completed
-- [x] Phase todo lists created — 2026-04-23 — completed
-- [x] Plan review Round 1 (3 sub-agents, 53 issues found) — 2026-04-23 — completed
-- [x] Execution plan updated with all review findings — 2026-04-23 — completed
-- [ ] Phase 1.0: Bug fix — pending
-- [ ] Phase 1: Document parsing infrastructure — pending
-- [ ] Phase 2: Document groups + RBAC — pending
-- [ ] Phase 3: Citation system — pending
-- [ ] Phase 4: Multi-layer memory system — pending
-- [ ] Phase 5: Frontend updates — pending
-- [ ] Phase 6: Integration testing + documentation — pending
+- [x] Codebase research — 2026-04-23T09:00Z — completed
+- [x] Discovery notes written — 2026-04-23T09:30Z — completed
+- [x] Phase todo lists created (phases 1-6) — 2026-04-23T10:00Z — completed
+- [x] Plan review Round 1 (3 sub-agents, 53 issues found and fixed) — 2026-04-23T11:00Z — completed
+- [x] Phase 1.0 bug fix todo created — 2026-04-23T12:00Z — completed
+- [x] Cross-document citation rendering target aligned (AssistantMessage, not ChatView) — 2026-04-23T12:00Z — completed
+- [x] JSON parser task added to Phase 1 — 2026-04-23T12:00Z — completed
+- [x] Access_count TTL extension hook added to UserMemory model — 2026-04-23T12:00Z — completed
+- [x] Phase 1.0: Bug fix implemented — 2026-04-23T13:00Z — completed
+- [x] Phase 1: Document parsing infrastructure — 2026-04-23T13:30Z — completed
+- [x] Phase 2: Document groups + RBAC — 2026-04-23T14:00Z — completed
+- [x] Phase 4: Multi-layer memory system — 2026-04-23T14:30Z — completed
+- [x] Phase 3: Citation system — 2026-04-23T15:00Z — completed
+- [x] Phase 5: Frontend updates — 2026-04-23T15:30Z — completed
+- [x] Phase 6: Integration testing + documentation — 2026-04-23T16:00Z — completed (documentation created; integration tests to be run manually)
 
 ---
 
@@ -210,9 +213,9 @@ Phase 6: Integration Testing + Documentation
    - `parseXLSX(buffer)` — convert all sheets to markdown tables with `## SheetName` headers, return `{ text, sheetNames }`
    - `parseCSV(buffer)` — parse CSV with proper quote handling, convert to structured text
    - `parseTXT(buffer)` — UTF-8 decode, trim excessive whitespace
-   - `parseMD(buffer)` — strip markdown formatting (headers, bold, links), keep semantic text
-   - `parseJSON(buffer)` — parse JSON structure, convert to readable text with keys as headers
-   - `parseFile(buffer, fileType)` — router dispatching to correct parser
+    - `parseMD(buffer)` — strip markdown formatting (headers, bold, italic, links, code blocks), keep semantic text
+    - `parseJSON(buffer)` — parse JSON to object, convert structured data to readable text with dot-notation key paths as headers; handle nested objects and arrays recursively
+    - `parseFile(buffer, fileType)` — router dispatching to correct parser
 
 3. **Update ragService.uploadDocument()**
    - Replace `fileBuffer.toString('utf8')` with DocumentParser call

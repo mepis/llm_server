@@ -61,6 +61,13 @@ Replace the broken `fileBuffer.toString('utf8')` approach with proper file type 
   - Keep the semantic text content
   - Return `{ text: string }`
   
+- [ ] Implement `parseJSON(buffer)`:
+  - Parse JSON buffer to object using `JSON.parse()`
+  - Convert structured data to readable text with keys as section headers
+  - Handle nested objects by iterating recursively, using dot-notation paths as headers
+  - Handle arrays by converting each element to a numbered list entry
+  - Return `{ text: string }`
+  
 - [ ] Implement `parseFile(buffer, fileType)`:
   - Router function that dispatches to correct parser based on fileType
   - Returns `{ text, extras? }` where extras may include sheetNames, totalPages

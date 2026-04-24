@@ -171,9 +171,11 @@ Every RAG-assisted chat response includes inline citations `[1]`, `[2]` linking 
 
 ---
 
-## Task 3.5: Create Citation Display in Frontend ChatView
+## Task 3.5: Create Citation Display in AssistantMessage Component
 
-**File**: `frontend/src/views/chat/ChatView.vue` (or wherever chat messages are rendered)
+**File**: `frontend/src/components/chat/AssistantMessage.vue` (message-level component, NOT ChatView)
+
+Rationale: Citations are message-level data stored in `message.metadata.citations`. ChatView doesn't have direct access to individual message metadata. The AssistantMessage component renders individual messages and has the metadata available.
 
 - [ ] After rendering assistant message content, add collapsible Sources section:
   ```vue
@@ -190,6 +192,7 @@ Every RAG-assisted chat response includes inline citations `[1]`, `[2]` linking 
   </div>
   ```
 
+- [ ] Apply minimum similarity threshold filter (0.5) before displaying citations
 - [ ] Style the sources section with PrimeVue styling conventions
 - [ ] Clicking a source item navigates to RAGDocumentsView filtered to that document_id
 
@@ -197,7 +200,52 @@ Every RAG-assisted chat response includes inline citations `[1]`, `[2]` linking 
 - Sources panel appears below assistant messages that have citations
 - Each source shows filename, similarity score, and chunk index
 - Panel is collapsible to save screen space
+- Citations with similarity < 0.5 are not displayed
 - Source click navigation works correctly
+
+---
+
+## Task 3.6: Update chat.js Store Streaming Handler
+
+**File**: `frontend/src/stores/chat.js`
+
+- [ ] In `sendStreamingMessage()` done event handler, extract citation metadata:
+  ```javascript
+  // When SSE 'done' event fires:
+  unified.metadata = {
+    ...existingMetadata,
+    citations: data.citations || [],  // extract from SSE response
+  };
+  ```
+
+- [ ] Ensure citation metadata is attached to the unified message object before it's rendered by AssistantMessage component
+
+**Acceptance criteria:**
+- Citation data arrives in frontend store when streaming completes
+- Citations are available in `message.metadata.citations` for AssistantMessage rendering
+- No citations when RAG was disabled or no results found
+
+---
+
+## Task 3.7: Add Document Filtering Route Param
+
+**File**: `frontend/src/router/index.js` + `RAGDocumentsView.vue`
+
+- [ ] Add `:docId` param to existing RAGDocumentsView route:
+  ```javascript
+  { path: 'rag/documents/:docId?', name: 'rag-documents', component: () => import('../views/rag/RAGDocumentsView.vue') }
+  ```
+
+- [ ] In RAGDocumentsView mounted hook, check for `route.params.docId`:
+  - If present, filter document list to show only that specific document
+  - Use existing search/filter mechanism or add new API call
+
+- [ ] Navigate to filtered view when clicking a source citation (from AssistantMessage)
+
+**Acceptance criteria:**
+- Navigating to `/rag/documents/:docId` shows only that document
+- Clicking a source citation from chat navigates to the correct filtered view
+- Normal `/rag/documents` without param shows all documents
 
 ---
 

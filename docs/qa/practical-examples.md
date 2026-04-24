@@ -1,722 +1,515 @@
+tags: [qa, practical-examples, developer-guide, usage]
+
 # QA - Practical Examples
 
-This document provides practical examples and use cases for the LLM Server features, demonstrating real-world scenarios and implementation patterns.
+This document provides practical usage examples for LLM Server features, demonstrating real-world scenarios and implementation patterns.
 
 ---
 
-## Overview
+## Multi-turn Chat with Tools
 
-These examples show how to use the LLM Server features in practical scenarios, from simple operations to complex workflows.
+Example conversation where the LLM uses built-in tools to gather information and produce a final answer.
 
-### Complete Workflow Diagram
+### Scenario: List and read project files
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│              Complete RAG Workflow Diagram                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐                                               │
-│  │  Upload      │                                               │
-│  │  Document    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Process     │                                               │
-│  │  Document    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Chunk       │                                               │
-│  │  Document    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Generate    │                                               │
-│  │  Embeddings  │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Store in    │                                               │
-│  │  Database    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  User        │                                               │
-│  │  Query       │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Search      │                                               │
-│  │  Relevant    │                                               │
-│  │  Chunks      │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Generate    │                                               │
-│  │  Response    │                                               │
-│  │              │                                               │
-│  └──────────────┘                                               │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+**User:** "What JavaScript files are in the src directory and what does server.js contain?"
 
-### Example Structure
+**LLM (internal loop):**
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Example Categories                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐                                               │
-│  │  Chat        │  Chat session examples                        │
-│  │  Examples    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  RAG         │  RAG operation examples                       │
-│  │  Examples    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Prompts     │  Prompt usage examples                        │
-│  │  Examples    │                                               │
-│  │              │                                               │
-│  └──────┬───────┘                                               │
-│         │                                                       │
-│         ▼                                                       │
-│  ┌──────────────┐                                               │
-│  │  Tools       │  Tool creation and execution                  │
-│  │  Examples    │                                               │
-│  │              │                                               │
-│  └──────────────┘                                               │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+Turn 1 - LLM decides to use bash tool:
+  tool_calls: [{ name: "bash", args: { cmd: "ls src/ | grep .js$" } }]
+
+Worker executes: child_process.spawn("ls", ["src/", "|", "grep", ".js$"])
+Result: "server.js\napp.js\nconfig.js"
+
+Turn 2 - LLM reads server.js content:
+  tool_calls: [{ name: "read", args: { path: "src/server.js" } }]
+
+Worker executes: fs.readFileSync("src/server.js", "utf-8")
+Result: (full file contents)
+
+Turn 3 - LLM produces final answer:
+  content: "The src directory contains three JavaScript files:\n\n1. server.js - The main Express application entry point..."
+```
+
+### Full curl Example
+
+```bash
+# Step 1: Create session
+curl -s -X POST http://localhost:3000/api/chat \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"session_name": "File Analysis"}' | jq '.data.chat_id'
+
+# Step 2: Send message (non-streaming, waits for full tool loop)
+curl -s -X POST http://localhost:3000/api/chat/CHAT_ID/llm \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "What JavaScript files are in src/ and what does server.js contain?"}'
+
+# Response will contain tool_calls in Turn 1-2, then final content in Turn 3
+```
+
+### Vue 3 Component Example (handling tool calls)
+
+```vue
+<template>
+  <div class="message">
+    <div v-if="message.tool_calls" class="tool-calls">
+      <div v-for="call in message.tool_calls" :key="call.id" class="tool-call">
+        <span class="tool-name">{{ call.function.name }}</span>
+        <pre>{{ JSON.stringify(call.function.arguments, null, 2) }}</pre>
+      </div>
+    </div>
+    <div v-if="message.content" class="content">
+      {{ message.content }}
+    </div>
+  </div>
+</template>
+
+<script setup>
+// Pinia store handles tool call state during streaming
+import { useChatStore } from '@/stores/chat'
+const chatStore = useChatStore()
+</script>
 ```
 
 ---
 
-## Chat Session Examples
+## RAG-Powered Q&A
 
-### Example 1: Simple Chat
+Example workflow: upload a document, process it, then ask questions that retrieve relevant context.
 
-```javascript
-// Create a chat session
-async function createChat() {
-  const chatId = await axios.post('http://localhost:3000/api/chats', {
-    session_name: 'My First Chat'
-  });
-  
-  return chatId.data.data.chat_id;
-}
+### Step-by-Step curl Example
 
-// Add a message
-async function sendMessage(chatId, message) {
-  const response = await axios.post(
-    `http://localhost:3000/api/chats/${chatId}/messages`,
-    {
-      content: 'What is RAG?'
-    }
-  );
-  
-  return response.data.data;
-}
+```bash
+# Step 1: Upload a PDF document
+curl -s -X POST http://localhost:3000/api/rag/documents \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@./docs/architecture-deep-dive.pdf"
+
+# Response: { success: true, data: { document_id: "doc_abc123", status: "processing" } }
+
+# Step 2: Wait for processing (poll status)
+sleep 5
+
+# Check status
+curl -s http://localhost:3000/api/rag/documents/doc_abc123 \
+  -H "Authorization: Bearer $TOKEN"
+
+# Response should show: status: "processed", chunk_count: N
+
+# Step 3: Ask a question that triggers RAG search
+curl -s -X POST http://localhost:3000/api/chat/CHAT_ID/llm \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "What are the worker thread configurations?"}'
+
+# The LLM will automatically search RAG documents and include relevant chunks
+# in the system prompt before sending to Llama.cpp. Response will reference
+# the document content.
 ```
 
-### Example 2: Multi-Turn Conversation
+### Frontend Example: Upload and Query
 
 ```javascript
-// Multi-turn chat with context
-async function multiTurnChat() {
-  const chatId = await createChat('Technical Discussion');
-  
-  // Turn 1
-  let response = await sendMessage(chatId, 'Explain RAG');
-  console.log('Turn 1:', response.content);
-  
-  // Turn 2 - Follow-up question
-  response = await sendMessage(chatId, 'How does it differ from traditional search?');
-  console.log('Turn 2:', response.content);
-  
-  // Turn 3 - Request for examples
-  response = await sendMessage(chatId, 'Can you give me a code example?');
-  console.log('Turn 3:', response.content);
-  
-  // Update memory with key points
-  await axios.put(
-    `http://localhost:3000/api/chats/${chatId}/memory`,
-    {
-      conversation_summary: 'User asked about RAG, differences from traditional search, and code examples',
-      key_points: [
-        'RAG retrieves relevant documents before generating response',
-        'Improves accuracy over standard LLM responses',
-        'Uses semantic search for relevance'
-      ],
-      entities: ['RAG', 'semantic search', 'documents']
-    }
-  );
+// frontend/src/components/RAGUpload.vue (conceptual)
+import { ref } from 'vue'
+import apiClient from '@/axios'
+
+const uploadFile = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await apiClient.post('/rag/documents', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+
+  return response.data.data.document_id
 }
-```
 
-### Example 3: Chat with RAG
-
-```javascript
-// Chat with RAG enabled
-async function chatWithRAG() {
-  const chatId = await createChat('Document Analysis');
-  
-  // Upload document first
-  await uploadDocument('report.pdf');
-  
-  // Chat with document context
-  const response = await sendMessage(chatId, 'Summarize the key findings');
-  
-  console.log('Response with RAG context:', response.content);
-  
-  // The response will include relevant document chunks
-  console.log('Used context:', response.context_used);
+const ragQuery = async (chatId, query) => {
+  const response = await apiClient.post(`/chat/${chatId}/llm`, { content: query })
+  // RAG context is automatically injected by chatService
+  return response.data.data.content
 }
 ```
 
 ---
 
-## RAG Examples
+## Streaming Chat Response
 
-### Example 1: Upload and Process Document
+Vue 3 + Pinia example for handling SSE streaming events from the chat endpoint.
+
+### Pinia Store for Streaming
 
 ```javascript
-// Upload a document for RAG
-async function uploadDocument(filePath) {
-  const formData = new FormData();
-  formData.append('file', fs.createReadStream(filePath));
-  
-  const response = await axios.post(
-    'http://localhost:3000/api/rag/documents',
-    formData,
-    {
-      headers: {
-        'Authorization': 'Bearer TOKEN',
-        'Content-Type': 'multipart/form-data'
+// frontend/src/stores/chat.js (streaming section)
+import { defineStore } from 'pinia'
+
+export const useChatStore = defineStore('chat', {
+  state: () => ({
+    isStreaming: false,
+    currentResponse: '',
+    messages: []
+  }),
+
+  actions: {
+    async sendStreamingMessage(chatId, content) {
+      this.isStreaming = true
+      this.currentResponse = ''
+
+      const response = await fetch(`/api/chat/${chatId}/llm/stream`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content })
+      })
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value)
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const eventData = JSON.parse(line.slice(6))
+
+            switch (eventData.type) {
+              case 'content':
+                this.currentResponse += eventData.text
+                break
+              case 'tool_call_start':
+                // UI shows tool execution indicator
+                break
+              case 'tool_result':
+                // UI shows tool output
+                break
+              case 'done':
+                // Append final message to chat
+                this.messages.push({
+                  role: 'assistant',
+                  content: this.currentResponse,
+                  timestamp: new Date()
+                })
+                this.isStreaming = false
+                this.currentResponse = ''
+                break
+            }
+          }
+        }
       }
     }
-  );
-  
-  return response.data.data.document_id;
-}
-
-// Check processing status
-async function checkDocumentStatus(documentId) {
-  const response = await axios.get(
-    `http://localhost:3000/api/rag/documents/${documentId}`
-  );
-  
-  const status = response.data.data.status;
-  console.log(`Processing status: ${status}`);
-  
-  return status;
-}
-
-// Get processed chunks
-async function getChunks(documentId) {
-  const response = await axios.get(
-    `http://localhost:3000/api/rag/documents/${documentId}/chunks`
-  );
-  
-  return response.data.data;
-}
+  }
+})
 ```
 
-### Example 2: Semantic Search
+### SSE Event Types
 
-```javascript
-// Search for relevant content
-async function semanticSearch(query, topK = 5) {
-  const response = await axios.post(
-    'http://localhost:3000/api/rag/search',
-    {
-      query,
-      top_k: topK,
-      min_score: 0.7
-    }
-  );
-  
-  const results = response.data.data;
-  
-  // Display results
-  results.forEach((result, index) => {
-    console.log(`\nResult ${index + 1}:`);
-    console.log(`Score: ${result.score}`);
-    console.log(`Content: ${result.content}`);
-  });
-  
-  return results;
-}
-
-// Batch search with multiple queries
-async function batchSearch(queries) {
-  const results = await Promise.all(
-    queries.map(query => semanticSearch(query, 3))
-  );
-  
-  return results;
-}
-```
-
-### Example 3: RAG-Powered Chat
-
-```javascript
-// Chat with RAG context
-async function ragChat(query, context = null) {
-  const ragContext = await searchDocuments(query, 3);
-  
-  // Build prompt with context
-  const prompt = buildPromptWithContext(query, ragContext);
-  
-  // Send to LLM
-  const response = await axios.post(
-    'http://localhost:3000/api/llama/chat/completions',
-    {
-      model: 'llama-3-8b',
-      messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: prompt }
-      ]
-    }
-  );
-  
-  return response.data.data.choices[0].message.content;
-}
-
-// Build prompt with RAG context
-function buildPromptWithContext(question, context) {
-  const contextText = context.map((chunk, i) => 
-    `Document ${i + 1}: ${chunk.content}`
-  ).join('\n\n');
-  
-  return `
-    Context:
-    ${contextText}
-    
-    Question: ${question}
-    
-    Please answer the question using the provided context.
-  `;
-}
-```
+| Event Type | Data Format | Frontend Action |
+|-----------|-------------|-----------------|
+| `content` | `{ type: "content", text: "..." }` | Append to display buffer |
+| `tool_call_start` | `{ type: "tool_call_start", name: "...", args: "..." }` | Show tool indicator |
+| `tool_call_arg` | `{ type: "tool_call_arg", arg: "..." }` | Fill tool arguments |
+| `tool_result` | `{ type: "tool_result", result: "..." }` | Show tool output |
+| `done` | `{ type: "done" }` | Finalize message, enable send |
 
 ---
 
-## Prompt Examples
+## Custom Tool Creation
 
-### Example 1: Create Prompt Template
+Step-by-step guide to creating a custom tool that the LLM can invoke during conversations.
 
-```javascript
-// Create a code review prompt
-async function createCodeReviewPrompt() {
-  const prompt = await axios.post('http://localhost:3000/api/prompts', {
-    name: 'Code Review',
-    description: 'Review code for best practices',
-    content: `Review the following code for:
-1. Performance issues
-2. Security vulnerabilities
-3. Best practices
-4. Code style
+### Step 1: Define Parameters (Zod schema)
 
-Code: {{code}}`,
-    type: 'instruct',
-    tags: ['review', 'code'],
-    variables: [
+Parameters define what inputs the tool expects. They are validated using Zod before execution.
+
+```bash
+curl -s -X POST http://localhost:3000/api/tools \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Weather Lookup",
+    "description": "Fetches current weather for a given city",
+    "code": "async function getWeather(city) {\n  const res = await fetch(`https://api.weather.com/${city}`);\n  const data = await res.json();\n  return `${data.temp}°F, ${data.condition}`;\n}",
+    "parameters": [
       {
-        name: 'code',
-        description: 'The code to review',
-        required: true,
-        type: 'string'
-      }
-    ]
-  });
-  
-  return prompt.data.data.prompt_id;
-}
-
-// Create a data analysis prompt
-async function createDataAnalysisPrompt() {
-  const prompt = await axios.post('http://localhost:3000/api/prompts', {
-    name: 'Data Analysis',
-    description: 'Analyze data and provide insights',
-    content: `Analyze the following data and provide insights:
-
-Data: {{data}}
-
-Please provide:
-1. Summary of findings
-2. Key trends
-3. Recommendations`,
-    type: 'instruct',
-    tags: ['analysis', 'data'],
-    variables: [
-      {
-        name: 'data',
-        description: 'The data to analyze',
-        required: true,
-        type: 'string'
-      }
-    ]
-  });
-  
-  return prompt.data.data.prompt_id;
-}
-```
-
-### Example 2: Execute Prompt with Variables
-
-```javascript
-// Execute code review prompt
-async function executeCodeReview(promptId, code) {
-  const response = await axios.post(
-    'http://localhost:3000/api/prompts/execute',
-    {
-      prompt_id: promptId,
-      variables: {
-        code: `function add(a, b) {
-  return a + b;
-}`
-      }
-    }
-  );
-  
-  return response.data.data.output;
-}
-
-// Execute with multiple variables
-async function executeWithVariables(promptId, variables) {
-  const response = await axios.post(
-    'http://localhost:3000/api/prompts/execute',
-    {
-      prompt_id: promptId,
-      variables
-    }
-  );
-  
-  return response.data.data;
-}
-
-// Batch execute prompts
-async function batchExecute(prompts, variables) {
-  const results = await Promise.all(
-    prompts.map(prompt => executeWithVariables(prompt.id, variables))
-  );
-  
-  return results;
-}
-```
-
-### Example 3: Public Prompt Sharing
-
-```javascript
-// Create public prompt
-async function createPublicPrompt() {
-  const prompt = await axios.post('http://localhost:3000/api/prompts', {
-    name: 'SQL Query Generator',
-    description: 'Generate SQL queries from natural language',
-    content: `Generate SQL query for: {{query}}`,
-    type: 'chat',
-    tags: ['sql', 'database'],
-    is_public: true,
-    variables: [
-      {
-        name: 'query',
-        description: 'Natural language query',
-        required: true,
-        type: 'string'
-      }
-    ]
-  });
-  
-  // Get public prompts
-  const publicPrompts = await axios.get('http://localhost:3000/api/prompts/public');
-  
-  return publicPrompts.data.data;
-}
-```
-
----
-
-## Tool Examples
-
-### Example 1: Create Custom Tool
-
-```javascript
-// Create file search tool
-async function createFileSearchTool() {
-  const tool = await axios.post('http://localhost:3000/api/tools', {
-    name: 'File Search',
-    description: 'Search for files matching pattern',
-    code: `const fs = require('fs');
-
-function searchFiles(pattern) {
-  const files = fs.readdirSync('./');
-  return files.filter(file => file.includes(pattern));
-}`,
-    parameters: [
-      {
-        name: 'pattern',
-        type: 'string',
-        required: true,
-        description: 'Search pattern (e.g., *.js)'
+        "name": "city",
+        "type": "string",
+        "required": true,
+        "description": "City name for weather lookup"
       }
     ],
-    is_active: true,
-    return_type: 'array'
-  });
-  
-  return tool.data.data.tool_id;
-}
-
-// Create data transformation tool
-async function createDataTransformTool() {
-  const tool = await axios.post('http://localhost:3000/api/tools', {
-    name: 'Data Transform',
-    description: 'Transform data format',
-    code: `function transformData(data, format) {
-  switch(format) {
-    case 'json': return JSON.stringify(data);
-    case 'csv': return csvFormat(data);
-    default: return data;
-  }
-}`,
-    parameters: [
-      {
-        name: 'data',
-        type: 'object',
-        required: true,
-        description: 'Data to transform'
-      },
-      {
-        name: 'format',
-        type: 'string',
-        required: true,
-        description: 'Output format'
-      }
-    ],
-    is_active: true,
-    return_type: 'string'
-  });
-  
-  return tool.data.data.tool_id;
-}
+    "is_active": true,
+    "return_type": "string"
+  }'
 ```
 
-### Example 2: Execute Tool
+### Step 2: Execute via POST /api/tools/:id/call
 
-```javascript
-// Execute file search tool
-async function executeFileSearch(pattern) {
-  const response = await axios.post(
-    `http://localhost:3000/api/tools/${toolId}/execute`,
-    {
-      pattern: '*.js'
-    }
-  );
-  
-  return response.data.data.result;
-}
+**Critical:** Use `/call` endpoint, not `/execute`.
 
-// Execute with validation
-async function executeWithValidation(toolId, parameters) {
-  // Validate parameters
-  const validatedParams = validateParameters(parameters);
-  
-  // Execute tool
-  const response = await axios.post(
-    `http://localhost:3000/api/tools/${toolId}/execute`,
-    validatedParams
-  );
-  
-  // Validate result
-  const result = response.data.data.result;
-  
-  if (!isValidResult(result)) {
-    throw new Error('Invalid tool result');
-  }
-  
-  return result;
-}
+```bash
+# Direct tool execution
+curl -s -X POST http://localhost:3000/api/tools/TOOL_ID/call \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"city": "San Francisco"}'
 
-// Execute tool with timeout
-async function executeWithTimeout(toolId, parameters, timeout = 5000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await axios.post(
-      `http://localhost:3000/api/tools/${toolId}/execute`,
-      parameters,
-      {
-        signal: controller.signal
-      }
-    );
-    
-    clearTimeout(timeoutId);
-    return response.data.data;
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new Error('Tool execution timeout');
-    }
-    throw error;
-  }
-}
+# Response: { success: true, data: { result: "72°F, Partly Cloudy", usage_count: 1 } }
 ```
 
-### Example 3: Tool Management
+### Step 3: LLM Invokes Tool Automatically
 
-```javascript
-// List all tools
-async function listTools() {
-  const response = await axios.get('http://localhost:3000/api/tools');
-  return response.data.data;
-}
+When a user asks a weather question in a chat session, the LLM automatically decides to use the tool:
 
-// Get active tools
-async function getActiveTools() {
-  const response = await axios.get('http://localhost:3000/api/tools?active=true');
-  return response.data.data;
-}
+```
+User: "What's the weather in Tokyo?"
 
-// Update tool
-async function updateTool(toolId, updates) {
-  const response = await axios.put(
-    `http://localhost:3000/api/tools/${toolId}`,
-    updates
-  );
-  
-  return response.data.data;
-}
+LLM internal flow:
+  1. Identifies need for external data
+  2. Selects "Weather Lookup" tool from available tools
+  3. Calls: POST /api/tools/TOOL_ID/call with { city: "Tokyo" }
+  4. Receives result
+  5. Generates final response using the weather data
+```
 
-// Delete tool
-async function deleteTool(toolId) {
-  await axios.delete(`http://localhost:3000/api/tools/${toolId}`);
-}
+### Step 4: Validation Error Example
+
+```bash
+# Missing required parameter
+curl -s -X POST http://localhost:3000/api/tools/TOOL_ID/call \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# Response: { success: false, error: "Validation error: missing required parameter 'city'" }
 ```
 
 ---
 
-## Integration Examples
+## Memory-Enhanced Conversations
 
-### Example 1: Complete Workflow
+How memories are automatically extracted and injected into subsequent conversations.
 
-```javascript
-// Complete RAG workflow
-async function completeRAGWorkflow(documentPath, query) {
-  // 1. Upload document
-  const docId = await uploadDocument(documentPath);
-  
-  // 2. Wait for processing
-  while (true) {
-    const status = await checkDocumentStatus(docId);
-    if (status === 'processed') break;
-    await sleep(1000);
-  }
-  
-  // 3. Search for relevant content
-  const context = await searchDocuments(query, 5);
-  
-  // 4. Generate response with context
-  const response = await generateResponse(query, context);
-  
-  return {
-    document: docId,
-    query: query,
-    context: context,
-    response: response
-  };
-}
+### Automatic Extraction Flow
 
-// Complete chat workflow
-async function completeChatWorkflow() {
-  // 1. Create chat session
-  const chatId = await createChat('Project Discussion');
-  
-  // 2. Add initial message
-  let response = await sendMessage(chatId, 'What are the project requirements?');
-  
-  // 3. Continue conversation
-  response = await sendMessage(chatId, 'Can you elaborate on the database requirements?');
-  
-  // 4. Update memory
-  await updateMemory(chatId, {
-    conversation_summary: 'Discussed project requirements and database needs',
-    key_points: ['Requirements defined', 'Database needs identified']
-  });
-  
-  return chatId;
-}
+```
+Conversation reaches threshold (default: 10 messages)
+    │
+    ▼
+Filter to user/assistant messages only (exclude system, RAG, tool msgs)
+    │
+    ▼
+Extract three memory layers:
+    │
+    ├── Episodic: "Discussed deployment strategy for Node.js backend"
+    │   └── TTL: 30 days, auto-extended on access
+    │
+    ├── Semantic: "System uses MongoDB with Mongoose ODM"
+    │   └── Indefinite storage, deduplication by keyword overlap
+    │
+    └── Procedural: "prefers concise answers with markdown formatting"
+        └── Indefinite storage, no expiration
+    │
+    ▼
+Apply PII redaction before storage:
+    Emails → [EMAIL_REDACTED]
+    Phone numbers → [PHONE_REDACTED]
+    API keys → [API_KEY_REDACTED]
 ```
 
-### Example 2: Error Handling
+### Memory Injection into System Prompt
 
-```javascript
-// Robust error handling
-async function robustOperation(operation, fallback = null) {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Operation failed:', error.message);
-    
-    if (fallback) {
-      console.log('Using fallback:', fallback);
-      return fallback;
-    }
-    
-    throw error;
-  }
-}
+When the user starts a new conversation, the system prompt includes:
 
-// Retry with backoff
-async function retryWithBackoff(operation, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      
-      const delay = Math.pow(2, i) * 1000;
-      console.log(`Retry ${i + 1} in ${delay}ms`);
-      await sleep(delay);
-    }
-  }
-}
+```
+<user_preferences>
+- User prefers concise answers with markdown formatting
+- Always use code blocks for technical examples
+</user_preferences>
+
+<known_facts>
+- System uses MongoDB with Mongoose ODM
+- Frontend runs Vue 3 on port 5173
+</known_facts>
+
+<recent_topics>
+- Deployment strategy discussion (2 days ago)
+- RAG architecture review (5 days ago)
+</recent_topics>
+```
+
+### Manual Extraction API Call
+
+```bash
+curl -s -X POST http://localhost:3000/api/memory/extract \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"session_id": "CHAT_ID"}'
+
+# Response shows what was extracted per layer
+```
+
+---
+
+## Document Group Collaboration
+
+Create a group, add members with different permissions, and share documents.
+
+### Create Document Group (admin)
+
+```bash
+curl -s -X POST http://localhost:3000/api/document-groups \
+  -H "Authorization: Bearer ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Engineering Team",
+    "description": "Shared RAG documents for engineering team",
+    "members": [
+      { "user_id": "USER_1_ID", "permission": "read" },
+      { "user_id": "USER_2_ID", "permission": "write" }
+    ]
+  }'
+
+# Response: { success: true, data: { document_group_id: "dg_abc123", ... } }
+```
+
+### Upload Document to Group
+
+```bash
+curl -s -X POST http://localhost:3000/api/rag/documents \
+  -H "Authorization: Bearer USER_2_TOKEN" \
+  -F "file=@./engineering-spec.pdf" \
+  -F "document_group_id=dg_abc123"
+
+# Document is shared with all group members based on their permissions
+```
+
+### Search Shared Documents
+
+```bash
+# Members can search across all documents in their groups
+curl -s -X POST http://localhost:3000/api/rag/search \
+  -H "Authorization: Bearer USER_1_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "API rate limiting configuration",
+    "top_k": 5,
+    "min_score": 0.7
+  }'
+
+# Results include documents from the user's own collection
+# AND documents from all groups they belong to
+```
+
+---
+
+## Skills Integration
+
+How SKILL.md files are discovered and injected into chat system prompts.
+
+### Skill File Structure
+
+Skills live in a `skills/` directory with a `SKILL.md` file:
+
+```
+skills/
+├── code-review/
+│   └── SKILL.md
+├── debugging/
+│   └── SKILL.md
+└── deployment/
+    └── SKILL.md
+```
+
+### Example SKILL.md
+
+```markdown
+---
+name: Code Review
+version: 1.0.0
+---
+
+# Code Review Skill
+
+When the user asks for code review, follow these steps:
+
+1. Check for performance issues (N+1 queries, unnecessary loops)
+2. Identify security vulnerabilities (XSS, injection, auth bypass)
+3. Verify error handling is comprehensive
+4. Suggest improvements following best practices
+5. Provide specific line-by-line feedback when applicable
+```
+
+### How Skills Are Injected
+
+```
+chatService.runLoop() receives a message
+    │
+    ▼
+Load all active skills from skills/ directory
+    │
+    ▼
+Parse each SKILL.md with gray-matter (extract frontmatter + content)
+    │
+    ▼
+Build system prompt:
+    <user_preferences> ... </user_preferences>
+    <known_facts> ... </known_facts>
+    <recent_topics> ... </recent_topics>
+    <rag_context> ... </rag_context>
+    <skills>
+      ## Code Review Skill
+      When the user asks for code review, follow these steps:
+      1. Check for performance issues...
+      2. Identify security vulnerabilities...
+    </skills>
+    Default instructions
+    │
+    ▼
+Send to Llama.cpp with full system prompt
+```
+
+### API: List Available Skills
+
+```bash
+curl -s http://localhost:3000/api/skills \
+  -H "Authorization: Bearer $TOKEN"
+
+# Response: { success: true, data: [{ name: "Code Review", version: "1.0.0", ... }] }
 ```
 
 ---
 
 ## Tags
 
-- `qa` - QA examples
+- `qa` - Quality assurance
 - `examples` - Practical examples
-- `chat` - Chat examples
-- `rag` - RAG examples
+- `chat-tools` - Multi-turn tool usage
+- `rag` - RAG-powered Q&A
+- `streaming` - SSE streaming implementation
+- `custom-tools` - Tool creation and execution
+- `memory` - Memory system in action
+- `collaboration` - Document group features
+- `skills` - Skills integration
 
 ---
 
 ## Related Documentation
 
-- [API Testing Examples](./api-testing-examples.md) - API test cases
+- [API Testing Examples](./api-testing-examples.md) - API test cases with curl examples
+- [Multi-turn Chat](../features/chat-sessions.md) - Chat session features and tool loops
+- [RAG System](../features/rag-system.md) - RAG architecture and usage
+- [Tool Support](../features/tool-support.md) - Tool creation and execution reference
+- [Persistent Memory](../features/persistent-memory.md) - Memory system details
+- [Document Groups](../features/document-groups.md) - Collaboration features
 - [API Endpoints](../api/api-endpoints.md) - Complete API reference
-- [Features](../features/) - Feature documentation

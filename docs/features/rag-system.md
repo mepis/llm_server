@@ -103,15 +103,16 @@ The RAG system enables context-aware responses by retrieving relevant documents 
 │  │  _id         │  ObjectId (unique, indexed)                  │
 │  │  user_id     │  ObjectId (references User)                   │
 │  │  filename    │  String (document filename)                  │
-│  │  file_type   │  String (pdf, txt, doc, docx, md, json)      │
+│  │  file_type   │  String (pdf, txt, doc, docx, md, json, csv, xlsx) │
 │  │  file_size   │  Number (bytes)                              │
 │  │  file_path   │  String (storage path)                       │
 │  │  content     │  String (extracted text)                     │
 │  │  embeddings  │  [[Number]] (vector embeddings)              │
 │  │  chunks      │  Array of chunk objects                      │
 │  │  metadata    │  Object                                      │
-│  │  status      │  String (uploaded, processing, indexed)      │
-│  │  error       │  String (if processing failed)               │
+│  │  group_ids   │  ObjectId[] (references DocumentGroup)       │
+│  │  status      │  String (uploaded, processing, indexed, failed) │
+│  │  error_message│  String (if processing/parse failed)         │
 │  │  uploaded_at │  Timestamp                                    │
 │  │  processed_at│  Timestamp                                    │
 │  │  embedding_model│  String (embedding model name)           │
@@ -131,6 +132,8 @@ The RAG system enables context-aware responses by retrieving relevant documents 
 │  │  []          │  │  source_url  │  String                     │
 │  │              │  │  description │  String                     │
 │  │              │  │  tags        │  String[]                   │
+│  │              │  │  sheets      │  String[] (for XLSX)       │
+│  │              │  │  parse_error │  String (on failure)       │
 │  │              │  │  created_at  │  Timestamp                 │
 │  │              │  │  modified_at │  Timestamp                 │
 │  │              │  └──────────────┘                            │
@@ -231,13 +234,21 @@ The RAG system enables context-aware responses by retrieving relevant documents 
 
 | Extension | Type | Extraction Method |
 |-----------|------|-------------------|
-| `.pdf` | PDF | PDF.js text extraction |
-| `.txt` | Text | Direct text read |
-| `.md` | Markdown | Markdown parser |
-| `.json` | JSON | JSON parse |
-| `.csv` | CSV | CSV parser |
-| `.doc` | Word | docx.js |
-| `.docx` | Word | docx.js |
+| `.pdf` | PDF | pdf-parse text extraction |
+| `.txt` | Text | UTF-8 decode with whitespace cleanup |
+| `.md` | Markdown | Format stripping, semantic text preservation |
+| `.json` | JSON | Structured conversion with dot-notation keys |
+| `.csv` | CSV | Quote-aware field parsing |
+| `.xlsx` | XLSX | Sheet-to-markdown table conversion |
+| `.docx` | Word | mammoth raw text extraction |
+
+### Encrypted PDF Handling
+
+Encrypted PDFs are detected during parsing and the document status is set to `failed` with an appropriate error message in `metadata.parse_error`.
+
+### XLSX Sheet Tracking
+
+XLSX files preserve sheet names in `metadata.sheets` array. Each chunk carries its corresponding sheet_name for accurate citation tracking.
 
 ### Text Extraction Flow
 

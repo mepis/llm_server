@@ -158,9 +158,11 @@ Build UI components for document groups management, citation display in chat, an
 
 ---
 
-## Task 5.5: Update ChatView to Show Citations
+## Task 5.5: Update AssistantMessage Component to Show Citations
 
-**File**: `frontend/src/views/chat/ChatView.vue` (or equivalent chat message component)
+**File**: `frontend/src/components/chat/AssistantMessage.vue` (message-level component)
+
+Rationale: Citations are stored per-message in `message.metadata.citations`. This belongs in the message rendering component, not the overall chat view. Phase 3 Task 3.5 creates this same section — Phase 5 Task 5.5 is redundant if Phase 3 is already done. If AssistantMessage was not modified in Phase 3, implement here.
 
 - [ ] After rendering assistant message content, conditionally show sources:
   ```vue
@@ -176,7 +178,7 @@ Build UI components for document groups management, citation display in chat, an
       <div v-if="message.showCitations" class="citations-panel">
         <h4>Sources</h4>
         <div v-for="citation in message.metadata.citations" :key="citation.source_id"
-             class="citation-item" @click="goToDocument(citation.source_id)">
+              class="citation-item" @click="goToDocument(citation.source_id)">
           <span class="citation-score">{{ (citation.similarity * 100).toFixed(0) }}%</span>
           <span class="citation-filename">{{ citation.filename }}</span>
           <span class="citation-chunk">Chunk {{ citation.chunk_index }}</span>
@@ -201,7 +203,31 @@ Build UI components for document groups management, citation display in chat, an
 
 ---
 
-## Task 5.6: Update Sidebar Navigation
+## Task 5.6: Add Router Entries
+
+**File**: `frontend/src/router/index.js`
+
+- [ ] Add route for Document Groups:
+  ```javascript
+  { path: 'document-groups', name: 'document-groups', component: () => import('../views/document-groups/DocumentGroupsView.vue') }
+  ```
+
+- [ ] Add route for Memory:
+  ```javascript
+  { path: 'memory', name: 'memory', component: () => import('../views/memory/MemoriesView.vue') }
+  ```
+
+- [ ] Ensure routes are protected by auth guard (unauthenticated → /login)
+- [ ] Verify routes appear in sidebar navigation after Task 5.7
+
+**Acceptance criteria:**
+- Both new routes are registered and accessible
+- Auth guard redirects unauthenticated users to /login for both routes
+- Routes use dynamic imports (code splitting)
+
+---
+
+## Task 5.7: Update Sidebar Navigation
 
 **File**: `frontend/src/components/layout/Sidebar.vue` (or equivalent)
 
@@ -222,7 +248,7 @@ Build UI components for document groups management, citation display in chat, an
 
 ---
 
-## Task 5.7: Update Chat Session Creation
+## Task 5.8: Update Chat Session Creation
 
 **File**: `frontend/src/views/chat/ChatSessionForm.vue` (or wherever sessions are created)
 
