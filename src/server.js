@@ -51,6 +51,38 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
+// Global error handler - catches multer and other middleware errors
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error:', err.message);
+
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      error: 'File size exceeds the 10 MB limit'
+    });
+  }
+
+  if (err.message === 'Invalid file type') {
+    const allowed = ['txt', 'md', 'pdf', 'json', 'csv', 'docx', 'xlsx'];
+    return res.status(415).json({
+      success: false,
+      error: `Invalid file type. Supported formats: ${allowed.join(', ')}`
+    });
+  }
+
+  if (err.message === 'Unexpected field') {
+    return res.status(400).json({
+      success: false,
+      error: 'Unexpected file field'
+    });
+  }
+
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Internal server error'
+  });
+});
+
 const startServer = async () => {
   try {
     await db.connectDB();

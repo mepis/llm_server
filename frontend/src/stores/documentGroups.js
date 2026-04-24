@@ -11,11 +11,11 @@ export const useDocumentGroupsStore = defineStore('documentGroups', {
   }),
 
   actions: {
-    async createGroup(name, description = '') {
+    async createGroup(name, description = '', visibility = 'private') {
       this.loading = true
       this.error = null
       try {
-        const response = await apiClient.post('/document-groups', { name, description })
+        const response = await apiClient.post('/document-groups', { name, description, visibility })
         this.groups.unshift(response.data.data)
         return response.data.data
       } catch (error) {

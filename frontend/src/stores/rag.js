@@ -85,7 +85,7 @@ export const useRAGStore = defineStore('rag', {
           top_k: topK,
           min_score: minScore
         })
-        return response.data || []
+        return response.data.data?.results || []
       } catch (error) {
         this.error = error.response?.data?.message || 'Search failed'
         throw error

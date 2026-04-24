@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 const createGroup = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const { name, description } = req.body;
+    const { name, description, visibility } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -13,7 +13,9 @@ const createGroup = async (req, res) => {
       });
     }
 
-    const result = await documentGroupService.createGroup(userId, name.trim(), description || '');
+    const validVisibilities = ['private', 'team', 'public'];
+    const groupVisibility = validVisibilities.includes(visibility) ? visibility : 'private';
+    const result = await documentGroupService.createGroup(userId, name.trim(), description || '', groupVisibility);
 
     res.status(201).json(result);
   } catch (error) {

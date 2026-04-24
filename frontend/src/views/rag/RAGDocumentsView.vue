@@ -1,5 +1,6 @@
 <template>
   <div class="documents-container">
+    <Toast :life="4000" />
     <main class="documents-main">
       <div class="documents-header">
         <h1>Document Library</h1>
@@ -7,6 +8,7 @@
           <input
             type="file"
             ref="fileInput"
+            accept=".txt,.md,.pdf,.json,.csv,.docx,.xlsx"
             @change="handleFileUpload"
             style="display: none"
           />
@@ -58,10 +60,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRAGStore } from '@/stores/rag'
+import { useToast } from 'primevue/usetoast'
+import Toast from 'primevue/toast'
 
 import Button from 'primevue/button'
 
 const ragStore = useRAGStore()
+const toast = useToast()
 const loading = ref(false)
 
 const documents = computed(() => ragStore.documents)
@@ -93,11 +98,12 @@ const handleFileUpload = async (event) => {
   loading.value = true
   try {
     await ragStore.uploadDocument(file)
-    
+    toast.add({ severity: 'success', summary: 'Uploaded', detail: `${file.name} uploaded successfully` })
     event.target.value = ''
   } catch (error) {
     console.error('Failed to upload document:', error)
-    alert('Failed to upload document: ' + (error.response?.data?.message || error.message))
+    const message = error.response?.data?.error || error.response?.data?.message || error.message
+    toast.add({ severity: 'error', summary: 'Upload Failed', detail: message })
   } finally {
     loading.value = false
   }
@@ -105,12 +111,14 @@ const handleFileUpload = async (event) => {
 
 const deleteDocument = async (docId) => {
   if (!confirm('Are you sure you want to delete this document?')) return
-  
+
   try {
     await ragStore.deleteDocument(docId)
+    toast.add({ severity: 'success', summary: 'Deleted', detail: 'Document deleted successfully' })
   } catch (error) {
     console.error('Failed to delete document:', error)
-    alert('Failed to delete document')
+    const message = error.response?.data?.error || error.response?.data?.message || error.message
+    toast.add({ severity: 'error', summary: 'Delete Failed', detail: message })
   }
 }
 

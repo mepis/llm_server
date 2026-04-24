@@ -37,8 +37,8 @@
         <div v-for="(result, index) in results" :key="index" class="result-item">
           <div class="result-rank">{{ index + 1 }}</div>
           <div class="result-content">
-            <div class="result-score">Score: {{ (result.score * 100).toFixed(1) }}%</div>
-            <p class="result-text">{{ result.content }}</p>
+            <div class="result-score">Score: {{ (result.similarity * 100).toFixed(1) }}%</div>
+            <p class="result-text">{{ result.text }}</p>
             <div class="result-meta">
               <span>Document: {{ result.document_id }}</span>
               <span>Chunk: {{ result.chunk_index }}</span>

@@ -6,6 +6,18 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-24
 
+### Document Groups Button Fixes
+- **Fixed**: `frontend/src/views/document-groups/DocumentGroupsView.vue` — Edit button now populates edit form via `openEditDialog`; Select visibility fields have `optionLabel`/`optionValue`; accessibleDocs uses computed store ref; isOwner/isEditor handle both `user_id` and `_id`; createGroup passes visibility
+- **Fixed**: `frontend/src/stores/documentGroups.js` — `createGroup` accepts and sends `visibility` parameter
+- **Fixed**: `src/controllers/documentGroupController.js` — extracts and validates `visibility` from request body
+- **Fixed**: `src/services/documentGroupService.js` — `createGroup` uses passed visibility instead of hardcoding `'private'`
+
+### RAG & UI Improvements
+- **Modified**: `frontend/src/views/rag/RAGDocumentsView.vue` — Added toast notifications, file type filtering, replaced alerts with PrimeVue toasts
+- **Modified**: `frontend/src/views/rag/RAGQueriesView.vue` — Fixed search result field mapping (`similarity`/`text`)
+- **Fixed**: `frontend/src/stores/rag.js` — Search results correctly unwrap `response.data.data.results`
+- **Added**: `src/server.js` — Global error handler for multer file upload errors (size limits, invalid types)
+
 ### RAG & Llama Integration Improvements
 
 #### RAG System Refactor

@@ -4,7 +4,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const mongoose = require('mongoose');
 
-const createGroup = async (userId, name, description = '') => {
+const createGroup = async (userId, name, description = '', visibility = 'private') => {
   try {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -14,7 +14,7 @@ const createGroup = async (userId, name, description = '') => {
         name,
         description,
         owner_id: userId,
-        visibility: 'private',
+        visibility,
         members: [{ user_id: userId, role: 'owner' }]
       }], { session });
 

@@ -32,7 +32,7 @@
         <div class="detail-header">
           <h2>{{ selectedGroup.name }}</h2>
           <div>
-            <Button label="Edit" icon="pi pi-pencil" text @click="showEditDialog = true" />
+            <Button label="Edit" icon="pi pi-pencil" text @click="openEditDialog" />
             <Button label="Delete" severity="danger" icon="pi pi-trash" text @click="confirmDelete = true" />
             <Button label="Back" icon="pi pi-arrow-left" text @click="selectedGroup = null" />
           </div>
@@ -87,7 +87,7 @@
         <label>Description (optional)</label>
         <InputText v-model="createForm.description" placeholder="Description" />
         <label>Visibility</label>
-        <Select v-model="createForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" placeholder="Visibility" />
+        <Select v-model="createForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" optionLabel="label" optionValue="value" placeholder="Visibility" />
       </div>
       <template #footer>
         <Button label="Cancel" text @click="showCreateDialog = false" />
@@ -102,7 +102,7 @@
         <label>Description</label>
         <InputText v-model="editForm.description" />
         <label>Visibility</label>
-        <Select v-model="editForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" />
+        <Select v-model="editForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" optionLabel="label" optionValue="value" />
       </div>
       <template #footer>
         <Button label="Cancel" text @click="showEditDialog = false" />
@@ -146,24 +146,25 @@ const newMemberId = ref('')
 const newMemberRole = ref('viewer')
 const selectedDocToAdd = ref(null)
 
+const currentUserId = computed(() => authStore.user?.user_id || authStore.user?._id)
+
 const isOwner = computed(() => {
-  if (!selectedGroup.value) return false
-  return selectedGroup.value.owner_id?.toString() === authStore.user?.user_id?.toString()
+  if (!selectedGroup.value || !currentUserId.value) return false
+  return selectedGroup.value.owner_id?.toString() === currentUserId.value.toString()
 })
 
 const isEditor = computed(() => {
-  if (!selectedGroup.value) return false
-  const member = selectedGroup.value.members?.find(m => (m.user_id?._id || m.user_id)?.toString() === authStore.user?.user_id?.toString())
+  if (!selectedGroup.value || !currentUserId.value) return false
+  const member = selectedGroup.value.members?.find(m => (m.user_id?._id || m.user_id)?.toString() === currentUserId.value.toString())
   return member?.role === 'editor'
 })
 
-const accessibleDocs = ref([])
+const accessibleDocs = computed(() => store.accessibleDocs)
 
 onMounted(async () => {
   await store.fetchGroups()
   await ragStore.listDocuments()
   await store.fetchAccessibleDocs()
-  accessibleDocs.value = (await store.fetchAccessibleDocs()).data || []
 })
 
 const getVisibilitySeverity = (visibility) => {
@@ -183,9 +184,18 @@ const selectGroup = async (group) => {
   activeTab.value = 'members'
 }
 
+const openEditDialog = () => {
+  editForm.value = {
+    name: selectedGroup.value.name,
+    description: selectedGroup.value.description || '',
+    visibility: selectedGroup.value.visibility || 'private'
+  }
+  showEditDialog.value = true
+}
+
 const createGroup = async () => {
   try {
-    await store.createGroup(createForm.value.name, createForm.value.description)
+    await store.createGroup(createForm.value.name, createForm.value.description, createForm.value.visibility)
     showCreateDialog.value = false
     createForm.value = { name: '', description: '', visibility: 'private' }
   } catch (error) {
