@@ -3,7 +3,7 @@ model=gemma-4-26B-A4B-it-UD-Q8_K_XL.gguf
 
 # Host Configs
 port=11434
-host=100.115.205.84
+host=100.106.131.63
 
 # Hardware Configs
 mainGpu=0
