@@ -1,6 +1,6 @@
-const llamaService = require('./llamaService');
-const memoryManager = require('./memoryManager');
-const logger = require('../utils/logger');
+const llamaService = require('../services/llamaService');
+const memoryManager = require('../services/memoryManager');
+const logger = require('./logger');
 
 const redactPII = (text) => {
   let redacted = text;
