@@ -7,7 +7,7 @@ MODEL=gemma-4-26B-A4B.sh
 
 ## NEMOTRON ##
 ##--------
-# MODEL=Nemotron-3-Nano-30B-A3B-IQ4_NL.sh
+# MODEL=Nemotron-3-Nano-30B.sh
 
 ## QWEN ##
 ##--------
