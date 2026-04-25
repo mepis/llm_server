@@ -1,6 +1,6 @@
 #!/bin/bash
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
-MODEL=Qwen3.6-27B-Q8_0.sh
+MODEL=Qwen3.6-27B-Q8_0.gguf
 
 # Benchmark configs
 batch_size=256
