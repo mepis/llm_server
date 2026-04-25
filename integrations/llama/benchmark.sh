@@ -13,7 +13,7 @@ threads=19
 # Hardware Configs
 mainGpu=0
 tensorSplit=16,12,12
-splitMode=tensor
+splitMode=layer
 
 # Model Configs
 context=262144
@@ -38,6 +38,6 @@ export LLAMA_PARAMS_FIT=off
 # export LLAMA_ARG_FIT_CTX=262144
 # export LLAMA_ARG_FLASH_ATTN=1
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size  --verbose
+./llama-bench -m $MODEL_DIR/$MODEL --fit off -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size 
 
 # --verbose
