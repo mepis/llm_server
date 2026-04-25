@@ -65,11 +65,15 @@
               <span>Logs</span>
             </router-link>
           <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/monitor" class="nav-link" @click="closeAfterNav">
-              <i class="pi pi-chart-bar"></i>
-              <span>Monitor</span>
-            </router-link>
-          </nav>
-        </div>
+               <i class="pi pi-chart-bar"></i>
+               <span>Monitor</span>
+             </router-link>
+            <router-link to="/account" class="nav-link" @click="closeAfterNav">
+               <i class="pi pi-user"></i>
+               <span>Account</span>
+             </router-link>
+           </nav>
+         </div>
       <div v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" class="sidebar-section">
         <h3 class="section-title">Admin</h3>
         <nav class="nav-links">
@@ -90,7 +94,7 @@
     </div>
     <div class="sidebar-footer">
       <div class="user-info">
-        <span class="username">{{ user?.username || 'User' }}</span>
+        <span class="username">{{ user?.display_name || user?.username || 'User' }}</span>
       </div>
       <Button label="Logout" icon="pi pi-sign-out" @click="handleLogout" />
     </div>

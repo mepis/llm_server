@@ -105,19 +105,21 @@ const loginUser = async (username, password) => {
     
     logger.info(`User logged in: ${user.username}`);
     
-    return {
-      success: true,
-      data: {
-        token,
-        user: {
-          user_id: user._id,
-          username: user.username,
-          email: user.email,
-          roles: user.roles,
-          preferences: user.preferences
+   return {
+        success: true,
+        data: {
+          token,
+          user: {
+            user_id: user._id,
+            username: user.username,
+            display_name: user.display_name,
+            matrix_username: user.matrix_username,
+            email: user.email,
+            roles: user.roles,
+            preferences: user.preferences
+          }
         }
-      }
-    };
+      };
   } catch (error) {
     logger.error('Login failed:', error.message);
     throw error;
@@ -154,7 +156,7 @@ const getUserById = async (userId) => {
 
 const updateUser = async (userId, updateData) => {
   try {
-    const allowedUpdates = ['email', 'preferences', 'is_active'];
+    const allowedUpdates = ['email', 'display_name', 'matrix_username', 'preferences', 'is_active'];
     const updates = {};
     
     for (const key of allowedUpdates) {
@@ -281,6 +283,33 @@ const updateUserPassword = async (userId, newPassword) => {
   }
 };
 
+const changePassword = async (userId, currentPassword, newPassword) => {
+  try {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    const isValid = await user.checkPassword(currentPassword);
+    if (!isValid) {
+      throw new Error('Current password is incorrect');
+    }
+    
+    await user.resetPassword(newPassword);
+    
+    logger.info(`User changed password: ${user.username}`);
+    
+    return {
+      success: true,
+      data: { username: user.username, email: user.email }
+    };
+  } catch (error) {
+    logger.error('Change password failed:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   registerUser,
   createUser,
@@ -291,5 +320,6 @@ module.exports = {
   deleteUser,
   setUserRole,
   removeUserRole,
-  updateUserPassword
+  updateUserPassword,
+  changePassword
 };

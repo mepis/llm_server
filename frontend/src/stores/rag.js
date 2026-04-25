@@ -65,7 +65,7 @@ export const useRAGStore = defineStore('rag', {
       this.loading = true
       this.error = null
       try {
-        const response = await apiClient.post('/rag/query', { query, documentIds })
+        const response = await apiClient.post('/rag/search', { query, filter_document_ids: documentIds })
         this.queries.unshift(response.data.data)
         return response.data.data
       } catch (error) {

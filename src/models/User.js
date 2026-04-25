@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  display_name: {
+    type: String,
+    trim: true
+  },
+  matrix_username: {
+    type: String,
+    trim: true
+  },
   roles: {
     type: [String],
     default: ['user']

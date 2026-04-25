@@ -13,6 +13,7 @@ router.get('/me', userController.getProfile);
 router.put('/me', userController.updateProfile);
 router.patch('/me', userController.updateProfile);
 router.delete('/me', userController.deleteProfile);
+router.patch('/me/change-password', userController.changePasswordSelf);
 
 router.use(rbac.requireAdmin);
 

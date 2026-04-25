@@ -75,6 +75,68 @@ export const useAuthStore = defineStore('auth', {
         this.logout()
         throw error
       }
+    },
+
+    async changePassword(currentPassword, newPassword) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch('/users/me/change-password', {
+          currentPassword,
+          newPassword
+        })
+        return response.data
+      } catch (error) {
+        if (error.response) {
+          this.error = error.response.data?.error || 'Password change failed'
+        } else {
+          this.error = 'Password change failed. Please try again.'
+        }
+        error.message = this.error
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateEmail(email) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch('/users/me', { email })
+        this.user = response.data.data
+        return response.data
+      } catch (error) {
+        if (error.response) {
+          this.error = error.response.data?.error || 'Email update failed'
+        } else {
+          this.error = 'Email update failed. Please try again.'
+        }
+        error.message = this.error
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateAccountInfo(data) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch('/users/me', data)
+        this.user = response.data.data
+        return response.data
+      } catch (error) {
+        if (error.response) {
+          this.error = error.response.data?.error || 'Account update failed'
+        } else {
+          this.error = 'Account update failed. Please try again.'
+        }
+        error.message = this.error
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

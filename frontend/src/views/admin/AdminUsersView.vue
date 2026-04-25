@@ -190,8 +190,16 @@
             <InputText :value="editForm.username" disabled />
           </div>
           <div class="form-field">
+            <label>Display Name</label>
+            <InputText v-model="editForm.displayName" placeholder="Enter display name (optional)" />
+          </div>
+          <div class="form-field">
             <label>Email <span class="required">*</span></label>
             <InputText v-model="editForm.email" placeholder="Enter email" type="email" />
+          </div>
+          <div class="form-field">
+            <label>Matrix Username</label>
+            <InputText v-model="editForm.matrixUsername" placeholder="@username:server.domain" />
           </div>
           <div class="form-field">
             <label>
@@ -357,7 +365,9 @@ const editDialogVisible = ref(false)
 const editingUserId = ref(null)
 const editForm = ref({
   username: '',
+  displayName: '',
   email: '',
+  matrixUsername: '',
   isActive: true
 })
 
@@ -457,7 +467,9 @@ const openEditDialog = (user) => {
   editingUserId.value = user._id
   editForm.value = {
     username: user.username,
+    displayName: user.display_name || '',
     email: user.email,
+    matrixUsername: user.matrix_username || '',
     isActive: user.is_active
   }
   editDialogVisible.value = true
@@ -472,6 +484,8 @@ const saveEditUser = async () => {
   try {
     await userStore.updateUser(editingUserId.value, {
       email: editForm.value.email,
+      display_name: editForm.value.displayName || null,
+      matrix_username: editForm.value.matrixUsername || null,
       is_active: editForm.value.isActive
     })
     toast.add({ severity: 'success', summary: 'Success', detail: 'User updated successfully', life: 2000 })

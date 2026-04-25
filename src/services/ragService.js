@@ -1,4 +1,5 @@
 const RAGDocument = require('../models/RAGDocument');
+const RAGChunk = require('../models/RAGChunk');
 const DocumentGroup = require('../models/DocumentGroup');
 const llamaService = require('./llamaService');
 const logger = require('../utils/logger');
@@ -121,22 +122,21 @@ const processDocument = async (documentId) => {
     
     const chunks = chunkText(document.content, 500);
     
-    const newChunks = [];
-    
-    for (const chunk of chunks) {
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
       const embeddingResponse = await llamaService.getEmbeddings(chunk);
       const embedding = embeddingResponse.data[0]?.embedding;
       
       if (embedding) {
-        newChunks.push({
+        await RAGChunk.create({
+          document_id: document._id,
           text: chunk,
           embedding,
-          chunk_index: newChunks.length
+          chunk_index: i
         });
       }
     }
     
-    document.chunked_content.push(...newChunks);
     document.status = 'indexed';
     document.processed_at = new Date();
     await document.save();
@@ -228,33 +228,46 @@ const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
     
     const documents = await RAGDocument.find(filterQuery);
     
+    const docIds = documents.map(d => d._id.toString());
+    const docMap = new Map();
+    for (const doc of documents) {
+      docMap.set(doc._id.toString(), doc);
+    }
+    
+    const chunks = await RAGChunk.find({
+      document_id: { $in: docIds.map(id => require('mongoose').Types.ObjectId(id)) },
+      'embedding.0': { $exists: true }
+    });
+    
     const allResults = [];
     const sourcesMap = new Map();
     
-    for (const doc of documents) {
+    for (const chunk of chunks) {
+      if (!chunk.embedding || chunk.embedding.length !== queryVector.length) continue;
+      
+      const docId = chunk.document_id.toString();
+      const doc = docMap.get(docId);
+      if (!doc) continue;
+      
       let maxSimilarity = 0;
       
-      for (const chunk of doc.chunked_content || []) {
-        if (chunk.embedding && chunk.embedding.length === queryVector.length) {
-          const similarity = cosineSimilarity(queryVector, chunk.embedding);
-          if (similarity > 0.1) {
-            allResults.push({
-              text: chunk.text,
-              document_id: doc._id.toString(),
-              filename: doc.filename,
-              file_type: doc.file_type,
-              chunk_index: chunk.chunk_index,
-              similarity,
-              sheet_name: doc.metadata?.sheets?.[chunk.chunk_index] || null
-            });
-          }
-          maxSimilarity = Math.max(maxSimilarity, similarity);
-        }
+      const similarity = cosineSimilarity(queryVector, chunk.embedding);
+      if (similarity > 0.1) {
+        allResults.push({
+          text: chunk.text,
+          document_id: docId,
+          filename: doc.filename,
+          file_type: doc.file_type,
+          chunk_index: chunk.chunk_index,
+          similarity,
+          sheet_name: doc.metadata?.sheets?.[chunk.chunk_index] || null
+        });
       }
+      maxSimilarity = Math.max(maxSimilarity, similarity);
       
-      if (!sourcesMap.has(doc._id.toString())) {
-        sourcesMap.set(doc._id.toString(), {
-          document_id: doc._id.toString(),
+      if (!sourcesMap.has(docId)) {
+        sourcesMap.set(docId, {
+          document_id: docId,
           filename: doc.filename,
           file_type: doc.file_type,
           total_chunks_used: 0,
@@ -309,6 +322,8 @@ const deleteDocument = async (documentId) => {
     if (!document) {
       throw new Error('Document not found');
     }
+    
+    await RAGChunk.deleteMany({ document_id: document._id });
     
     if (document.file_path && fs.existsSync(document.file_path)) {
       fs.unlinkSync(document.file_path);
@@ -365,16 +380,18 @@ const getChunks = async (documentId, userId, options = {}) => {
       throw new Error('Document not found');
     }
     
-    const chunks = document.chunked_content || [];
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedChunks = chunks.slice(startIndex, endIndex);
+    const total = await RAGChunk.countDocuments({ document_id: document._id });
+    const skip = (page - 1) * limit;
+    const chunks = await RAGChunk.find({ document_id: document._id })
+      .sort({ chunk_index: 1 })
+      .skip(skip)
+      .limit(limit);
     
     return {
       success: true,
       data: {
-        chunks: paginatedChunks,
-        total: chunks.length,
+        chunks,
+        total,
         page: parseInt(page),
         limit: parseInt(limit)
       }

@@ -14,53 +14,11 @@
 
         <TabPanel value="user">
           <div class="tab-content">
-            <div v-if="prefLoading" class="loading-state">
-              <p>Loading preferences...</p>
-            </div>
-            <div v-else class="settings-section">
-              <h2>Default Model</h2>
-              <p class="section-desc">Select the default LLM model for your sessions.</p>
+            <div class="settings-section">
+              <h2>User Preferences</h2>
+              <p class="section-desc">Personal settings like display name, email, password, and appearance preferences are managed on your Account page.</p>
 
-              <div class="form-field">
-                <label>Model</label>
-                <Dropdown
-                  v-model="localPrefs.default_model"
-                  :options="modelOptions"
-                  placeholder="Select a model"
-                  :loading="modelsLoading"
-                />
-                <Button
-                  label="Refresh models"
-                  text
-                  size="small"
-                  @click="loadModels"
-                  :disabled="modelsLoading"
-                />
-              </div>
-
-              <div class="form-field">
-                <label>Language</label>
-                <InputText v-model="localPrefs.language" placeholder="e.g., en, zh" />
-              </div>
-
-              <Divider />
-
-              <div class="form-field toggle-field">
-                <div class="toggle-info">
-                  <label>Auto-play TTS</label>
-                  <p>Automatically play text-to-speech output when available.</p>
-                </div>
-                <ToggleSwitch :model-value="settingsStore.autoPlayTTS" @update:model-value="settingsStore.setAutoPlayTTS" />
-              </div>
-
-              <Divider />
-
-              <Button
-                label="Save preferences"
-                :loading="saving"
-                @click="savePreferences"
-                :disabled="!hasChanges"
-              />
+              <Button label="Go to Account Settings" icon="pi pi-user" @click="$router.push('/account')" />
             </div>
           </div>
         </TabPanel>
@@ -163,19 +121,14 @@ import Tabs from 'primevue/tabs'
 import TabList from 'primevue/tablist'
 import Tab from 'primevue/tab'
 import TabPanel from 'primevue/tabpanel'
-import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
-import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
-import Divider from 'primevue/divider'
 
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
 const toast = useToast()
 
 const activeTab = ref('user')
-const saving = ref(false)
-const modelsLoading = ref(false)
 
 const isAdmin = computed(() => {
   return authStore.user?.roles?.includes('admin') || false
@@ -203,31 +156,11 @@ const sensitiveKeys = ['MONGODB_URI', 'JWT_SECRET', 'MATRIX_ACCESS_TOKEN']
 const revealedKeys = ref([])
 const savingKeys = ref([])
 
-const prefLoading = computed(() => settingsStore.loading && !settingsStore.userPreferences)
 const configLoading = computed(() => settingsStore.loading && settingsStore.configSettings.length === 0)
 
-const userPrefs = computed(() => settingsStore.userPreferences || { default_model: '', language: 'en' })
 const configSettings = computed(() => settingsStore.configSettings)
 
-const modelOptions = computed(() => {
-  return settingsStore.llamaModels
-})
-
-const localPrefs = ref({
-  default_model: '',
-  language: 'en'
-})
-
 const editableSettings = ref({})
-
-const hasChanges = computed(() => {
-  if (!settingsStore.userPreferences) return false
-  const p = settingsStore.userPreferences
-  return (
-    localPrefs.value.default_model !== (p.default_model || '') ||
-    localPrefs.value.language !== (p.language || '')
-  )
-})
 
 const healthLoading = ref(false)
 const healthData = ref({ llama: null, tts: null, matrix: null })
@@ -257,30 +190,6 @@ const statusLabel = (status) => {
   if (status === 'healthy') return 'Healthy'
   if (status === 'unconfigured') return 'Not configured'
   return 'Unreachable'
-}
-
-const loadModels = async () => {
-  modelsLoading.value = true
-  try {
-    await settingsStore.fetchLlamaModels()
-  } catch (error) {
-    console.error('Failed to load models:', error)
-  } finally {
-    modelsLoading.value = false
-  }
-}
-
-const savePreferences = async () => {
-  saving.value = true
-  try {
-    await settingsStore.updateUserPreferences(localPrefs.value)
-    toast.add({ severity: 'success', summary: 'Success', detail: 'Preferences saved', life: 3000 })
-  } catch (error) {
-    console.error('Failed to save preferences:', error)
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to save preferences', life: 5000 })
-  } finally {
-    saving.value = false
-  }
 }
 
 const loadConfigSettings = async () => {
@@ -321,22 +230,6 @@ const loadHealth = async () => {
 }
 
 onMounted(async () => {
-  try {
-    await settingsStore.fetchUserPreferences()
-    localPrefs.value = {
-      default_model: userPrefs.value.default_model || '',
-      language: userPrefs.value.language || 'en'
-    }
-  } catch (error) {
-    console.error('Failed to load preferences:', error)
-  }
-
-  try {
-    await loadModels()
-  } catch (error) {
-    console.error('Failed to load models on mount:', error)
-  }
-
   if (isAdmin.value) {
     try {
       await loadConfigSettings()

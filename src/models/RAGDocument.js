@@ -29,15 +29,6 @@ const ragDocumentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  embeddings: {
-    type: [[Number]],
-    default: []
-  },
-  chunked_content: [{
-    text: String,
-    embedding: [Number],
-    chunk_index: Number
-  }],
   metadata: {
     source_url: String,
     description: String,
@@ -79,13 +70,7 @@ const ragDocumentSchema = new mongoose.Schema({
 ragDocumentSchema.index({ user_id: 1, created_at: -1 });
 ragDocumentSchema.index({ filename: 1 });
 ragDocumentSchema.index({ status: 1 });
-ragDocumentSchema.index({ 'chunked_content.chunk_index': 1 });
 ragDocumentSchema.index({ group_ids: 1, status: 1 });
-
-  ragDocumentSchema.methods.addChunk = function(chunkData) {
-  this.chunked_content.push(chunkData);
-  return this.save();
-};
 
 ragDocumentSchema.methods.setProcessingError = function(errorMessage) {
   this.status = 'failed';

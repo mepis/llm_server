@@ -1,8 +1,7 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h1 class="login-title">LLM Server</h1>
-      <p class="login-subtitle">Chat with Llama.cpp and manage your AI workspace</p>
+      <h1 class="login-title">{{ appTitle }}</h1>
       <form class="login-form" @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="username" class="form-label">Username</label>
@@ -47,6 +46,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const appTitle = import.meta.env.VITE_APP_TITLE || 'LLM Server'
 const loading = ref(false)
 const errorMessage = ref('')
 
@@ -85,14 +85,16 @@ const handleLogin = async () => {
 <style scoped>
 .login-container {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: white;
+  padding: 1rem;
 }
 
 .login-card {
-  background: white;
+  background: transparent;
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -105,12 +107,6 @@ const handleLogin = async () => {
   color: #2d6a4f;
   text-align: center;
   margin-bottom: 0.5rem;
-}
-
-.login-subtitle {
-  text-align: center;
-  color: #6b7280;
-  margin-bottom: 2rem;
 }
 
 .login-form {
@@ -185,5 +181,68 @@ const handleLogin = async () => {
   font-size: 0.875rem;
   text-align: center;
   margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .login-card {
+    padding: 2rem;
+    max-width: 100%;
+  }
+
+  .login-title {
+    font-size: 1.75rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 10vh;
+  }
+
+  .login-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .login-form {
+    gap: 1rem;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+  }
+
+  .form-input {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .login-footer {
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

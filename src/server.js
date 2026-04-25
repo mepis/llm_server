@@ -17,7 +17,7 @@ const app = express();
 app.set('port', config.port);
 
 const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-const envOrigins = (process.env.FRONTEND_URL || '').split(',').map(o => o.trim()).filter(Boolean);
+const envOrigins = (process.env.CORS_ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
 const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
 const corsOptions = {

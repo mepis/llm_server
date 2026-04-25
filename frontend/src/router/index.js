@@ -67,6 +67,11 @@ const router = createRouter({
           component: () => import('../views/memory/MemoriesView.vue')
         },
         {
+          path: 'account',
+          name: 'account',
+          component: () => import('../views/account/AccountSettingsView.vue')
+        },
+        {
           path: 'prompts',
           name: 'prompts',
           component: () => import('../views/prompts/PromptsView.vue')

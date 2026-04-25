@@ -85,14 +85,16 @@ const handleRegister = async () => {
 <style scoped>
 .auth-container {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: white;
+  padding: 1rem;
 }
 
 .auth-card {
-  background: white;
+  background: transparent;
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -185,5 +187,68 @@ const handleRegister = async () => {
   font-size: 0.875rem;
   text-align: center;
   margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .auth-card {
+    padding: 2rem;
+    max-width: 100%;
+  }
+
+  .auth-title {
+    font-size: 1.75rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-container {
+    padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 10vh;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .auth-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .auth-form {
+    gap: 1rem;
+  }
+
+  .form-label {
+    font-size: 0.85rem;
+  }
+
+  .form-input {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-primary {
+    padding: 0.65rem;
+    font-size: 0.95rem;
+  }
+
+  .auth-footer {
+    margin-top: 1.25rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

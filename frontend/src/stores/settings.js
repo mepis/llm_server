@@ -7,6 +7,8 @@ export const useSettingsStore = defineStore('settings', {
     hideToolMessages: localStorage.getItem('hideToolMessages') === 'true',
     debugMode: localStorage.getItem('debugMode') === 'true',
     userPreferences: null,
+    displayName: null,
+    matrixUsername: null,
     configSettings: [],
     llamaModels: [],
     healthStatus: null,
@@ -35,7 +37,10 @@ export const useSettingsStore = defineStore('settings', {
       this.error = null
       try {
         const response = await apiClient.get('/users/me')
-        this.userPreferences = response.data.data.preferences || {}
+        const userData = response.data.data
+        this.userPreferences = userData.preferences || {}
+        this.displayName = userData.display_name
+        this.matrixUsername = userData.matrix_username
         return this.userPreferences
       } catch (error) {
         this.error = error.response?.data?.error || 'Failed to fetch user preferences'
@@ -54,6 +59,27 @@ export const useSettingsStore = defineStore('settings', {
         return response.data
       } catch (error) {
         this.error = error.response?.data?.error || 'Failed to update user preferences'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateAccountInfo(data) {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.patch('/users/me', data)
+        const userData = response.data.data
+        if (data.display_name !== undefined) {
+          this.displayName = userData.display_name
+        }
+        if (data.matrix_username !== undefined) {
+          this.matrixUsername = userData.matrix_username
+        }
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to update account info'
         throw error
       } finally {
         this.loading = false

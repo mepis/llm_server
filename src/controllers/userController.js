@@ -275,6 +275,33 @@ const resetUserPassword = async (req, res) => {
   }
 };
 
+const changePasswordSelf = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password and new password are required'
+      });
+    }
+
+    const result = await userService.changePassword(userId, currentPassword, newPassword);
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    logger.error('Change password failed:', error.message);
+    res.status(400).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
   createUser,
@@ -288,5 +315,6 @@ module.exports = {
   updateUser,
   deleteUser,
   updateUserRole,
-  resetUserPassword
+  resetUserPassword,
+  changePasswordSelf
 };

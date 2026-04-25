@@ -4,6 +4,34 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-25
+
+### CORS Configuration
+- **Added**: `CORS_ALLOWED_ORIGINS` env var — comma-separated list of allowed origins, separate from `FRONTEND_URL`
+- **Modified**: `src/server.js` — CORS now reads from `CORS_ALLOWED_ORIGINS` instead of `FRONTEND_URL`
+
+### Account Management
+- **Added**: `display_name` and `matrix_username` fields to User model and API responses
+- **Added**: `PATCH /api/users/me/change-password` endpoint for self-service password changes
+- **Added**: Account settings view (`/account`) for managing display name, email, password, and Matrix username
+- **Modified**: Header, Sidebar — display user `display_name` when available
+
+### RAG System Refactor
+- **Added**: `RAGChunk` model — chunks stored in separate collection with embeddings
+- **Modified**: `ragService.js` — chunking creates `RAGChunk` documents; search queries chunks directly; delete cascades to chunks
+- **Removed**: `embeddings` and `chunked_content` fields from `RAGDocument` schema
+- **Modified**: `RAGDocumentsView`, `RAGQueriesView` — search endpoint updated to `/rag/search`
+
+### Admin & Settings
+- **Modified**: `AdminUsersView` — edit dialog includes display name and Matrix username fields
+- **Modified**: `AdminSettingsView` — simplified User Preferences tab, links to Account page instead
+
+### Frontend UI Improvements
+- **Added**: Mobile-responsive styles for login/register pages (`100dvh`, breakpoints)
+- **Added**: `VITE_APP_TITLE` env var support for customizable login title
+
+---
+
 ## [Unreleased] - 2026-04-24
 
 ### Document Groups Button Fixes
