@@ -15,8 +15,8 @@
           <Tab value="semantic">Semantic</Tab>
           <Tab value="procedural">Procedural</Tab>
         </TabList>
-        <TabPanels>
-          <TabPanel value="episodic">
+
+        <TabPanel value="episodic">
             <div v-if="memoryStore.loading" class="loading-state">
               <p>Loading episodic memories...</p>
             </div>
@@ -79,7 +79,6 @@
               </div>
             </div>
           </TabPanel>
-        </TabPanels>
       </Tabs>
     </main>
   </div>
@@ -89,6 +88,15 @@
 import { ref, onMounted, computed } from 'vue'
 import { useMemoryStore } from '@/stores/memory'
 import { useRouter } from 'vue-router'
+
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanel from 'primevue/tabpanel'
+import Select from 'primevue/select'
+import InputText from 'primevue/inputtext'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
 
 const memoryStore = useMemoryStore()
 const router = useRouter()
@@ -121,7 +129,7 @@ const loadMemories = async () => {
 
 const fetchSessions = async () => {
   try {
-    const response = await fetch('/api/chat/sessions?page=1&limit=50', {
+    const response = await fetch('/api/chat?page=1&limit=50', {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     const data = await response.json()

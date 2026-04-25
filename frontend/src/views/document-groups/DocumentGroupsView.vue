@@ -125,6 +125,16 @@ import { ref, onMounted, computed } from 'vue'
 import { useDocumentGroupsStore } from '@/stores/documentGroups'
 import { useRAGStore } from '@/stores/rag'
 import { useAuthStore } from '@/stores/auth'
+import Button from 'primevue/button'
+import Badge from 'primevue/badge'
+import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
+import Dialog from 'primevue/dialog'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 
 const store = useDocumentGroupsStore()
 const ragStore = useRAGStore()

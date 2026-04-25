@@ -1,5 +1,6 @@
 #!/bin/bash
-model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
+# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
+MODEL=Qwen3.6-27B-Q8_0.sh
 
 # Benchmark configs
 batch_size=256
@@ -35,6 +36,6 @@ export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
 export LLAMA_ARG_FLASH_ATTN=1
 
-./llama-bench -m $MODEL_DIR/$model -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size --fit-target 256 --fit-ctx 262144 -r 25 --verbose
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size --fit-target 256 --fit-ctx 262144 -r 25 --verbose
 
 # --verbose

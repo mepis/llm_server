@@ -367,6 +367,25 @@ const getGroupAccessibleDocuments = async (userId) => {
   }
 };
 
+const getUserGroups = async (userId) => {
+  try {
+    const groups = await DocumentGroup.find({
+      $or: [
+        { owner_id: userId },
+        { 'members.user_id': userId }
+      ]
+    }).sort({ created_at: -1 });
+
+    return {
+      success: true,
+      data: groups
+    };
+  } catch (error) {
+    logger.error('Get user groups failed:', error.message);
+    throw error;
+  }
+};
+
 const getGroupDocuments = async (groupId) => {
   try {
     const group = await DocumentGroup.findById(groupId).populate({
@@ -390,6 +409,7 @@ const getGroupDocuments = async (groupId) => {
 
 module.exports = {
   createGroup,
+  getUserGroups,
   updateGroup,
   deleteGroup,
   addMember,

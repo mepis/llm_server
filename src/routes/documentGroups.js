@@ -5,6 +5,7 @@ const documentGroupController = require('../controllers/documentGroupController'
 
 router.post('/', authMiddleware, documentGroupController.createGroup);
 router.get('/', authMiddleware, documentGroupController.getGroups);
+router.get('/accessible', authMiddleware, documentGroupController.getAccessibleDocs);
 router.get('/:id', authMiddleware, documentGroupController.getGroup);
 router.patch('/:id', authMiddleware, documentGroupController.updateGroup);
 router.delete('/:id', authMiddleware, documentGroupController.deleteGroup);
@@ -13,6 +14,5 @@ router.delete('/:id/members/:uid', authMiddleware, documentGroupController.remov
 router.post('/:id/transfer', authMiddleware, documentGroupController.transferOwnership);
 router.post('/:id/documents', authMiddleware, documentGroupController.addDocumentToGroup);
 router.delete('/:id/documents/:did', authMiddleware, documentGroupController.removeDocumentFromGroup);
-router.get('/accessible', authMiddleware, documentGroupController.getAccessibleDocs);
 
 module.exports = router;

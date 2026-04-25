@@ -84,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 import Button from 'primevue/button'
@@ -125,9 +125,17 @@ const loadMetrics = async () => {
   }
 }
 
+let refreshInterval = null
+
 onMounted(() => {
   loadMetrics()
-  setInterval(loadMetrics, 10000)
+  refreshInterval = setInterval(loadMetrics, 10000)
+})
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+  }
 })
 </script>
 
