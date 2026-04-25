@@ -36,6 +36,6 @@ export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
 export LLAMA_ARG_FLASH_ATTN=1
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size --fit-target 256 --fit-ctx 262144 -r 25 --verbose
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --threads $threads --cpu-strict 1 --batch-size $batch_size --ubatch-size $ubatch_size --fit-target 256 --fit-ctx 262144 -r 25 
 
 # --verbose
