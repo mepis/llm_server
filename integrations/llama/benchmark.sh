@@ -41,6 +41,6 @@ export LLAMA_ARG_CONT_BATCHING=on
 export LLAMA_ARG_N_PREDICT=0
 export LLAMA_ARG_N_PARALLEL=6
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --mmap 0  --parallel 6 --sequences 2
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --mmap 0  --sequences 2
 
 # --verbose --mlock 1  --fit on --fit-target 512 --fit-ctx 262144 --swa-full --cont-batching
