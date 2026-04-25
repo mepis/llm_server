@@ -36,6 +36,6 @@ export CUDACXX=$(which nvcc)
 # export LLAMA_ARG_FIT_CTX=262144
 # export LLAMA_ARG_FLASH_ATTN=1
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --prio 2 --cpu-range 0-7 --cpu-strict 1
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --prio 2 
 
 # --verbose
