@@ -7,7 +7,7 @@ CURRENT_DIR=$(pwd)
 
 ## NEMOTRON ##
 ##--------
-MODEL=Nemotron-3-Nano-30B.sh
+# MODEL=Nemotron-3-Nano-30B.sh
 
 ## QWEN ##
 ##--------
@@ -16,7 +16,7 @@ MODEL=Nemotron-3-Nano-30B.sh
 # MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
-# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
+MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
 
 ###############################################################

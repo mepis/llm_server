@@ -49,9 +49,13 @@ const updateGroup = async (groupId, userId, updateData) => {
       throw new Error('Document group not found');
     }
 
-    if (!group.canEdit(userId)) {
-      throw new Error('Insufficient permissions to edit this group');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+       throw new Error('Insufficient permissions to edit this group');
+     }
 
     const allowedFields = ['name', 'description', 'visibility'];
     for (const field of allowedFields) {
@@ -82,9 +86,13 @@ const deleteGroup = async (groupId, userId) => {
       throw new Error('Document group not found');
     }
 
-    if (!group.isOwner(userId)) {
-      throw new Error('Only the owner can delete this group');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+       throw new Error('Only the owner or admin can delete this group');
+     }
 
     await DocumentGroup.findByIdAndDelete(groupId);
 
@@ -105,9 +113,13 @@ const addMember = async (groupId, userId, memberUserId, role = 'viewer') => {
       throw new Error('Document group not found');
     }
 
-    if (!group.isOwner(userId)) {
-      throw new Error('Only the owner can add members');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+       throw new Error('Only the owner or admin can add members');
+     }
 
     if (role === 'owner') {
       throw new Error('Cannot assign owner role; only the creator can be owner');
@@ -149,9 +161,13 @@ const removeMember = async (groupId, userId, memberUserId) => {
     const isOwner = group.isOwner(userId);
     const isSelfRemoval = userId === memberUserId;
 
-    if (!isOwner && !isSelfRemoval) {
-      throw new Error('Only the owner can remove members, or users can remove themselves');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !isOwner && !isSelfRemoval) {
+       throw new Error('Only the owner, admin, or the user themselves can remove a member');
+     }
 
     if (isOwner && group.isOwner(memberUserId)) {
       throw new Error('Cannot remove yourself as owner. Transfer ownership first.');
@@ -189,9 +205,13 @@ const transferOwnership = async (groupId, userId, newOwnerId) => {
         throw new Error('Document group not found');
       }
 
-      if (!group.isOwner(userId)) {
-        throw new Error('Only the owner can transfer ownership');
-      }
+      const user = await User.findById(userId);
+         if (!user) {
+           throw new Error('User not found');
+         }
+         if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+           throw new Error('Only the owner or admin can transfer ownership');
+         }
 
       if (group.isOwner(newOwnerId)) {
         throw new Error('User is already the owner');
@@ -248,9 +268,13 @@ const addDocumentToGroup = async (groupId, userId, documentId) => {
       throw new Error('Document group not found');
     }
 
-    if (!group.canEdit(userId)) {
-      throw new Error('Insufficient permissions to add documents');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+       throw new Error('Insufficient permissions to add documents');
+     }
 
     const document = await RAGDocument.findById(documentId);
     if (!document) {
@@ -294,9 +318,13 @@ const removeDocumentFromGroup = async (groupId, userId, documentId) => {
       throw new Error('Document group not found');
     }
 
-    if (!group.canEdit(userId)) {
-      throw new Error('Insufficient permissions to remove documents');
-    }
+    const user = await User.findById(userId);
+     if (!user) {
+       throw new Error('User not found');
+     }
+     if (!user.roles.includes('admin') && !group.isOwner(userId)) {
+       throw new Error('Insufficient permissions to remove documents');
+     }
 
     const docIndex = group.documents.findIndex(d => d.document_id.toString() === documentId.toString());
     if (docIndex === -1) {
