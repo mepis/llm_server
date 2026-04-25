@@ -5,8 +5,8 @@
 MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
 
 # Benchmark configs
-batch_size=1024
-ubatch_size=512
+batch_size=256,512,1024
+ubatch_size=256,512
 
 threads=20
 
