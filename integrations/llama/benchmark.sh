@@ -7,7 +7,7 @@ MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
 batch_size=512
 ubatch_size=256
 
-threads=8
+threads=20
 
 
 # Hardware Configs
@@ -24,7 +24,7 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-export CUDA_SCALE_LAUNCH_QUEUES=16x 
+export CUDA_SCALE_LAUNCH_QUEUES=32x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
