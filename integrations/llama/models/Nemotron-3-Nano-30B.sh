@@ -29,6 +29,6 @@ export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP  --min-p $minP --top-k $topK --threads $threads --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 512 --ubatch-size 256  --presence-penalty 1 --repeat-penalty 1 --rope-scaling yarn --fit on --fit-target 512 --fit-ctx 262144 --parallel 6 -ns 2 --cont-batching 1 --ctx-checkpoints 16 --reasoning on --verbose
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP  --min-p $minP --top-k $topK --threads $threads --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 512 --ubatch-size 256  --presence-penalty 1 --repeat-penalty 1 --rope-scaling yarn --fit on --fit-target 512 --fit-ctx 262144 --parallel 6 --cont-batching 1 --ctx-checkpoints 16 --reasoning on --verbose
 
 # --chat-template-kwargs '{"enable_thinking":true}'
