@@ -33,6 +33,7 @@ export CUDACXX=$(which nvcc)
 # export LLAMA_ARG_MLOCK=on
 # export LLAMA_ARG_MMAP=off
 export LLAMA_ARG_FIT=off
+export LLAMA_PARAMS_FIT=off
 # export LLAMA_ARG_FIT_TARGET=256
 # export LLAMA_ARG_FIT_CTX=262144
 # export LLAMA_ARG_FLASH_ATTN=1
