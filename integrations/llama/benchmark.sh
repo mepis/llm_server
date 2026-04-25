@@ -4,8 +4,8 @@
 MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
 
 # Benchmark configs
-batch_size=256,512,1024
-ubatch_size=128,256,512
+batch_size=128,256,512,1024,2048
+ubatch_size=256
 
 threads=19
 
