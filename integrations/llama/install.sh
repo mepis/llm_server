@@ -7,7 +7,7 @@ CURRENT_DIR=$(pwd)
 # MODELS
 # This section is largely deprecated. Commenting out until it's 100% verified not needed.
 # -----------------
-# MODEL=router.sh
+MODEL=router.sh
 ## GEMMA ##
 ##--------
 # MODEL=gemma-4-26B-A4B.sh
@@ -31,7 +31,7 @@ CURRENT_DIR=$(pwd)
 # echo -e "#!/bin/bash
 # CURRENT_DIR=$(pwd)
 # cd $CURRENT_DIR
-# $CURRENT_DIR/models/./$MODEL
+# $CURRENT_DIR/./$MODEL
 # " >> $CURRENT_DIR/run.sh
 # chmod 755 run.sh
 
