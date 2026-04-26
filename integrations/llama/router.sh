@@ -31,8 +31,6 @@ UBATCH=512
 MODEL_DIR=$HOME/.llm_models
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
-echo /////////////////////CURRENT_DIR
-echo $CURRENT_DIR
 cd llama.cpp/build/bin/
 
 ./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 30 --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $BATCH --ubatch-size $UBATCH --chat-template-kwargs '{"enable_thinking":true}' --parallel $PARALLEL --reasoning on --verbose --flash-attn 1
