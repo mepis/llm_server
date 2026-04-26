@@ -32,6 +32,6 @@ export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
 export LLAMA_ARG_FIT_CTX=262144
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP  --min-p $minP --top-k $topK --threads $threads --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 256 --ubatch-size 256  --presence-penalty 1 --repeat-penalty 1 --rope-scaling yarn --fit on --fit-target 512 --fit-ctx 262144 --parallel 8 --cont-batching --ctx-checkpoints 16 --reasoning on --verbose-prompt --special
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP  --min-p $minP --top-k $topK --threads $threads --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 256 --ubatch-size 256  --presence-penalty 1 --repeat-penalty 1 --rope-scaling yarn --fit on --fit-target 512 --fit-ctx 262144 --parallel 8 --cont-batching --ctx-checkpoints 16 --reasoning on --special
 
 # --chat-template-kwargs '{"enable_thinking":true}'
