@@ -1,37 +1,38 @@
-const mongoose = require('mongoose');
-const logger = require('../utils/logger');
-const config = require('./database');
+const knex = require('knex');
 
 let dbConnection = null;
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(config.mongodb.uri, config.mongodb.options);
-    dbConnection = mongoose.connection;
-    
-    dbConnection.on('error', (err) => {
-      logger.error('MongoDB connection error:', err);
+    const config = require('./mariadb');
+    dbConnection = knex({
+      client: 'mysql2',
+      connection: {
+        host: config.db.host,
+        port: config.db.port,
+        user: config.db.user,
+        password: config.db.password,
+        database: config.db.database,
+        multipleStatements: true,
+      },
+      pool: config.pool,
     });
-    
-    dbConnection.on('disconnected', () => {
-      logger.warn('MongoDB disconnected');
-    });
-    
-    dbConnection.on('connected', () => {
-      logger.info('MongoDB connected successfully');
-    });
-    
+
+    // Test connection
+    await dbConnection.raw('SELECT 1');
+
+    console.log('MariaDB connected successfully');
     return dbConnection;
   } catch (error) {
-    logger.error('MongoDB connection failed:', error);
+    console.error('MariaDB connection failed:', error.message);
     throw error;
   }
 };
 
 const disconnectDB = async () => {
   if (dbConnection) {
-    await dbConnection.close();
-    logger.info('MongoDB disconnected');
+    await dbConnection.destroy();
+    console.log('MariaDB disconnected');
   }
 };
 
@@ -46,5 +47,4 @@ module.exports = {
   connectDB,
   disconnectDB,
   getDB,
-  mongoose
 };

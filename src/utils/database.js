@@ -1,21 +1,12 @@
-const { connectDB, disconnectDB, mongoose } = require('../config/db');
+const { getDB } = require('../config/db');
 const logger = require('../utils/logger');
+const { createTables, dropTables } = require('../db/schema');
 
 const setupDatabase = async () => {
   try {
-    await connectDB();
-    
-    const db = mongoose.connection.db;
-    
-    await db.createCollection('users');
-    await db.createCollection('chat_sessions');
-    await db.createCollection('rag_documents');
-    await db.createCollection('prompts');
-    await db.createCollection('tools');
-    await db.createCollection('logs');
-    await db.createCollection('matrix_messages');
-    
-    logger.info('Database collections created successfully');
+    const db = getDB();
+    await createTables(db);
+    logger.info('Database tables created successfully');
     return true;
   } catch (error) {
     logger.error('Database setup failed:', error);
@@ -25,13 +16,8 @@ const setupDatabase = async () => {
 
 const clearDatabase = async () => {
   try {
-    const db = mongoose.connection.db;
-    const collections = await db.listCollections().toArray();
-    
-    for (const collection of collections) {
-      await db.dropCollection(collection.name);
-    }
-    
+    const db = getDB();
+    await dropTables(db);
     logger.info('Database cleared successfully');
     return true;
   } catch (error) {
@@ -42,5 +28,5 @@ const clearDatabase = async () => {
 
 module.exports = {
   setupDatabase,
-  clearDatabase
+  clearDatabase,
 };

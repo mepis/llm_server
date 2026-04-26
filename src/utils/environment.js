@@ -1,11 +1,16 @@
 const requiredEnvVars = [
-  { name: 'MONGODB_URI', description: 'MongoDB connection URI' },
+  { name: 'MARIADB_HOST', description: 'MariaDB host address' },
   { name: 'JWT_SECRET', description: 'Secret key for JWT token generation' }
 ];
 
 const optionalEnvVars = [
   { name: 'PORT', default: '3000', description: 'Server port' },
   { name: 'NODE_ENV', default: 'development', description: 'Environment (development|production)' },
+  { name: 'MARIADB_PORT', default: '3306', description: 'MariaDB port' },
+  { name: 'MARIADB_USER', default: 'root', description: 'MariaDB username' },
+  { name: 'MARIADB_PASSWORD', default: '', description: 'MariaDB password' },
+  { name: 'MARIADB_DATABASE', default: 'llm_server', description: 'MariaDB database name' },
+  { name: 'QDRANT_URL', default: 'http://localhost:6333', description: 'Qdrant vector database URL' },
   { name: 'JWT_EXPIRES_IN', default: '7d', description: 'JWT token expiration time' },
   { name: 'LLAMA_SERVER_URL', default: 'http://localhost:8082', description: 'Llama.cpp server URL' },
   { name: 'LLAMA_TIMEOUT', default: '30000', description: 'Llama server request timeout (ms)' },
@@ -38,14 +43,14 @@ function validateEnvironment() {
   });
 
   if (missingVars.length > 0) {
-    console.error('\n\x1b[31m%s\x1b[0m', '✗ Missing required environment variables:');
+    console.error('\x1b[31m%s\x1b[0m', 'Missing required environment variables:');
     missingVars.forEach(msg => console.error('\x1b[31m%s\x1b[0m', msg));
-    console.error('\n\x1b[31m%s\x1b[0m', 'Please set these variables in your .env file and restart the server.\n');
+    console.error('\nPlease set these variables in your .env file and restart the server.\n');
     process.exit(1);
   }
 
   if (warnings.length > 0 && process.env.NODE_ENV !== 'test') {
-    console.log('\x1b[33m%s\x1b[0m', '⚠ Environment variable warnings:');
+    console.log('\x1b[33m%s\x1b[0m', 'Environment variable warnings:');
     warnings.forEach(msg => console.log('\x1b[33m%s\x1b[0m', msg));
     console.log('');
   }

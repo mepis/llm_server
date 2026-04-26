@@ -2,7 +2,7 @@
 
 ## Architecture
 
-**Backend**: Node.js + Express (port 3000), MongoDB via Mongoose, Piscina worker threads  
+**Backend**: Node.js + Express (port 3000), MariaDB via Knex, Qdrant (vector store for RAG), Piscina worker threads  
 **Frontend**: Vue 3 + Vite, PrimeVue (Aura theme), Tailwind CSS (port 5173)  
 **Integrations**: Llama.cpp inference server, Matrix messaging
 
@@ -12,8 +12,9 @@ Node >= 24.12.0 required. No lint/typecheck scripts — verification is manual.
 
 ```bash
 npm install && cd frontend && npm install && cd ..
-# MongoDB must be running before server starts
+# MariaDB and Qdrant must be running before server starts
 npm run seed-admin    # creates admin/admin123 (password: admin123)
+npm run seed-config   # seeds application settings into configs table
 ```
 
 ## Commands
@@ -22,7 +23,7 @@ npm run seed-admin    # creates admin/admin123 (password: admin123)
 npm run dev          # backend (node --watch, auto-reloads)
 npm run worker       # Piscina worker thread pool (foreground)
 npm start            # backend without watch
-npm run test         # runs node src/tests/testAll.js (model-level tests, needs MongoDB)
+npm run test         # runs node src/tests/testAll.js (model-level tests, needs MariaDB + Qdrant)
 
 cd frontend && npm run dev   # frontend dev server (vite --host by default)
 cd frontend && npm run build # production build
@@ -36,10 +37,11 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 - **argon2 v1.0.0** — `argon2.verify()` takes `{ hash, password }` object, NOT two arguments. Use `User.hashPassword()` and `user.checkPassword()` for all password operations. The worker thread also uses the object form for `verifyPassword` type requests.
 - **All API responses** wrap data in `{ success: true, data: ... }`. Pinia stores must access `response.data.data`, never `response.data` directly.
 - **Chat routes** use both `/:id` and `/:sessionId` aliases. Controllers must handle `req.params.sessionId || req.params.id`.
-- **All services** (prompt, tool, log, etc.) use Mongoose models — never raw `db.collection()`.
+- **All services** (prompt, tool, log, etc.) use Knex queries — never raw MongoDB driver. JSON columns store arrays/objects as serialized strings.
 - **User object** has `roles` (array), not `role`. Header displays `user?.roles?.[0]`.
 - **Log store** has separate `pagination` state, not nested on `logs`.
-- **MongoDB** must be running before `npm run dev` starts, or the server exits with `process.exit(1)`.
+- **MariaDB** must be running before `npm run dev` starts, or the server exits with `process.exit(1)`.
+- **Qdrant** is used for RAG vector search — chunks are stored as points with embedding vectors and metadata payloads. Document metadata stays in MariaDB.
 - **CORS** defaults to `FRONTEND_URL=http://localhost:5173`; mismatch causes 403.
 - **Auth routes** (`/api/auth/login`, `/api/auth/register`, `/api/auth/logout`) are handled by `userController`, not a separate auth controller.
 - **User profile** endpoints are at `/api/users/me` (GET/PUT/DELETE), protected by `authMiddleware`. User CRUD (`/api/users/*`) requires `rbac.requireAdmin`.
@@ -52,7 +54,7 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 
 ## Entry Points
 
-- Backend: `src/server.js` → `src/routes/api.js` → route files → controllers → services → models
+- Backend: `src/server.js` → `src/routes/api.js` → route files → controllers → services → database (Knex)
 - Frontend: `frontend/src/main.js` → `App.vue` → views, stores, components
 - Worker pool: `src/workers/worker.js` (argon2 hashing, bash execution)
 
@@ -60,15 +62,15 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 
 ```
 src/
-├── config/       database.js, db.js, rateLimiter.js, workerPool.js
-├── controllers/  chat, llama, log, matrix, monitor, prompt, rag, skill, tool, user
+├── config/       database.js, mariadb.js, db.js, rateLimiter.js, workerPool.js
+├── controllers/  chat, llama, log, matrix, monitor, prompt, rag, skill, tool, user, documentGroup, memory
 ├── middleware/   auth.js, rbac.js (authorize, requireAdmin, requireSystem), validation.js
-├── models/       ChatSession, Log, MatrixMessage, Prompt, RAGDocument, Tool, ToolCall, User
-├── routes/       api.js (mounts all sub-routes), auth, user, chat, rag, prompt, tool, log, matrix, llama, monitor, skill
-├── services/     chatService, llamaService, logService, matrixService, promptService, ragService, skillService, toolService, userService
+├── db/           schema.js (table definitions), qdrant.js (vector client)
+├── routes/       api.js (mounts all sub-routes), auth, user, chat, rag, prompt, tool, log, matrix, llama, monitor, skill, roles, documentGroups, memory, system, config
+├── services/     chatService, llamaService, logService, matrixService, promptService, ragService, skillService, toolService, userService, roleService, documentGroupService, memoryManager
 ├── tool/         bash, glob, grep, index.js, question, read, registry, skill, todo, tool.js, truncate, write
 ├── workers/      argon2Worker.js, worker.js
-└── scripts/      createAdmin.js
+└── scripts/      createAdmin.js, seedConfig.js
 
 frontend/src/
 ├── stores/       auth, chat, debug, llama, log, matrix, prompt, rag, skill, tool, user
@@ -110,7 +112,7 @@ All documentation is in `docs/` with diagrams, tags, and wiki-style cross-refere
 
 ### Architecture Documentation (5 pages)
 - `docs/architecture/system-architecture.md` — system design overview
-- `docs/architecture/database-schema.md` — MongoDB collections and indexes
+- `docs/architecture/database-schema.md` — MariaDB tables and Qdrant collections
 - `docs/architecture/worker-threads.md` — Piscina pool implementation
 - `docs/architecture/security-design.md` — password hashing, JWT, validation
 - `docs/architecture/deep-dive.md` — complete request flow walkthrough

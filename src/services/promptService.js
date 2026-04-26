@@ -1,24 +1,28 @@
-const Prompt = require('../models/Prompt');
+const { getDB } = require('../config/db');
 const logger = require('../utils/logger');
+
+const knex = () => getDB();
 
 const createPrompt = async (userId, name, content, type = 'custom', variables = [], settings = {}, isPublic = false) => {
   try {
-    const prompt = await Prompt.create({
+    const id = require('uuid').v4();
+    await knex().insert({
+      id,
       user_id: userId,
       name,
       content,
       type,
-      variables,
-      settings,
-      is_public: isPublic
-    });
-    
+      variables: JSON.stringify(variables),
+      settings: JSON.stringify(settings),
+      tags: JSON.stringify([]),
+      is_public: isPublic,
+    }).into('prompts');
+
+    const prompt = await knex().from('prompts').where({ id }).first();
+
     logger.info(`Prompt created: ${prompt.name} for user ${userId}`);
-    
-    return {
-      success: true,
-      data: prompt
-    };
+
+    return { success: true, data: prompt };
   } catch (error) {
     logger.error('Create prompt failed:', error.message);
     throw error;
@@ -27,13 +31,11 @@ const createPrompt = async (userId, name, content, type = 'custom', variables = 
 
 const getUserPrompts = async (userId) => {
   try {
-    const prompts = await Prompt.find({ user_id: userId })
-      .sort({ created_at: -1 });
-    
-    return {
-      success: true,
-      data: prompts
-    };
+    const prompts = await knex().from('prompts')
+      .where({ user_id: userId })
+      .orderBy('created_at', 'desc');
+
+    return { success: true, data: prompts };
   } catch (error) {
     logger.error('Get user prompts failed:', error.message);
     throw error;
@@ -42,19 +44,15 @@ const getUserPrompts = async (userId) => {
 
 const getPrompt = async (promptId, userId) => {
   try {
-    const prompt = await Prompt.findOne({
-      _id: promptId,
-      user_id: userId
-    });
-    
+    const prompt = await knex().from('prompts')
+      .where({ id: promptId, user_id: userId })
+      .first();
+
     if (!prompt) {
       throw new Error('Prompt not found');
     }
-    
-    return {
-      success: true,
-      data: prompt
-    };
+
+    return { success: true, data: prompt };
   } catch (error) {
     logger.error('Get prompt failed:', error.message);
     throw error;
@@ -63,22 +61,28 @@ const getPrompt = async (promptId, userId) => {
 
 const updatePrompt = async (promptId, userId, updates) => {
   try {
-    const prompt = await Prompt.findOneAndUpdate(
-      { _id: promptId, user_id: userId },
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
-    
+    const parsedUpdates = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === 'object' && value !== null) {
+        parsedUpdates[key] = JSON.stringify(value);
+      } else {
+        parsedUpdates[key] = value;
+      }
+    }
+    parsedUpdates.updated_at = new Date();
+
+    const [prompt] = await knex().from('prompts')
+      .where({ id: promptId, user_id: userId })
+      .update(parsedUpdates)
+      .returning('*');
+
     if (!prompt) {
       throw new Error('Prompt not found');
     }
-    
+
     logger.info(`Prompt updated: ${promptId}`);
-    
-    return {
-      success: true,
-      data: prompt
-    };
+
+    return { success: true, data: prompt };
   } catch (error) {
     logger.error('Update prompt failed:', error.message);
     throw error;
@@ -87,17 +91,17 @@ const updatePrompt = async (promptId, userId, updates) => {
 
 const deletePrompt = async (promptId, userId) => {
   try {
-    const prompt = await Prompt.findOneAndDelete({
-      _id: promptId,
-      user_id: userId
-    });
-    
+    const [prompt] = await knex().from('prompts')
+      .where({ id: promptId, user_id: userId })
+      .del()
+      .returning('*');
+
     if (!prompt) {
       throw new Error('Prompt not found');
     }
-    
+
     logger.info(`Prompt deleted: ${promptId}`);
-    
+
     return { success: true };
   } catch (error) {
     logger.error('Delete prompt failed:', error.message);
@@ -108,35 +112,37 @@ const deletePrompt = async (promptId, userId) => {
 const executePrompt = async (userId, options) => {
   try {
     const { promptId, promptName, inputs, model, temperature, max_tokens, top_p } = options;
-    
+
     let prompt;
     if (promptId) {
-      prompt = await Prompt.findOne({ _id: promptId, user_id: userId });
+      prompt = await knex().from('prompts').where({ id: promptId, user_id: userId }).first();
     } else if (promptName) {
-      prompt = await Prompt.findOne({ user_id: userId, name: promptName });
+      prompt = await knex().from('prompts').where({ user_id: userId, name: promptName }).first();
     }
-    
+
     if (!prompt) {
       throw new Error('Prompt not found');
     }
-    
+
     let content = prompt.content;
     if (inputs) {
       Object.keys(inputs).forEach(key => {
         content = content.replace(new RegExp(`\\{${key}\\}`, 'g'), inputs[key]);
       });
     }
-    
+
+    const settings = typeof prompt.settings === 'string' ? JSON.parse(prompt.settings) : prompt.settings;
+
     return {
       success: true,
       data: {
         prompt: prompt.name,
         content,
-        model: model || prompt.settings?.model,
-        temperature: temperature ?? prompt.settings?.temperature,
-        max_tokens: max_tokens ?? prompt.settings?.max_tokens,
-        top_p: top_p ?? prompt.settings?.top_p
-      }
+        model: model || settings?.model,
+        temperature: temperature ?? settings?.temperature,
+        max_tokens: max_tokens ?? settings?.max_tokens,
+        top_p: top_p ?? settings?.top_p,
+      },
     };
   } catch (error) {
     logger.error('Execute prompt failed:', error.message);
@@ -150,5 +156,5 @@ module.exports = {
   getPrompt,
   updatePrompt,
   deletePrompt,
-  executePrompt
+  executePrompt,
 };

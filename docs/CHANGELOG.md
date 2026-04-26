@@ -6,6 +6,22 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-25
 
+### Database Migration (MongoDB → MariaDB)
+- **Replaced**: MongoDB/Mongoose with MariaDB/Knex as the primary database layer
+- **Added**: `src/config/mariadb.js` — MariaDB connection configuration with connection pooling
+- **Added**: `src/config/db.js` — Knex instance management (`connectDB`, `disconnectDB`, `getDB`)
+- **Added**: `src/db/schema.js` — Table creation/dropping functions for all collections
+- **Added**: `src/db/qdrant.js` — Qdrant vector store client configuration
+- **Removed**: All Mongoose models (`src/models/ChatSession.js`, `Config.js`, `DocumentGroup.js`, `Log.js`, `MatrixMessage.js`, `Prompt.js`, `RAGChunk.js`, `RAGDocument.js`, `Role.js`, `Tool.js`, `ToolCall.js`, `User.js`, `UserMemory.js`)
+- **Modified**: All controllers — Rewritten to use Knex queries instead of Mongoose model methods
+- **Modified**: All services — Rewritten to use Knex queries instead of Mongoose model methods
+- **Modified**: `src/tool/registry.js` — Tool loading uses Knex queries
+- **Modified**: `src/tool/todo.js` — Session metadata updates use Knex queries
+- **Modified**: `src/utils/database.js` — Database setup/clear uses Knex table functions
+- **Modified**: `src/utils/environment.js` — Required env vars changed from `MONGODB_URI` to `MARIADB_HOST`, `MARIADB_PORT`, `MARIADB_USER`, `MARIADB_PASSWORD`, `MARIADB_DATABASE`; added `QDRANT_URL`
+- **Modified**: `.env.example` — Updated environment variable documentation for MariaDB
+- **Modified**: `package.json` — Dependency updates for database migration
+
 ### CORS Configuration
 - **Added**: `CORS_ALLOWED_ORIGINS` env var — comma-separated list of allowed origins, separate from `FRONTEND_URL`
 - **Modified**: `src/server.js` — CORS now reads from `CORS_ALLOWED_ORIGINS` instead of `FRONTEND_URL`

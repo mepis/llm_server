@@ -1,14 +1,14 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const config = require('../config/database');
-const Config = require('../models/Config');
+const { connectDB, disconnectDB } = require('../config/db');
+const knex = () => require('../config/db').getDB();
 
 const getEnvConfig = () => {
+  const config = require('../config/database');
   const entries = [
     { key: 'PORT', value: String(config.port), category: 'server' },
     { key: 'NODE_ENV', value: config.env, category: 'server' },
     { key: 'FRONTEND_URL', value: process.env.FRONTEND_URL || '', category: 'server' },
-    { key: 'MONGODB_URI', value: config.mongodb.uri, category: 'database' },
+    { key: 'MARIADB_HOST', value: config.host || 'localhost', category: 'database' },
     { key: 'JWT_SECRET', value: config.jwt.secret, category: 'auth' },
     { key: 'JWT_EXPIRES_IN', value: config.jwt.expiresin, category: 'auth' },
     { key: 'LLAMA_SERVER_URL', value: config.llama.url, category: 'llama' },
@@ -25,43 +25,42 @@ const getEnvConfig = () => {
     { key: 'LOG_LEVEL', value: process.env.LOG_LEVEL || 'info', category: 'logging' },
     { key: 'LOG_FORMAT', value: process.env.LOG_FORMAT || 'combined', category: 'logging' },
   ];
-
   return entries;
-};
-
-const seedConfig = async () => {
-  try {
-    await mongoose.connect(config.mongodb.uri, config.mongodb.options);
-    console.log('Connected to MongoDB');
-
-    const existingCount = await Config.countDocuments();
-    if (existingCount > 0) {
-      console.log('Config already seeded. Skipping.');
-      mongoose.disconnect();
-      return;
-    }
-
-    const envConfig = getEnvConfig();
-    const settings = envConfig.map(entry => new Config(entry));
-    await Config.insertMany(settings);
-
-    console.log(`Config seeded: ${settings.length} entries`);
-    for (const entry of envConfig) {
-      const masked = ['MONGODB_URI', 'JWT_SECRET'].includes(entry.key) ? maskValue(entry.value) : entry.value;
-      console.log(`  ${entry.key}=${masked}`);
-    }
-
-    mongoose.disconnect();
-  } catch (error) {
-    console.error('Failed to seed config:', error);
-    process.exit(1);
-  }
 };
 
 const maskValue = (value) => {
   if (!value) return '';
-  if (value.length <= 8) return '••••••••';
-  return value.substring(0, 4) + '••••' + value.substring(value.length - 4);
+  if (value.length <= 8) return '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
+  return value.substring(0, 4) + '\u2022\u2022\u2022\u2022' + value.substring(value.length - 4);
+};
+
+const seedConfig = async () => {
+  try {
+    await connectDB();
+    console.log('Connected to MariaDB');
+
+    const count = await knex().from('configs').count('* as total').first();
+    if (parseInt(count.total) > 0) {
+      console.log('Config already seeded. Skipping.');
+      await disconnectDB();
+      return;
+    }
+
+    const envConfig = getEnvConfig();
+    const rows = envConfig.map(entry => ({ id: require('uuid').v4(), ...entry }));
+    await knex().insert(rows).into('configs');
+
+    console.log(`Config seeded: ${rows.length} entries`);
+    for (const entry of envConfig) {
+      const masked = ['MARIADB_HOST', 'JWT_SECRET'].includes(entry.key) ? maskValue(entry.value) : entry.value;
+      console.log(`  ${entry.key}=${masked}`);
+    }
+
+    await disconnectDB();
+  } catch (error) {
+    console.error('Failed to seed config:', error);
+    process.exit(1);
+  }
 };
 
 seedConfig();

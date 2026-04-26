@@ -1,37 +1,33 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
-const config = require('../config/database');
+const { connectDB, disconnectDB } = require('../config/db');
+const knex = () => require('../config/db').getDB();
 
 const createAdminUser = async () => {
   try {
-    await mongoose.connect(config.mongodb.uri, config.mongodb.options);
-    console.log('Connected to MongoDB');
-    
-    const User = require('../models/User');
-    
-    // Check if admin user already exists
-    const existingAdmin = await User.findOne({ username: 'admin' });
+    await connectDB();
+    console.log('Connected to MariaDB');
+
+    const existingAdmin = await knex().from('users').where({ username: 'admin' }).first();
     if (existingAdmin) {
       console.log('Admin user already exists');
-      mongoose.disconnect();
+      await disconnectDB();
       return;
     }
-    
-    // Create admin user with argon2 hash
-    const hashedPassword = await User.hashPassword('admin123');
-    const adminUser = new User({
+
+    const passwordHash = await require('node-argon2').hash('admin123');
+    const id = require('uuid').v4();
+    await knex().insert({
+      id,
       username: 'admin',
       email: 'admin@example.com',
-      password_hash: hashedPassword,
-      roles: ['admin', 'user']
-    });
-    
-    await adminUser.save();
+      password_hash: passwordHash,
+      roles: JSON.stringify(['admin', 'user']),
+    }).into('users');
+
     console.log('Admin user created successfully');
     console.log('Username: admin');
     console.log('Password: admin123');
-    
-    mongoose.disconnect();
+    await disconnectDB();
   } catch (error) {
     console.error('Failed to create admin user:', error);
     process.exit(1);

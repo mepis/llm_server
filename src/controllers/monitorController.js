@@ -1,16 +1,12 @@
-const { mongoose } = require('../config/db');
+const knex = () => require('../config/db').getDB();
 const logger = require('../utils/logger');
 
 const getHealth = async (req, res) => {
-  const health = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  };
+  const health = { status: 'healthy', timestamp: new Date().toISOString(), uptime: process.uptime() };
 
   try {
-    const db = mongoose.connection;
-    if (!db || db.readyState !== 1) throw new Error(`Connection not ready (state: ${db?.readyState})`);
+    const db = knex();
+    await db.raw('SELECT 1');
     health.database = 'connected';
   } catch (error) {
     health.status = 'unhealthy';
@@ -21,11 +17,7 @@ const getHealth = async (req, res) => {
   try {
     const llamaUrl = process.env.LLAMA_SERVER_URL || 'http://127.0.0.1:8082';
     const response = await fetch(`${llamaUrl}/v1/models`);
-    if (response.ok) {
-      health.llama_cpp = 'running';
-    } else {
-      health.llama_cpp = 'unavailable';
-    }
+    health.llama_cpp = response.ok ? 'running' : 'unavailable';
   } catch (error) {
     health.llama_cpp = 'unavailable';
     health.llama_error = error.message;
@@ -40,12 +32,8 @@ const getHealth = async (req, res) => {
 
 const getPerformance = async (req, res) => {
   const performance = {
-    requests_per_second: 0,
-    average_response_time_ms: 0,
-    error_rate: 0,
-    worker_queue_length: 0,
-    database_queries_per_second: 0,
-    llama_inferences_per_second: 0
+    requests_per_second: 0, average_response_time_ms: 0, error_rate: 0,
+    worker_queue_length: 0, database_queries_per_second: 0, llama_inferences_per_second: 0,
   };
 
   const cpuUsage = process.cpuUsage();
@@ -56,14 +44,21 @@ const getPerformance = async (req, res) => {
   performance.active_workers = global.workerPool?.threadCount() || 0;
 
   try {
-    const stats = await mongoose.connection.collection('logs').aggregate([
-      { $match: { timestamp: { $gte: new Date(Date.now() - 60000) } } },
-      { $group: { _id: null, count: { $sum: 1 }, errors: { $sum: { $cond: [{ $eq: ['$log_level', 'error'] }, 1, 0] } } } }
-    ]).toArray();
+    const db = knex();
+    const oneMinuteAgo = new Date(Date.now() - 60000);
+    const stats = await db('logs')
+      .where('timestamp', '>=', oneMinuteAgo)
+      .count('* as count')
+      .andWhereRaw("log_level = 'error'")
+      .first();
 
-    if (stats[0]) {
-      performance.requests_per_second = (stats[0].count / 60).toFixed(2);
-      performance.error_rate = stats[0].errors > 0 ? (stats[0].errors / stats[0].count).toFixed(4) : 0;
+    // Get total count and error count separately
+    const [total] = await db('logs').where('timestamp', '>=', oneMinuteAgo).count('* as count').limit(1);
+    const [errors] = await db('logs').where('timestamp', '>=', oneMinuteAgo).where({ log_level: 'error' }).count('* as count').limit(1);
+
+    if (total) {
+      performance.requests_per_second = ((parseInt(total.count) || 0) / 60).toFixed(2);
+      performance.error_rate = errors ? ((parseInt(errors.count) || 0) / (parseInt(total.count) || 1)).toFixed(4) : 0;
     }
   } catch (error) {
     logger.error('Failed to get performance stats:', error);
@@ -72,7 +67,4 @@ const getPerformance = async (req, res) => {
   res.json({ success: true, data: performance });
 };
 
-module.exports = {
-  getHealth,
-  getPerformance
-};
+module.exports = { getHealth, getPerformance };

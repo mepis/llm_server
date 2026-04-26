@@ -1,24 +1,27 @@
-const Tool = require('../models/Tool');
+const { getDB } = require('../config/db');
 const logger = require('../utils/logger');
+
+const knex = () => getDB();
 
 const createTool = async (userId, name, description, parameters, code, isActive, roles) => {
   try {
-    const tool = await Tool.create({
+    const id = require('uuid').v4();
+    await knex().insert({
+      id,
       user_id: userId,
       name,
       description,
       code,
-      parameters,
-      is_active: isActive,
-      roles,
-    });
+      parameters: JSON.stringify(parameters || []),
+      is_active: isActive !== false,
+      roles: JSON.stringify(roles || ['user']),
+    }).into('tools');
+
+    const tool = await knex().from('tools').where({ id }).first();
 
     logger.info(`Tool created: ${tool.name} for user ${userId}`);
 
-    return {
-      success: true,
-      data: tool,
-    };
+    return { success: true, data: tool };
   } catch (error) {
     logger.error('Create tool failed:', error.message);
     throw error;
@@ -27,12 +30,12 @@ const createTool = async (userId, name, description, parameters, code, isActive,
 
 const getAccessibleTools = async (userRoles) => {
   try {
-    const tools = await Tool.find({ roles: { $in: userRoles } }).sort({ created_at: -1 });
+    // Find tools where any of the user's roles match
+    const tools = await knex().from('tools')
+      .whereRaw('JSON_OVERLAPS(roles, ?)', [JSON.stringify(userRoles)])
+      .orderBy('created_at', 'desc');
 
-    return {
-      success: true,
-      data: tools,
-    };
+    return { success: true, data: tools };
   } catch (error) {
     logger.error('Get accessible tools failed:', error.message);
     throw error;
@@ -41,19 +44,16 @@ const getAccessibleTools = async (userRoles) => {
 
 const getTool = async (toolId, userRoles) => {
   try {
-    const tool = await Tool.findOne({
-      _id: toolId,
-      roles: { $in: userRoles },
-    });
+    const tool = await knex().from('tools')
+      .where({ id: toolId })
+      .whereRaw('JSON_OVERLAPS(roles, ?)', [JSON.stringify(userRoles)])
+      .first();
 
     if (!tool) {
       throw new Error('Tool not found');
     }
 
-    return {
-      success: true,
-      data: tool,
-    };
+    return { success: true, data: tool };
   } catch (error) {
     logger.error('Get tool failed:', error.message);
     throw error;
@@ -62,11 +62,19 @@ const getTool = async (toolId, userRoles) => {
 
 const updateTool = async (toolId, updates) => {
   try {
-    const tool = await Tool.findByIdAndUpdate(
-      toolId,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
+    const parsedUpdates = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === 'object' && value !== null) {
+        parsedUpdates[key] = JSON.stringify(value);
+      } else if (key === 'is_active') {
+        parsedUpdates[key] = value;
+      } else {
+        parsedUpdates[key] = value;
+      }
+    }
+    parsedUpdates.updated_at = new Date();
+
+    const [tool] = await knex().from('tools').where({ id: toolId }).update(parsedUpdates).returning('*');
 
     if (!tool) {
       throw new Error('Tool not found');
@@ -74,10 +82,7 @@ const updateTool = async (toolId, updates) => {
 
     logger.info(`Tool updated: ${toolId}`);
 
-    return {
-      success: true,
-      data: tool,
-    };
+    return { success: true, data: tool };
   } catch (error) {
     logger.error('Update tool failed:', error.message);
     throw error;
@@ -86,7 +91,7 @@ const updateTool = async (toolId, updates) => {
 
 const deleteTool = async (toolId) => {
   try {
-    const tool = await Tool.findByIdAndDelete(toolId);
+    const [tool] = await knex().from('tools').where({ id: toolId }).del().returning('*');
 
     if (!tool) {
       throw new Error('Tool not found');
@@ -103,10 +108,10 @@ const deleteTool = async (toolId) => {
 
 const callTool = async (toolId, userRoles, input) => {
   try {
-    const tool = await Tool.findOne({
-      _id: toolId,
-      roles: { $in: userRoles },
-    });
+    const tool = await knex().from('tools')
+      .where({ id: toolId })
+      .whereRaw('JSON_OVERLAPS(roles, ?)', [JSON.stringify(userRoles)])
+      .first();
 
     if (!tool) {
       throw new Error('Tool not found or access denied');
@@ -116,8 +121,9 @@ const callTool = async (toolId, userRoles, input) => {
       throw new Error('Tool is disabled');
     }
 
-    const parameters = tool.parameters || [];
+    const parameters = typeof tool.parameters === 'string' ? JSON.parse(tool.parameters) : (tool.parameters || []);
 
+    // Zod validation
     const zod = require('zod');
     const shape = {};
 
@@ -156,14 +162,15 @@ const callTool = async (toolId, userRoles, input) => {
       throw validationError;
     }
 
+    // Execute tool code
     const code = tool.code;
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    
+
     let fnBody = code.trim();
     if (fnBody.startsWith('async function') || fnBody.startsWith('function')) {
       fnBody = fnBody.replace(/async\s+function\s*\([^)]*\)\s*\{/, '{').replace(/\}$/, '}');
     }
-    
+
     const fn = new AsyncFunction('params', fnBody);
 
     const result = await fn(validatedArgs);

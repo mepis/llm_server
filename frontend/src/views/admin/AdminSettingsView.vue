@@ -152,7 +152,7 @@ const integrationLabels = {
   matrix: 'Matrix'
 }
 
-const sensitiveKeys = ['MONGODB_URI', 'JWT_SECRET', 'MATRIX_ACCESS_TOKEN']
+const sensitiveKeys = ['MARIADB_PASSWORD', 'JWT_SECRET', 'MATRIX_ACCESS_TOKEN', 'QDRANT_API_KEY']
 const revealedKeys = ref([])
 const savingKeys = ref([])
 

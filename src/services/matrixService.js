@@ -1,107 +1,148 @@
-const { ObjectId } = require('mongodb');
+const { getDB } = require('../config/db');
+const logger = require('../utils/logger');
 
 class MatrixService {
-  constructor(db) {
-    this.matrixMessages = db.collection('matrix_messages');
-    this.users = db.collection('users');
+  constructor() {
+    this.knex = () => getDB();
   }
 
   async handleIncomingMessage(roomId, senderId, content) {
-    let user = await this.users.findOne({ matrix_id: senderId });
-    
-    if (!user) {
-      user = await this.autoCreateUser(senderId);
+    try {
+      let user = await this.getUserByMatrixId(senderId);
+
+      if (!user) {
+        user = await this.autoCreateUser(senderId);
+      }
+
+      const id = require('uuid').v4();
+      const message = {
+        id,
+        room_id: roomId,
+        user_id: user.id,
+        content,
+        is_incoming: true,
+        received_at: new Date(),
+      };
+
+      await this.knex().insert(message).into('matrix_messages');
+
+      const fullMessage = { ...message, _id: id };
+      return { message: fullMessage, user };
+    } catch (error) {
+      logger.error('Handle incoming matrix message failed:', error.message);
+      throw error;
     }
-
-    const message = {
-      room_id: roomId,
-      user_id: new ObjectId(user._id),
-      content,
-      is_incoming: true,
-      received_at: new Date(),
-    };
-
-    const result = await this.matrixMessages.insertOne(message);
-    return { message: { ...message, _id: result.insertedId }, user };
   }
 
   async autoCreateUser(matrixId) {
-    const username = matrixId.replace(/[^a-zA-Z0-9]/g, '_');
-    const existing = await this.users.findOne({ matrix_id: matrixId });
-    if (existing) return existing;
+    try {
+      const username = matrixId.replace(/[^a-zA-Z0-9]/g, '_');
+      const existing = await this.knex().from('users').whereRaw(
+        'JSON_EXTRACT(metadata, "$.matrix_id") = ?',
+        [matrixId]
+      ).first();
+      if (existing) return existing;
 
-    const user = {
-      username: username.substring(0, 30),
-      email: `${username}@matrix.local`,
-      matrix_id: matrixId,
-      password_hash: null,
-      roles: ['user'],
-      is_active: true,
-      created_at: new Date(),
-      last_login: null,
-    };
+      const id = require('uuid').v4();
+      const user = {
+        id,
+        username: username.substring(0, 30),
+        email: `${username}@matrix.local`,
+        password_hash: null,
+        roles: JSON.stringify(['user']),
+        is_active: true,
+        created_at: new Date(),
+        last_login: null,
+      };
 
-    const result = await this.users.insertOne(user);
-    return { ...user, _id: result.insertedId };
+      await this.knex().insert(user).into('users');
+      return { ...user, _id: id };
+    } catch (error) {
+      logger.error('Auto create matrix user failed:', error.message);
+      throw error;
+    }
   }
 
   async createRoomChatSession(roomId, userId) {
-    const userObjectId = new ObjectId(userId);
-    let session = await this.matrixMessages.findOne(
-      { room_id: roomId, user_id: userObjectId },
-      { sort: { received_at: -1 } }
-    );
+    try {
+      const session = await this.knex().from('chat_sessions')
+        .where({ room_id: roomId })
+        .orderBy('created_at', 'desc')
+        .first();
 
-    if (!session) {
-      const newSession = {
-        room_id: roomId,
-        user_id: userObjectId,
-        session_name: `Matrix Chat ${roomId}`,
-        created_at: new Date(),
-      };
-      await this.matrixMessages.insertOne(newSession);
-      return newSession;
+      if (!session) {
+        const id = require('uuid').v4();
+        const newSession = {
+          id,
+          room_id: roomId,
+          user_id: userId,
+          session_name: `Matrix Chat ${roomId}`,
+          created_at: new Date(),
+        };
+        await this.knex().insert(newSession).into('chat_sessions');
+        return newSession;
+      }
+
+      return session;
+    } catch (error) {
+      logger.error('Create room chat session failed:', error.message);
+      throw error;
     }
-
-    return session;
   }
 
   async sendResponse(roomId, content) {
-    const lastIncoming = await this.matrixMessages.findOne({
-      room_id: roomId,
-      is_incoming: true
-    }, { sort: { received_at: -1 } });
+    try {
+      const lastIncoming = await this.knex().from('matrix_messages')
+        .where({ room_id: roomId, is_incoming: true })
+        .orderBy('received_at', 'desc')
+        .first();
 
-    if (!lastIncoming) {
-      throw new Error('No incoming message found in room');
+      if (!lastIncoming) {
+        throw new Error('No incoming message found in room');
+      }
+
+      const id = require('uuid').v4();
+      const response = {
+        id,
+        room_id: roomId,
+        user_id: lastIncoming.user_id,
+        content,
+        is_incoming: false,
+        received_at: new Date(),
+      };
+
+      await this.knex().insert(response).into('matrix_messages');
+      return { ...response, _id: id };
+    } catch (error) {
+      logger.error('Send matrix response failed:', error.message);
+      throw error;
     }
-
-    const response = {
-      room_id: roomId,
-      user_id: lastIncoming.user_id,
-      content,
-      is_incoming: false,
-      sent_at: new Date(),
-    };
-
-    const result = await this.matrixMessages.insertOne(response);
-    return { ...response, _id: result.insertedId };
   }
 
   async getUserByMatrixId(matrixId) {
-    return await this.users.findOne({ matrix_id: matrixId });
+    try {
+      const user = await this.knex().from('users')
+        .whereRaw('JSON_EXTRACT(metadata, "$.matrix_id") = ?', [matrixId])
+        .first();
+      return user;
+    } catch (error) {
+      logger.error('Get user by matrix id failed:', error.message);
+      throw error;
+    }
   }
 
   async listRoomMessages(roomId, limit = 50) {
-    const cursor = this.matrixMessages.find({ room_id: roomId })
-      .sort({ received_at: 1 })
-      .limit(limit);
+    try {
+      const messages = await this.knex().from('matrix_messages')
+        .where({ room_id: roomId })
+        .orderBy('received_at', 'asc')
+        .limit(limit);
 
-    const messages = await cursor.toArray();
-    return messages.map(m => ({
-      ...m,
-      _id: m._id.toString()
-    }));
+      return messages.map(m => ({ ...m, _id: m.id }));
+    } catch (error) {
+      logger.error('List room messages failed:', error.message);
+      throw error;
+    }
   }
 }
 

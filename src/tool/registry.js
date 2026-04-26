@@ -1,4 +1,4 @@
-const Tool = require('../models/Tool');
+const knex = () => require('../config/db').getDB();
 const { toOpenAITool } = require('./tool');
 
 const builtinTools = new Map();
@@ -13,9 +13,7 @@ function getBuiltinTools() {
 
 async function loadCustomTools(model) {
   try {
-    const tools = await Tool.find({
-      is_active: true,
-    }).sort({ created_at: -1 });
+    const tools = await knex().from('tools').where({ is_active: true }).orderBy('created_at', 'desc');
 
     return tools.map((t) => ({
       id: t.name,
@@ -33,16 +31,13 @@ async function loadCustomTools(model) {
 }
 
 function buildZodSchemaFromParameters(parameters) {
-  if (!parameters || parameters.length === 0) {
-    return null;
-  }
+  if (!parameters || parameters.length === 0) return null;
 
   const zod = require('zod');
   const shape = {};
 
   for (const param of parameters) {
     let field;
-
     switch (param.type) {
       case 'string':
         field = zod.string().optional().describe(param.description || '');
@@ -76,16 +71,11 @@ function buildZodSchemaFromParameters(parameters) {
 
 async function executeCustomTool(tool, args) {
   try {
-    const code = tool.code;
-
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const fn = new AsyncFunction('params', code);
-
+    const fn = new AsyncFunction('params', tool.code);
     const result = await fn(args);
-
     return {
-      output:
-        typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result),
+      output: typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result),
       title: tool.name,
       metadata: {},
     };
@@ -102,9 +92,4 @@ function toOpenAITools(tools) {
   return tools.map(toOpenAITool);
 }
 
-module.exports = {
-  registerBuiltin,
-  getBuiltinTools,
-  loadCustomTools,
-  toOpenAITools,
-};
+module.exports = { registerBuiltin, getBuiltinTools, loadCustomTools, toOpenAITools };

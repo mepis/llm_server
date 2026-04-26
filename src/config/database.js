@@ -1,21 +1,17 @@
 require('dotenv').config();
 
-const mongoose = require('mongoose');
+const mariadbConfig = require('./mariadb');
 
 // Configuration settings
 module.exports = {
   port: process.env.PORT || 3000,
   env: process.env.NODE_ENV || 'development',
   
-  mongodb: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/llm_server',
-    options: {
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
-    }
+  db: {
+    host: mariadbConfig.db.host,
+    port: mariadbConfig.db.port,
   },
-  
+
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
     expiresin: process.env.JWT_EXPIRES_IN || '7d'

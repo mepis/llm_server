@@ -1,101 +1,93 @@
-const RAGDocument = require('../models/RAGDocument');
-const RAGChunk = require('../models/RAGChunk');
-const DocumentGroup = require('../models/DocumentGroup');
+const { getDB } = require('../config/db');
+const qdrant = require('../db/qdrant');
 const llamaService = require('./llamaService');
 const logger = require('../utils/logger');
 const fs = require('fs');
 const path = require('path');
 const documentParser = require('./documentParser');
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const knex = () => getDB();
 
 const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
   try {
     const { description, tags = [] } = options;
-    
+
     const fileExtension = path.extname(filename).toLowerCase().slice(1);
     const validExtensions = ['pdf', 'txt', 'doc', 'docx', 'md', 'json', 'csv', 'xlsx'];
-    
+
     if (!validExtensions.includes(fileExtension)) {
       throw new Error('Invalid file type');
     }
-    
+
     const fileDir = path.join(__dirname, '..', '..', 'uploads', 'documents');
     if (!fs.existsSync(fileDir)) {
       fs.mkdirSync(fileDir, { recursive: true });
     }
     const filePath = path.join(fileDir, `${Date.now()}-${filename}`);
-    
+
     fs.writeFileSync(filePath, fileBuffer);
-    
+
     let fileContent;
     let metadataExtras = {};
-    
+
     try {
       const parsed = await documentParser.parseFile(fileBuffer, fileExtension);
       fileContent = parsed.text;
-      
+
       if (parsed.sheetNames) {
         metadataExtras.sheets = parsed.sheetNames;
       }
     } catch (parseError) {
       logger.error(`Document parsing failed for ${filename}:`, parseError.message || parseError);
-      
-      const errorMessage = parseError.type === 'encrypted' 
-        ? parseError.message 
+
+      const errorMessage = parseError.type === 'encrypted'
+        ? parseError.message
         : (parseError.message || 'Unknown parsing error');
-      
-      const document = await RAGDocument.create({
+
+      const id = require('uuid').v4();
+      await knex().insert({
+        id,
         user_id: userId,
         filename,
         file_type: fileExtension,
         file_size: fileBuffer.length,
         file_path: filePath,
         content: '',
-        metadata: {
-          description,
-          tags,
-          parse_error: errorMessage
-        },
-        status: 'failed'
-      });
-      
-      logger.info(`Document failed to parse: ${document._id} by user ${userId}`);
-      
-      return {
-        success: true,
-        data: document
-      };
+        metadata: JSON.stringify({ description, tags, parse_error: errorMessage }),
+        status: 'failed',
+      }).into('rag_documents');
+
+      const document = await knex().from('rag_documents').where({ id }).first();
+
+      logger.info(`Document failed to parse: ${document.id} by user ${userId}`);
+
+      return { success: true, data: document };
     }
-    
-    const metadata = {
-      description,
-      tags,
-      ...metadataExtras
-    };
-    
-    const document = await RAGDocument.create({
+
+    const metadata = { description, tags, ...metadataExtras };
+
+    const id = require('uuid').v4();
+    await knex().insert({
+      id,
       user_id: userId,
       filename,
       file_type: fileExtension,
       file_size: fileBuffer.length,
       file_path: filePath,
       content: fileContent,
-      metadata,
-      status: 'processing'
-    });
-    
-    logger.info(`Document uploaded: ${document._id} by user ${userId}`);
+      metadata: JSON.stringify(metadata),
+      status: 'processing',
+    }).into('rag_documents');
 
-    // Start processing in the background
-    processDocument(document._id).catch(err => {
-      logger.error(`Background processing failed for document ${document._id}: ${err.message}`);
+    const document = await knex().from('rag_documents').where({ id }).first();
+
+    logger.info(`Document uploaded: ${document.id} by user ${userId}`);
+
+    processDocument(document.id).catch(err => {
+      logger.error(`Background processing failed for document ${document.id}: ${err.message}`);
     });
-    
-    return {
-      success: true,
-      data: document
-    };
+
+    return { success: true, data: document };
   } catch (error) {
     logger.error('Document upload failed:', error.message);
     throw error;
@@ -104,58 +96,66 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
 
 const processDocument = async (documentId) => {
   try {
-    const document = await RAGDocument.findById(documentId);
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
+    const document = await knex().from('rag_documents').where({ id: documentId }).first();
+
+    if (!document) throw new Error('Document not found');
+
     if (document.status === 'indexed') {
-      return {
-        success: true,
-        data: document
-      };
+      return { success: true, data: document };
     }
-    
-    document.status = 'processing';
-    await document.save();
-    
+
+    await knex().from('rag_documents').where({ id: documentId }).update({ status: 'processing' });
+
     const chunks = chunkText(document.content, 500);
-    
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      const embeddingResponse = await llamaService.getEmbeddings(chunk);
-      const embedding = embeddingResponse.data[0]?.embedding;
-      
-      if (embedding) {
-        await RAGChunk.create({
-          document_id: document._id,
-          text: chunk,
-          embedding,
-          chunk_index: i
-        });
+
+    // Process in batches to avoid overwhelming the embedding service
+    const batchPromises = chunks.map(async (chunk, i) => {
+      try {
+        const embeddingResponse = await llamaService.getEmbeddings(chunk);
+        const embedding = embeddingResponse.data[0]?.embedding;
+
+        if (embedding) {
+          // Get document info for payload
+          const doc = await knex().from('rag_documents').where({ id: documentId }).first();
+          const metadata = typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : (doc.metadata || {});
+          const sheets = metadata.sheets || [];
+
+          await qdrant.upsertChunks(documentId, [{
+            embedding,
+            text: chunk,
+            chunk_index: i,
+            filename: doc.filename,
+            file_type: doc.file_type,
+            sheet_name: sheets[i] || null,
+          }]);
+        }
+      } catch (chunkError) {
+        logger.error(`Failed to process chunk ${i} of document ${documentId}:`, chunkError.message);
       }
+    });
+
+    // Process in parallel batches of 5
+    const batchSize = 5;
+    for (let i = 0; i < batchPromises.length; i += batchSize) {
+      await Promise.all(batchPromises.slice(i, i + batchSize));
     }
-    
-    document.status = 'indexed';
-    document.processed_at = new Date();
-    await document.save();
-    
+
+    await knex().from('rag_documents')
+      .where({ id: documentId })
+      .update({ status: 'indexed', processed_at: new Date() });
+
+    const updatedDoc = await knex().from('rag_documents').where({ id: documentId }).first();
+
     logger.info(`Document processed: ${documentId}`);
-    
-    return {
-      success: true,
-      data: document
-    };
+
+    return { success: true, data: updatedDoc };
   } catch (error) {
     logger.error('Document processing failed:', error.message);
-    
-    // Re-fetch document to ensure it's available for error logging
-    const document = await RAGDocument.findById(documentId);
-    if (document) {
-      await document.setProcessingError(error.message);
-    }
-    
+
+    await knex().from('rag_documents')
+      .where({ id: documentId })
+      .update({ status: 'failed', error_message: error.message });
+
     throw error;
   }
 };
@@ -164,7 +164,7 @@ const chunkText = (text, chunkSize = 500) => {
   const words = text.split(/\s+/);
   const chunks = [];
   let currentChunk = '';
-  
+
   for (const word of words) {
     if ((currentChunk.length + word.length + 1) > chunkSize) {
       chunks.push(currentChunk.trim());
@@ -173,11 +173,11 @@ const chunkText = (text, chunkSize = 500) => {
       currentChunk += ' ' + word;
     }
   }
-  
+
   if (currentChunk.length > 0) {
     chunks.push(currentChunk.trim());
   }
-  
+
   return chunks;
 };
 
@@ -185,110 +185,65 @@ const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
   try {
     const queryEmbedding = await llamaService.getEmbeddings(query);
     const queryVector = queryEmbedding.data[0]?.embedding;
-    
+
     if (!queryVector) {
       throw new Error('Failed to generate query embedding');
     }
-    
-    let filterQuery = { status: 'indexed' };
+
+    let accessibleDocIds = [];
+
     if (documentIds && documentIds.length > 0) {
-      filterQuery._id = { $in: documentIds.map(id => typeof id === 'string' ? require('mongoose').Types.ObjectId(id) : id) };
+      accessibleDocIds = documentIds;
     } else {
-      const personalDocs = await RAGDocument.find({ user_id: userId, status: 'indexed' });
-      
-      const userGroups = await DocumentGroup.find({
-        $or: [
-          { owner_id: userId },
-          { 'members.user_id': userId }
-        ]
-      });
-      
-      const groupDocIds = [];
-      for (const group of userGroups) {
-        for (const docRef of group.documents) {
-          if (!groupDocIds.includes(docRef.document_id.toString())) {
-            groupDocIds.push(docRef.document_id);
-          }
+      // Personal documents
+      const personalDocs = await knex().from('rag_documents')
+        .where({ user_id: userId, status: 'indexed' })
+        .select('id');
+      accessibleDocIds = personalDocs.map(d => d.id);
+
+      // Group-shared documents
+      const documentGroupService = require('./documentGroupService');
+      const accessibleDocsResult = await documentGroupService.getGroupAccessibleDocuments(userId);
+      if (accessibleDocsResult.success) {
+        const groupDocs = accessibleDocsResult.data.filter(d => d.source === 'group');
+        const groupDocIds = groupDocs.map(d => d.id);
+        accessibleDocIds = [...new Set([...accessibleDocIds, ...groupDocIds])];
+      }
+    }
+
+    // Search in Qdrant with payload filter
+    const results = await qdrant.searchChunks(queryVector, limit, 0.1, { document_ids: accessibleDocIds });
+
+    // Build sources map from results
+    const sourcesMap = new Map();
+    for (const result of results) {
+      if (!sourcesMap.has(result.document_id)) {
+        const doc = await knex().from('rag_documents')
+          .where({ id: result.document_id })
+          .select('id as document_id', 'filename', 'file_type')
+          .first();
+        if (doc) {
+          sourcesMap.set(result.document_id, {
+            ...doc,
+            total_chunks_used: 0,
+          });
         }
       }
-      
-      let accessibleDocs = [...personalDocs];
-      if (groupDocIds.length > 0) {
-        const groupDocs = await RAGDocument.find({ _id: { $in: groupDocIds }, status: 'indexed' });
-        accessibleDocs = [...personalDocs, ...groupDocs];
-      }
-      
-      const uniqueDocsMap = new Map();
-      for (const doc of accessibleDocs) {
-        uniqueDocsMap.set(doc._id.toString(), doc);
-      }
-      
-      filterQuery._id = { $in: Array.from(uniqueDocsMap.keys()) };
     }
-    
-    const documents = await RAGDocument.find(filterQuery);
-    
-    const docIds = documents.map(d => d._id.toString());
-    const docMap = new Map();
-    for (const doc of documents) {
-      docMap.set(doc._id.toString(), doc);
-    }
-    
-    const chunks = await RAGChunk.find({
-      document_id: { $in: docIds.map(id => require('mongoose').Types.ObjectId(id)) },
-      'embedding.0': { $exists: true }
-    });
-    
-    const allResults = [];
-    const sourcesMap = new Map();
-    
-    for (const chunk of chunks) {
-      if (!chunk.embedding || chunk.embedding.length !== queryVector.length) continue;
-      
-      const docId = chunk.document_id.toString();
-      const doc = docMap.get(docId);
-      if (!doc) continue;
-      
-      let maxSimilarity = 0;
-      
-      const similarity = cosineSimilarity(queryVector, chunk.embedding);
-      if (similarity > 0.1) {
-        allResults.push({
-          text: chunk.text,
-          document_id: docId,
-          filename: doc.filename,
-          file_type: doc.file_type,
-          chunk_index: chunk.chunk_index,
-          similarity,
-          sheet_name: doc.metadata?.sheets?.[chunk.chunk_index] || null
-        });
-      }
-      maxSimilarity = Math.max(maxSimilarity, similarity);
-      
-      if (!sourcesMap.has(docId)) {
-        sourcesMap.set(docId, {
-          document_id: docId,
-          filename: doc.filename,
-          file_type: doc.file_type,
-          total_chunks_used: 0,
-          sheets: doc.metadata?.sheets || []
-        });
-      }
-    }
-    
-    const sortedResults = allResults.sort((a, b) => b.similarity - a.similarity).slice(0, limit);
-    
-    for (const result of sortedResults) {
-      const source = sourcesMap.get(result.document_id);
+
+    // Enrich results with document metadata and track source usage
+    const enrichedResults = results.map(r => {
+      const source = sourcesMap.get(r.document_id);
       if (source) source.total_chunks_used += 1;
-    }
-    
+      return r;
+    });
+
     return {
       success: true,
       data: {
-        results: sortedResults,
-        sources: Array.from(sourcesMap.values())
-      }
+        results: enrichedResults,
+        sources: Array.from(sourcesMap.values()),
+      },
     };
   } catch (error) {
     logger.error('Document search failed:', error.message);
@@ -296,41 +251,22 @@ const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
   }
 };
 
-const cosineSimilarity = (vecA, vecB) => {
-  let dotProduct = 0;
-  let magnitudeA = 0;
-  let magnitudeB = 0;
-  
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    magnitudeA += vecA[i] * vecA[i];
-    magnitudeB += vecB[i] * vecB[i];
-  }
-  
-  magnitudeA = Math.sqrt(magnitudeA);
-  magnitudeB = Math.sqrt(magnitudeB);
-  
-  if (magnitudeA === 0 || magnitudeB === 0) return 0;
-  
-  return dotProduct / (magnitudeA * magnitudeB);
-};
-
 const deleteDocument = async (documentId) => {
   try {
-    const document = await RAGDocument.findByIdAndDelete(documentId);
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    await RAGChunk.deleteMany({ document_id: document._id });
-    
+    const [document] = await knex().from('rag_documents').where({ id: documentId }).del().returning('*');
+
+    if (!document) throw new Error('Document not found');
+
+    // Delete chunks from Qdrant
+    await qdrant.deleteChunksByDocument(documentId);
+
+    // Delete physical file
     if (document.file_path && fs.existsSync(document.file_path)) {
       fs.unlinkSync(document.file_path);
     }
-    
+
     logger.info(`Document deleted: ${documentId}`);
-    
+
     return { success: true };
   } catch (error) {
     logger.error('Delete document failed:', error.message);
@@ -340,13 +276,11 @@ const deleteDocument = async (documentId) => {
 
 const getDocumentsByUser = async (userId) => {
   try {
-    const documents = await RAGDocument.find({ user_id: userId })
-      .sort({ uploaded_at: -1 });
-    
-    return {
-      success: true,
-      data: documents
-    };
+    const documents = await knex().from('rag_documents')
+      .where({ user_id: userId })
+      .orderBy('uploaded_at', 'desc');
+
+    return { success: true, data: documents };
   } catch (error) {
     logger.error('Get user documents failed:', error.message);
     throw error;
@@ -355,16 +289,11 @@ const getDocumentsByUser = async (userId) => {
 
 const getDocumentById = async (documentId) => {
   try {
-    const document = await RAGDocument.findById(documentId);
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    return {
-      success: true,
-      data: document
-    };
+    const document = await knex().from('rag_documents').where({ id: documentId }).first();
+
+    if (!document) throw new Error('Document not found');
+
+    return { success: true, data: document };
   } catch (error) {
     logger.error('Get document failed:', error.message);
     throw error;
@@ -374,27 +303,40 @@ const getDocumentById = async (documentId) => {
 const getChunks = async (documentId, userId, options = {}) => {
   try {
     const { page = 1, limit = 20 } = options;
-    const document = await RAGDocument.findById(documentId);
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    const total = await RAGChunk.countDocuments({ document_id: document._id });
+    const document = await knex().from('rag_documents').where({ id: documentId }).first();
+
+    if (!document) throw new Error('Document not found');
+
+    // Get chunk count from Qdrant
+    const total = await qdrant.countChunksByDocument(documentId);
     const skip = (page - 1) * limit;
-    const chunks = await RAGChunk.find({ document_id: document._id })
-      .sort({ chunk_index: 1 })
-      .skip(skip)
-      .limit(limit);
-    
+
+    // Scroll chunks from Qdrant with pagination
+    const { QdrantClient } = require('@qdrant/js-client-rest');
+    const client = new QdrantClient({
+      url: process.env.QDRANT_URL || 'http://localhost:6333',
+      apiKey: process.env.QDRANT_API_KEY || null,
+    });
+
+    const scrollResult = await client.scroll('rag_chunks', {
+      filter: {
+        must: [{ key: 'document_id', match: { value: documentId } }],
+      },
+      limit,
+      offset: skip,
+      with_payload: true,
+      with_vectors: false,
+    });
+
+    const chunks = scrollResult.points.map(p => ({
+      text: p.payload.text,
+      chunk_index: p.payload.chunk_index,
+      document_id: p.payload.document_id,
+    }));
+
     return {
       success: true,
-      data: {
-        chunks,
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit)
-      }
+      data: { chunks, total, page: parseInt(page), limit: parseInt(limit) },
     };
   } catch (error) {
     logger.error('Get chunks failed:', error.message);
@@ -404,23 +346,18 @@ const getChunks = async (documentId, userId, options = {}) => {
 
 const updateSettings = async (documentId, userId, settings) => {
   try {
-    const document = await RAGDocument.findById(documentId);
-    
-    if (!document) {
-      throw new Error('Document not found');
-    }
-    
-    document.metadata = {
-      ...document.metadata,
-      ...settings
-    };
-    
-    await document.save();
-    
-    return {
-      success: true,
-      data: document
-    };
+    const document = await knex().from('rag_documents').where({ id: documentId }).first();
+
+    if (!document) throw new Error('Document not found');
+
+    let metadata = typeof document.metadata === 'string' ? JSON.parse(document.metadata) : (document.metadata || {});
+    metadata = { ...metadata, ...settings };
+
+    await knex().from('rag_documents').where({ id: documentId }).update({ metadata: JSON.stringify(metadata) });
+
+    const updatedDoc = await knex().from('rag_documents').where({ id: documentId }).first();
+
+    return { success: true, data: updatedDoc };
   } catch (error) {
     logger.error('Update settings failed:', error.message);
     throw error;
@@ -432,10 +369,9 @@ module.exports = {
   processDocument,
   chunkText,
   searchDocuments,
-  cosineSimilarity,
   deleteDocument,
   getDocumentsByUser,
   getDocumentById,
   getChunks,
-  updateSettings
+  updateSettings,
 };
