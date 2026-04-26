@@ -464,3 +464,10 @@ docs/
 └── llama.cpp_docs/             # Llama.cpp reference docs (15 files)
 ```
 ```
+
+### Documentation Refactor & Model Config Update
+
+- **Refactored**: Documentation functions (Chat, Document Group, Document Parser, Llama, Tool) reorganized into sub-pages for better clarity and maintenance.
+- **Adjusted**: `integrations/llama/models/gemma-4-26B-A4B.sh` — reduced context size from 256k to 128k and decreased parallelism from 8 to 6 for stability.
+- **Modified**: `src/server.js` — added `setupDatabase()` call to ensure schema/initialization runs on startup.
+- **Added**: `integrations/opencode/skills/commit/` — new skill for committing and pushing the repo.
