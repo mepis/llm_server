@@ -1,8 +1,8 @@
 #!/bin/bash
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # MODEL=Qwen3.6-27B-Q8_0.gguf
-# MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
-MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
+MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
+# MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
 
 # Benchmark configs
 batch_size=128,256,512,1024
