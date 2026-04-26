@@ -3,25 +3,36 @@ const logger = require('../utils/logger');
 
 const knex = () => getDB();
 
-// Helper: add message to session's messages JSON array
+// Helper: add message to chat_messages table (primary) and session JSON (backward compat)
 const addMessageToSessionJSON = async (sessionId, role, content, metadata = {}) => {
-  const msg = {
+  const msgData = {
+    id: require('uuid').v4(),
+    session_id: sessionId,
     role,
     content: content || '',
-    timestamp: new Date(),
-    metadata: metadata || {},
+    metadata: metadata ? JSON.stringify(metadata) : '{}',
+    tool_calls: metadata && metadata.tool_calls ? JSON.stringify(metadata.tool_calls) : null,
+    tool_call_id: metadata && metadata.tool_call_id ? metadata.tool_call_id : null,
+    model: metadata && metadata.model ? metadata.model : null,
+    citations: metadata && metadata.citations ? JSON.stringify(metadata.citations) : null,
+    created_at: new Date(),
   };
 
-  if (metadata && metadata.tool_calls) {
-    msg.tool_calls = metadata.tool_calls;
-  }
-
   await knex().transaction(async (trx) => {
+    await trx('chat_messages').insert(msgData);
+
     const [session] = await trx('chat_sessions').where({ id: sessionId }).select('messages').returning('*');
     if (!session) throw new Error('Session not found');
 
     let messages = typeof session.messages === 'string' ? JSON.parse(session.messages) : (session.messages || []);
-    messages.push(msg);
+    messages.push({
+      role,
+      content: content || '',
+      timestamp: new Date(),
+      metadata: metadata || {},
+      tool_calls: metadata && metadata.tool_calls ? metadata.tool_calls : undefined,
+      tool_call_id: metadata && metadata.tool_call_id ? metadata.tool_call_id : undefined,
+    });
 
     await trx('chat_sessions')
       .where({ id: sessionId })
@@ -34,9 +45,12 @@ const addMessageToSessionJSON = async (sessionId, role, content, metadata = {}) 
 
 // Helper: clear session messages
 const clearSessionMessagesJSON = async (sessionId) => {
-  await knex().from('chat_sessions')
-    .where({ id: sessionId })
-    .update({ messages: JSON.stringify([]), updated_at: new Date() });
+  await knex().transaction(async (trx) => {
+    await trx('chat_messages').where({ session_id: sessionId }).del();
+    await trx('chat_sessions')
+      .where({ id: sessionId })
+      .update({ messages: JSON.stringify([]), updated_at: new Date() });
+  });
 };
 
 // Helper: update session memory
@@ -251,6 +265,22 @@ const getMessages = async (sessionId) => {
   try {
     const session = await knex().from('chat_sessions').where({ id: sessionId }).first();
     if (!session) throw new Error('Session not found');
+
+    const dbMessages = await knex('chat_messages')
+      .where({ session_id: sessionId })
+      .orderBy('created_at', 'asc');
+
+    if (dbMessages.length > 0) {
+      const messages = dbMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.created_at,
+        metadata: typeof msg.metadata === 'string' ? JSON.parse(msg.metadata) : (msg.metadata || {}),
+        tool_calls: msg.tool_calls ? (typeof msg.tool_calls === 'string' ? JSON.parse(msg.tool_calls) : msg.tool_calls) : undefined,
+        tool_call_id: msg.tool_call_id || undefined,
+      }));
+      return { success: true, data: messages };
+    }
 
     const messages = typeof session.messages === 'string' ? JSON.parse(session.messages) : (session.messages || []);
 
@@ -821,6 +851,7 @@ const getSessionsByUser = async (userId, options = {}) => {
 const deleteSession = async (sessionId) => {
   try {
     await knex().from('tool_calls').where({ session_id: sessionId }).del();
+    await knex().from('chat_messages').where({ session_id: sessionId }).del();
     const [session] = await knex().from('chat_sessions').where({ id: sessionId }).del().returning('*');
 
     if (!session) throw new Error('Session not found');

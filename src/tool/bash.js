@@ -1,12 +1,33 @@
 const { defineTool } = require('../tool/tool');
 const zod = require('zod');
 const piscina = require('../config/workerPool');
+const logger = require('../utils/logger');
+
+const DANGEROUS_PATTERNS = [
+  { regex: /;/, desc: 'command chaining with semicolons' },
+  { regex: /&&/, desc: 'AND command chaining' },
+  { regex: /\|\|/, desc: 'OR command chaining' },
+  { regex: /`/, desc: 'backtick command substitution' },
+  { regex: /\$\(/, desc: 'parenthesized command substitution' },
+];
+
+function validateCommandInput(command) {
+  if (typeof command !== 'string' || command.trim().length === 0) {
+    throw new Error('Command must be a non-empty string');
+  }
+  for (const { regex, desc } of DANGEROUS_PATTERNS) {
+    if (regex.test(command)) {
+      logger.warn(`Bash command blocked: ${desc} detected in "${command.substring(0, 100)}"`);
+      throw new Error(`Command rejected for security reasons: ${desc} is not allowed. Use pipes (|), redirects (>), and simple commands only.`);
+    }
+  }
+}
 
 const bashTool = defineTool('bash', {
   description:
-    'Execute a bash command in the project directory. Use for running commands, scripts, and system operations. Supports workdir and timeout parameters.',
+    'Execute a bash command in the project directory. Use for running commands, scripts, and system operations. Supports workdir and timeout parameters. Does not allow command chaining (;, &&, ||) or command substitution (`, $()).',
   parameters: zod.object({
-    command: zod.string().describe('The bash command to execute'),
+    command: zod.string().describe('The bash command to execute (no ;/&&/||/`/$() allowed)'),
     workdir: zod
       .string()
       .optional()
@@ -29,11 +50,13 @@ const bashTool = defineTool('bash', {
   execute: async (args, ctx) => {
     const { command, workdir, timeout } = args;
 
+    validateCommandInput(command);
+
     const result = await piscina.run({
       type: 'bash',
       command,
       workdir: workdir || process.cwd(),
-      timeout: timeout || 30000,
+      timeout: Math.min(timeout || 30000, 120000),
       session_id: ctx.sessionID,
     });
 

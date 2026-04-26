@@ -85,7 +85,8 @@ const getAllUsers = async (req, res) => {
   try {
     const db = require('../config/db').getDB();
     const users = await db('users').orderBy('created_at', 'desc');
-    res.json({ success: true, data: users });
+    const sanitized = users.map(({ password_hash, ...user }) => user);
+    res.json({ success: true, data: sanitized });
   } catch (error) {
     logger.error('Get all users failed:', error.message);
     res.status(500).json({ success: false, error: error.message });

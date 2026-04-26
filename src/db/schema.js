@@ -48,6 +48,22 @@ async function createTables(knex) {
     INDEX idx_created_at (created_at)
   ) ENGINE=InnoDB`);
 
+  await knex.raw(`CREATE TABLE IF NOT EXISTS chat_messages (
+    id VARCHAR(36) PRIMARY KEY,
+    session_id VARCHAR(36) NOT NULL,
+    role ENUM('system','user','assistant','tool') NOT NULL,
+    content LONGTEXT,
+    metadata JSON DEFAULT '{}',
+    tool_calls JSON,
+    tool_call_id VARCHAR(255),
+    model VARCHAR(100),
+    citations JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_session_id (session_id),
+    INDEX idx_session_id_created_at (session_id, created_at),
+    FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB`);
+
   await knex.raw(`CREATE TABLE IF NOT EXISTS logs (
     id VARCHAR(36) PRIMARY KEY,
     log_level ENUM('error','warn','info','debug') NOT NULL,
@@ -196,6 +212,43 @@ async function createTables(knex) {
 }
 
 /**
+ * Migrate existing chat messages from JSON column to chat_messages table
+ */
+async function migrateChatMessages(knex) {
+  const sessions = await knex('chat_sessions').select('id', 'messages');
+
+  for (const session of sessions) {
+    let messages = [];
+    try {
+      messages = typeof session.messages === 'string'
+        ? JSON.parse(session.messages)
+        : (session.messages || []);
+    } catch {
+      continue;
+    }
+
+    if (messages.length === 0) continue;
+
+    for (const msg of messages) {
+      await knex('chat_messages').insert({
+        id: uuidv4(),
+        session_id: session.id,
+        role: msg.role || 'user',
+        content: msg.content || '',
+        metadata: msg.metadata ? JSON.stringify(msg.metadata) : '{}',
+        tool_calls: msg.tool_calls ? JSON.stringify(msg.tool_calls) : null,
+        tool_call_id: msg.tool_call_id || null,
+        model: msg.metadata?.model || null,
+        citations: msg.metadata?.citations ? JSON.stringify(msg.metadata.citations) : null,
+        created_at: msg.timestamp || new Date(),
+      });
+    }
+  }
+
+  console.log(`Migrated messages for ${sessions.length} sessions`);
+}
+
+/**
  * Drop all tables (for testing/migration)
  */
 async function dropTables(knex) {
@@ -209,6 +262,7 @@ async function dropTables(knex) {
     'tools',
     'prompts',
     'logs',
+    'chat_messages',
     'chat_sessions',
     'users',
     'roles',
@@ -221,4 +275,4 @@ async function dropTables(knex) {
   console.log('All tables dropped');
 }
 
-module.exports = { createTables, dropTables };
+module.exports = { createTables, dropTables, migrateChatMessages };

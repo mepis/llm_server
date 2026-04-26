@@ -8,6 +8,16 @@ const documentParser = require('./documentParser');
 
 const knex = () => getDB();
 
+function sanitizeErrorMessage(msg) {
+  if (!msg || typeof msg !== 'string') return msg || 'Unknown error';
+  return msg
+    .replace(/(\/[^:\s,;]+)+\.\w{1,6}/g, '[PATH]')
+    .replace(/at\s+[^(\s]+:\d+:\d+/g, 'at [STACK]')
+    .replace(/at\s+<anonymous>/g, 'at [STACK]')
+    .replace(/Error:\s*.*\n/g, 'Error: ')
+    .substring(0, 500);
+}
+
 const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
   try {
     const { description, tags = [] } = options;
@@ -53,7 +63,7 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
         file_size: fileBuffer.length,
         file_path: filePath,
         content: '',
-        metadata: JSON.stringify({ description, tags, parse_error: errorMessage }),
+        metadata: JSON.stringify({ description, tags, parse_error: sanitizeErrorMessage(errorMessage) }),
         status: 'failed',
       }).into('rag_documents');
 
@@ -154,7 +164,7 @@ const processDocument = async (documentId) => {
 
     await knex().from('rag_documents')
       .where({ id: documentId })
-      .update({ status: 'failed', error_message: error.message });
+      .update({ status: 'failed', error_message: sanitizeErrorMessage(error.message) });
 
     throw error;
   }

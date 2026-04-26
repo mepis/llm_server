@@ -27,12 +27,22 @@ module.exports = async (request) => {
 function executeBash(request) {
   return new Promise((resolve) => {
     const { command, workdir, timeout } = request;
-    const session_id = request.session_id;
+
+    const HARD_TIMEOUT = 120000;
+    const effectiveTimeout = Math.min(timeout || 30000, HARD_TIMEOUT);
+
+    const sanitizedEnv = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) =>
+        ['HOME', 'PATH', 'SHELL', 'USER', 'LANG', 'LC_ALL', 'TERM', 'PWD', 'workdir'].includes(key) ||
+        key.startsWith('NODE_')
+      )
+    );
 
     const process = spawn(command, {
       shell: true,
       cwd: workdir || process.cwd(),
-      timeout: timeout || 30000,
+      timeout: effectiveTimeout,
+      env: { ...sanitizedEnv, cwd: workdir || process.cwd() },
     });
 
     let stdout = '';
@@ -42,9 +52,9 @@ function executeBash(request) {
     const timer = setTimeout(() => {
       timedOut = true;
       try {
-        process.kill('SIGTERM');
+        process.kill('SIGKILL');
       } catch (e) {}
-    }, timeout || 30000);
+    }, effectiveTimeout);
 
     process.stdout.on('data', (data) => {
       stdout += data.toString();

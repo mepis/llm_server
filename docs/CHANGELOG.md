@@ -6,6 +6,28 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-25
 
+### chat_messages Table Migration
+- **Added**: `chat_messages` table schema in `src/db/schema.js` — Normalized storage for chat messages with role, content, metadata, tool_calls, citations columns
+- **Added**: `migrateChatMessages` function — Migrates existing messages from `chat_sessions.messages` JSON column to new `chat_messages` table
+- **Modified**: `src/services/chatService.js` — Messages now written to both `chat_messages` table and session JSON for backward compatibility; `getMessages` reads from `chat_messages` first with JSON fallback; `clearSessionMessages` and `deleteSession` clean up both locations
+
+### Security Improvements
+- **Fixed**: `GET /api/users/` now strips `password_hash` from user list responses (`src/controllers/userController.js`)
+- **Fixed**: `GET /` user route explicitly requires `rbac.requireAdmin` middleware (`src/routes/user.js`)
+- **Added**: Bash tool input validation — Blocks command chaining (`;`, `&&`, `||`) and command substitution (backticks, `$()`) to prevent injection attacks (`src/tool/bash.js`)
+- **Added**: Worker bash environment sanitization — Spawns processes with minimal environment variables (only HOME, PATH, SHELL, USER, LANG, LC_ALL, TERM, PWD, NODE_*); enforces 120s hard timeout with SIGKILL (`src/workers/worker.js`)
+- **Added**: RAG error message sanitization — Strips file paths and stack traces from parse errors to prevent information leakage (`src/services/ragService.js`)
+
+### User Service Bug Fixes
+- **Fixed**: Incorrect `knex().('users')` syntax across all userService functions → corrected to `knex()('users')`
+- **Added**: Zod validation schema for user update operations with proper 400 error responses (`src/services/userService.js`)
+
+### Integration Updates
+- **Moved**: Model scripts from `integrations/llama/models/` to `integrations/llama/archived/` — Deprecated model configs archived
+- **Added**: `integrations/llama/router.sh` — Top-level router script for llama server
+- **Modified**: `integrations/llama/install.sh` — CUDA env vars moved to top; run.sh generation commented out; hardcoded `ExecStart` to `router.sh`
+- **Modified**: `integrations/opencode/opencode.json` — Replaced hardcoded IPs with environment variables (`OPENCODE_HOST`, `MERLIN_API_URL`, `BETTY_API_URL`, `LOCAL_API_URL`)
+
 ### MariaDB and phpMyAdmin Integration
 
 - **Added**: `integrations/mariadb/` — New integration scripts for MariaDB and phpMyAdmin

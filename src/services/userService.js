@@ -1,8 +1,17 @@
 const knex = require('../config/db').getDB;
 const { v4: uuidv4 } = require('uuid');
+const zod = require('zod');
 const roleService = require('../services/roleService');
 const { generateToken } = require('../utils/jwt');
 const logger = require('../utils/logger');
+
+const userUpdateSchema = zod.object({
+  email: zod.string().email().max(255).optional(),
+  display_name: zod.string().max(100).optional(),
+  matrix_username: zod.string().max(100).optional(),
+  preferences: zod.record(zod.string(), zod.any()).optional(),
+  is_active: zod.boolean().optional(),
+});
 
 const updateUserRolesArray = async (db, userId, rolesFn) => {
   const user = await db('users').where({ id: userId }).first();
@@ -13,7 +22,7 @@ const updateUserRolesArray = async (db, userId, rolesFn) => {
 
 const registerUser = async (username, email, password) => {
   try {
-    const existingUser = await knex().('users').whereRaw(
+    const existingUser = await knex()('users').whereRaw(
       'JSON_CONTACT(username, ?) OR JSON_CONTACT(email, ?)',
       [username, email]
     ).first();
@@ -25,7 +34,7 @@ const registerUser = async (username, email, password) => {
     const passwordHash = await require('node-argon2').hash(password);
     const id = uuidv4();
 
-    const [user] = await knex().('users').insert({
+    const [user] = await knex()('users').insert({
       id,
       username,
       email,
@@ -52,7 +61,7 @@ const registerUser = async (username, email, password) => {
 
 const createUser = async ({ username, email, password, roles = ['user'], isActive = true }) => {
   try {
-    const existingUser = await knex().('users').whereRaw(
+    const existingUser = await knex()('users').whereRaw(
       'JSON_CONTACT(username, ?) OR JSON_CONTACT(email, ?)',
       [username, email]
     ).first();
@@ -71,7 +80,7 @@ const createUser = async ({ username, email, password, roles = ['user'], isActiv
     const passwordHash = await require('node-argon2').hash(password);
     const id = uuidv4();
 
-    const [user] = await knex().('users').insert({
+    const [user] = await knex()('users').insert({
       id,
       username,
       email,
@@ -91,7 +100,7 @@ const createUser = async ({ username, email, password, roles = ['user'], isActiv
 
 const loginUser = async (username, password) => {
   try {
-    const user = await knex().('users').where({ username }).first();
+    const user = await knex()('users').where({ username }).first();
 
     if (!user) {
       throw new Error('Invalid credentials');
@@ -109,7 +118,7 @@ const loginUser = async (username, password) => {
       throw new Error('Account is inactive');
     }
 
-    await knex().('users').where({ id: user.id }).update({ last_login: new Date() });
+    await knex()('users').where({ id: user.id }).update({ last_login: new Date() });
 
     const token = generateToken(user.id, user.username, user.roles || ['user']);
 
@@ -148,7 +157,7 @@ const logoutUser = async (userId) => {
 
 const getUserById = async (userId) => {
   try {
-    const user = await knex().('users').where({ id: userId }).first();
+    const user = await knex()('users').where({ id: userId }).first();
 
     if (!user) {
       throw new Error('User not found');
@@ -163,26 +172,28 @@ const getUserById = async (userId) => {
 
 const updateUser = async (userId, updateData) => {
   try {
+    const parsed = userUpdateSchema.parse(updateData);
+
     const allowedUpdates = ['email', 'display_name', 'matrix_username', 'preferences', 'is_active'];
     const updates = {};
 
     for (const key of allowedUpdates) {
-      if (updateData[key] !== undefined) {
-        if (typeof updateData[key] === 'object') {
-          updates[key] = JSON.stringify(updateData[key]);
+      if (parsed[key] !== undefined) {
+        if (typeof parsed[key] === 'object') {
+          updates[key] = JSON.stringify(parsed[key]);
         } else {
-          updates[key] = updateData[key];
+          updates[key] = parsed[key];
         }
       }
     }
 
     if (Object.keys(updates).length === 0) {
-      const user = await knex().('users').where({ id: userId }).first();
+      const user = await knex()('users').where({ id: userId }).first();
       return { success: true, data: user };
     }
 
     updates.updated_at = new Date();
-    const [user] = await knex().('users').where({ id: userId }).update(updates).returning('*');
+    const [user] = await knex()('users').where({ id: userId }).update(updates).returning('*');
 
     if (!user) {
       throw new Error('User not found');
@@ -192,6 +203,13 @@ const updateUser = async (userId, updateData) => {
 
     return { success: true, data: user };
   } catch (error) {
+    if (error instanceof zod.ZodError) {
+      const details = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ');
+      logger.error('Update user validation failed:', details);
+      const validationErr = new Error(`Validation failed: ${details}`);
+      validationErr.status = 400;
+      throw validationErr;
+    }
     logger.error('Update user failed:', error.message);
     throw error;
   }
@@ -199,7 +217,7 @@ const updateUser = async (userId, updateData) => {
 
 const deleteUser = async (userId) => {
   try {
-    const [user] = await knex().('users').where({ id: userId }).del().returning('*');
+    const [user] = await knex()('users').where({ id: userId }).del().returning('*');
 
     if (!user) {
       throw new Error('User not found');
@@ -267,14 +285,14 @@ const removeUserRole = async (userId, role) => {
 
 const updateUserPassword = async (userId, newPassword) => {
   try {
-    const user = await knex().('users').where({ id: userId }).first();
+    const user = await knex()('users').where({ id: userId }).first();
 
     if (!user) {
       throw new Error('User not found');
     }
 
     const passwordHash = await require('node-argon2').hash(newPassword);
-    await knex().('users').where({ id: userId }).update({ password_hash: passwordHash });
+    await knex()('users').where({ id: userId }).update({ password_hash: passwordHash });
 
     logger.info(`Admin reset password for user: ${user.username}`);
 
@@ -290,7 +308,7 @@ const updateUserPassword = async (userId, newPassword) => {
 
 const changePassword = async (userId, currentPassword, newPassword) => {
   try {
-    const user = await knex().('users').where({ id: userId }).first();
+    const user = await knex()('users').where({ id: userId }).first();
 
     if (!user) {
       throw new Error('User not found');
@@ -302,7 +320,7 @@ const changePassword = async (userId, currentPassword, newPassword) => {
     }
 
     const passwordHash = await require('node-argon2').hash(newPassword);
-    await knex().('users').where({ id: userId }).update({ password_hash: passwordHash });
+    await knex()('users').where({ id: userId }).update({ password_hash: passwordHash });
 
     logger.info(`User changed password: ${user.username}`);
 

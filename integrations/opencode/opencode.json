@@ -8,7 +8,7 @@
   "tools": {},
   "server": {
     "port": 4096,
-    "hostname": "100.78.136.115",
+    "hostname": "${OPENCODE_HOST:-localhost}",
     "mdns": true,
     "cors": ["*"]
   },
@@ -34,7 +34,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Merlin",
       "options": {
-        "baseURL": "http://10.16.2.209:11434/v1"
+        "baseURL": "${MERLIN_API_URL:-http://localhost:11434/v1}"
       },
       "models": {
         "glm-4.7-flash:q4_K_M": {
@@ -46,7 +46,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.106.131.63:11434/v1"
+        "baseURL": "${BETTY_API_URL:-http://localhost:11434/v1}"
       },
       "models": {
         "Qwen3.6-35B-A3B-Q8_0": {
@@ -90,7 +90,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Local",
       "options": {
-        "baseURL": "http://100.78.136.115:11434/v1"
+        "baseURL": "${LOCAL_API_URL:-http://localhost:11434/v1}"
       },
       "models": {
         "OmniCoder": {

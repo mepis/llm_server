@@ -18,7 +18,7 @@ router.patch('/me/change-password', userController.changePasswordSelf);
 router.use(rbac.requireAdmin);
 
 router.post('/', userController.createUser);
-router.get('/', userController.getAllUsers);
+router.get('/', rbac.requireAdmin, userController.getAllUsers);
 router.get('/:userId', validation.validateUserId, userController.getUserById);
 router.put('/:userId', validation.validateUserId, userController.updateUser);
 router.delete('/:userId', validation.validateUserId, userController.deleteUser);
