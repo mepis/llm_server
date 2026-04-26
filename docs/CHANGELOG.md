@@ -6,6 +6,14 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-25
 
+### MariaDB and phpMyAdmin Integration
+
+- **Added**: `integrations/mariadb/` — New integration scripts for MariaDB and phpMyAdmin
+- **Added**: `integrations/mariadb/install.sh` — Interactive installation script
+- **Added**: `integrations/mariadb/install_mariadb.sh` — MariaDB standalone installation script
+- **Added**: `integrations/mariadb/install_phpmyadmin.sh` — phpMyAdmin standalone installation script
+- **Added**: `integrations/mariadb/README.md` — Documentation for MariaDB integration scripts
+
 ### Database Migration (MongoDB → MariaDB)
 - **Replaced**: MongoDB/Mongoose with MariaDB/Knex as the primary database layer
 - **Added**: `src/config/mariadb.js` — MariaDB connection configuration with connection pooling
