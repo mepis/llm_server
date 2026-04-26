@@ -68,7 +68,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h
+WorkingDirectory=$CURRENT_DIR
 ExecStart=$CURRENT_DIR/router.sh
 Restart=on-failure
 RestartSec=5
