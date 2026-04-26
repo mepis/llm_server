@@ -27,13 +27,13 @@ MODEL=router.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
 
-# rm run.sh
-# echo -e "#!/bin/bash
-# CURRENT_DIR=$(pwd)
-# cd $CURRENT_DIR
-# $CURRENT_DIR/./$MODEL
-# " >> $CURRENT_DIR/run.sh
-# chmod 755 run.sh
+rm run.sh
+echo -e "#!/bin/bash
+CURRENT_DIR=$(pwd)
+cd $CURRENT_DIR
+$CURRENT_DIR/./$MODEL
+" >> $CURRENT_DIR/run.sh
+chmod 755 run.sh
 
 ###############################################################
 
