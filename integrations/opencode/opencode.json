@@ -49,28 +49,28 @@
         "baseURL": "http://100.106.131.63:11434/v1"
       },
       "models": {
-        "Qwen3.6-35B-A3B-Q8_0.gguf": {
+        "Qwen3.6-35B-A3B-Q8_0": {
           "name": "Qwen3.6-35B-A3B-Q8_0",
           "limit": {
             "context": 262144,
             "output": 32768
           }
         },
-        "Qwen3.6-27B-Q8_0.gguf": {
+        "Qwen3.6-27B-Q8_0": {
           "name": "Qwen3.6-27B-Q8_0",
           "limit": {
             "context": 262144,
             "output": 32768
           }
         },
-        "Nemotron-3-Nano-30B-A3B-Q8_0.gguf": {
+        "Nemotron-3-Nano-30B-A3B-Q8_0": {
           "name": "Nemotron-3-Nano-30B-A3B-Q8_0",
           "limit": {
             "context": 262144,
             "output": 32768
           }
         },
-        "gemma-4-26B-A4B-it-UD-Q8_K_XL.gguf": {
+        "gemma-4-26B-A4B-it-UD-Q8_K_XL": {
           "name": "gemma-4-26B-A4B-it-UD-Q8_K_XL",
           "limit": {
             "context": 262144,
