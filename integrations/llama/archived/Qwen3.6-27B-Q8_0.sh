@@ -20,6 +20,7 @@ topK=20
 
 ####################
 MODEL_DIR=$HOME/.llm_models
+CACHE=$HOME/.llama_cache
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/

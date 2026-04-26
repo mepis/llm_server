@@ -37,6 +37,7 @@ CURRENT_DIR=$(pwd)
 
 ###############################################################
 
+mkdir $HOME/.llama_cache
 mkdir $HOME/.config/systemd
 mkdir $HOME/.config/systemd/user
 mkdir ~/.llm_models
