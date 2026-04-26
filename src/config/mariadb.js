@@ -11,8 +11,8 @@ const config = {
   pool: {
     min: 2,
     max: 10,
-    acquire: 30000,
-    idle: 10000,
+    acquireTimeoutMillis: 30000,
+    idleTimeoutMillis: 10000,
   },
 };
 

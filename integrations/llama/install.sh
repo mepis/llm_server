@@ -3,11 +3,11 @@ CURRENT_DIR=$(pwd)
 
 ## GEMMA ##
 ##--------
-MODEL=gemma-4-26B-A4B.sh
+# MODEL=gemma-4-26B-A4B.sh
 
 ## NEMOTRON ##
 ##--------
-# MODEL=Nemotron-3-Nano-30B.sh
+MODEL=Nemotron-3-Nano-30B.sh
 
 ## QWEN ##
 ##--------

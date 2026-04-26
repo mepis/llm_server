@@ -6,7 +6,7 @@ const connectDB = async () => {
   try {
     const config = require('./mariadb');
     dbConnection = knex({
-      client: 'mysql2',
+       client: 'mysql2',
       connection: {
         host: config.db.host,
         port: config.db.port,

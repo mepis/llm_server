@@ -12,6 +12,7 @@
     "test": "node src/tests/testAll.js"
   },
   "dependencies": {
+    "@qdrant/js-client-rest": "^1.12.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -25,16 +26,16 @@
     "glob": "^10.4.0",
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
-    "mammoth": "^1.12.0",
-    "matrix-js-sdk": "^39.2.0",
-    "@qdrant/js-client-rest": "^1.12.0",
     "knex": "^3.1.0",
+    "mammoth": "^1.12.0",
     "mariadb": "^3.4.0",
-    "uuid": "^10.0.0",
+    "matrix-js-sdk": "^39.2.0",
     "multer": "^2.0.0",
+    "mysql2": "^3.22.2",
     "node-argon2": "^1.0.0",
     "pdf-parse": "^1.1.4",
     "piscina": "^4.7.0",
+    "uuid": "^10.0.0",
     "winston": "^3.17.0",
     "xlsx": "^0.18.5",
     "zod": "^3.23.0"
