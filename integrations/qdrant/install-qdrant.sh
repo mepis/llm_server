@@ -2,7 +2,7 @@
 set -euo pipefail
 
 QDRANT_VERSION="1.12.0"
-BIN_DIR="$(cd "$(dirname "$0")/.." && pwd)/bin"
+BIN_DIR="$(cd "$(dirname "$0")" && pwd)/qdrant"
 BINARY_NAME="qdrant"
 BINARY_PATH="${BIN_DIR}/${BINARY_NAME}"
 

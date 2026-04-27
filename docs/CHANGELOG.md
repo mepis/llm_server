@@ -22,7 +22,12 @@ All notable changes to the LLM Server application.
 
 ### Documentation & Testing
 - **Added**: `docs/security-audit.md` — Security audit documentation
-- **Added**: `frontend_test.py` — Frontend test script
+- **Moved**: `frontend_test.py` → `scripts/frontend_test.py`
+
+### Script Reorganization
+- **Moved**: Qdrant scripts (`install-qdrant.sh`, `start-qdrant.sh`, `stop-qdrant.sh`, `qdrant-status.sh`) from `scripts/` to `integrations/qdrant/`
+- **Added**: `integrations/ik_llama/` — Llama.cpp integration scripts (install, benchmark, router)
+- **Added**: npm scripts for Qdrant management (`qdrant:install`, `qdrant:start`, `qdrant:stop`, `qdrant:status`)
 
 ---
 

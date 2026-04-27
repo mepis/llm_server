@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PID_FILE="$ROOT_DIR/local_qdrant/.qdrant.pid"
+
+# Load .env if present
+if [[ -f "$ROOT_DIR/.env" ]]; then
+  set -a
+  source "$ROOT_DIR/.env"
+  set +a
+fi
+
+GRPC_PORT="${QDRANT_GRPC_PORT:-6334}"
+
+# Check PID file
+if [[ ! -f "$PID_FILE" ]]; then
+  echo "No PID file found at $PID_FILE"
+  echo "Attempting fallback: killing process on port $GRPC_PORT..."
+
+  if fuser "$GRPC_PORT/tcp" >/dev/null 2>&1; then
+    fuser -k "$GRPC_PORT/tcp" 2>/dev/null || true
+    sleep 2
+    echo "Process on port $GRPC_PORT killed."
+  else
+    echo "No process found on port $GRPC_PORT either."
+    echo "Qdrant is not running."
+  fi
+  exit 0
+fi
+
+PID=$(cat "$PID_FILE")
+
+# Verify process exists
+if ! kill -0 "$PID" 2>/dev/null; then
+  echo "Stale PID file (PID $PID not running). Cleaning up."
+  rm -f "$PID_FILE"
+  exit 0
+fi
+
+echo "Stopping Qdrant (PID: $PID)..."
+kill "$PID" 2>/dev/null || true
+
+# Wait for graceful shutdown
+TIMEOUT=10
+ELAPSED=0
+while (( ELAPSED < TIMEOUT )); do
+  if ! kill -0 "$PID" 2>/dev/null; then
+    echo "Qdrant stopped gracefully."
+    rm -f "$PID_FILE"
+    exit 0
+  fi
+  sleep 1
+  ELAPSED=$((ELAPSED + 1))
+done
+
+# Force kill if still running
+echo "Qdrant did not stop within ${TIMEOUT}s. Force killing..."
+kill -9 "$PID" 2>/dev/null || true
+sleep 1
+rm -f "$PID_FILE"
+echo "Qdrant force killed."

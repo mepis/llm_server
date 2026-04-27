@@ -9,7 +9,11 @@
     "worker": "node src/workers/worker.js",
     "seed-admin": "node src/scripts/createAdmin.js",
     "seed-config": "node src/scripts/seedConfig.js",
-    "test": "node src/tests/testAll.js"
+    "test": "node src/tests/testAll.js",
+    "qdrant:install": "bash scripts/install-qdrant.sh",
+    "qdrant:start": "bash scripts/start-qdrant.sh",
+    "qdrant:stop": "bash scripts/stop-qdrant.sh",
+    "qdrant:status": "bash scripts/qdrant-status.sh"
   },
   "dependencies": {
     "@qdrant/js-client-grpc": "^1.17.0",
