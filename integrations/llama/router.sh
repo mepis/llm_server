@@ -24,8 +24,8 @@ temp=0.7
 topP=0.95
 minP=0.00
 topK=20
-BATCH=512
-UBATCH=512
+BATCH=256
+UBATCH=256
 
 ####################
 MODEL_DIR=$HOME/.llm_models
