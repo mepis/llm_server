@@ -12,7 +12,7 @@
     "test": "node src/tests/testAll.js"
   },
   "dependencies": {
-    "@qdrant/js-client-rest": "^1.12.0",
+    "@qdrant/js-client-grpc": "^1.17.0",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",

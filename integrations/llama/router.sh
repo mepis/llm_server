@@ -15,7 +15,7 @@ host=100.106.131.63
 mainGpu=0
 tensorSplit=16,12,12
 splitMode=layer
-threads=24
+threads=22
 PARALLEL=16
 
 # Model Configs
