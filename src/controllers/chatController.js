@@ -45,7 +45,7 @@ const getSession = async (req, res) => {
     const metadata = typeof session.metadata === 'string' ? JSON.parse(session.metadata) : (session.metadata || {});
     const ragDocumentIds = typeof session.rag_document_ids === 'string' ? JSON.parse(session.rag_document_ids) : (session.rag_document_ids || []);
 
-    res.json({ success: true, data: { ...session, messages, memory, metadata, rag_document_ids: ragDocumentIds } });
+    res.json({ success: true, data: { ...session, chat_id: session.id, messages, memory, metadata, rag_document_ids: ragDocumentIds } });
   } catch (error) {
     logger.error('Get session failed:', error.message);
     res.status(404).json({ success: false, error: error.message });
@@ -69,7 +69,7 @@ const updateSession = async (req, res) => {
     await db('chat_sessions').where({ id: sessionId }).update(updates);
     const updated = await db('chat_sessions').where({ id: sessionId }).first();
 
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: { ...updated, chat_id: updated.id } });
   } catch (error) {
     logger.error('Update session failed:', error.message);
     res.status(404).json({ success: false, error: error.message });

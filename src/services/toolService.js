@@ -74,7 +74,8 @@ const updateTool = async (toolId, updates) => {
     }
     parsedUpdates.updated_at = new Date();
 
-    const [tool] = await knex().from('tools').where({ id: toolId }).update(parsedUpdates).returning('*');
+    await knex().from('tools').where({ id: toolId }).update(parsedUpdates);
+    const tool = await knex().from('tools').where({ id: toolId }).first();
 
     if (!tool) {
       throw new Error('Tool not found');
@@ -91,11 +92,11 @@ const updateTool = async (toolId, updates) => {
 
 const deleteTool = async (toolId) => {
   try {
-    const [tool] = await knex().from('tools').where({ id: toolId }).del().returning('*');
-
-    if (!tool) {
+    const existing = await knex().from('tools').where({ id: toolId }).first();
+    if (!existing) {
       throw new Error('Tool not found');
     }
+    await knex().from('tools').where({ id: toolId }).del();
 
     logger.info(`Tool deleted: ${toolId}`);
 

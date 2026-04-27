@@ -1,5 +1,6 @@
 <template>
   <div class="login-container">
+    <Toast position="top-center" />
     <div class="login-card">
       <h1 class="login-title">{{ appTitle }}</h1>
       <form class="login-form" @submit.prevent="handleLogin">
@@ -30,7 +31,6 @@
         <button type="submit" class="btn-primary" :disabled="loading">
           {{ loading ? 'Logging in...' : 'Login' }}
         </button>
-        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       </form>
       <p class="login-footer">
         Don't have an account? <router-link to="/register" class="login-link">Register</router-link>
@@ -43,12 +43,13 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 const appTitle = import.meta.env.VITE_APP_TITLE || 'LLM Server'
 const loading = ref(false)
-const errorMessage = ref('')
 
 const form = ref({
   username: '',
@@ -69,13 +70,17 @@ const getErrorMessage = (error) => {
 
 const handleLogin = async () => {
   loading.value = true
-  errorMessage.value = ''
   try {
     await authStore.login(form.value)
     router.push('/chat')
   } catch (error) {
     console.error('Login failed:', error)
-    errorMessage.value = getErrorMessage(error)
+    toast.add({
+      severity: 'error',
+      summary: 'Login Failed',
+      detail: getErrorMessage(error),
+      life: 4000
+    })
   } finally {
     loading.value = false
   }
@@ -174,13 +179,6 @@ const handleLogin = async () => {
 
 .login-link:hover {
   text-decoration: underline;
-}
-
-.error-message {
-  color: #dc2626;
-  font-size: 0.875rem;
-  text-align: center;
-  margin-top: 1rem;
 }
 
 @media (max-width: 640px) {

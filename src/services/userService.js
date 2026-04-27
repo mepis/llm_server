@@ -17,7 +17,8 @@ const updateUserRolesArray = async (db, userId, rolesFn) => {
   const user = await db('users').where({ id: userId }).first();
   if (!user) return null;
   const newRoles = rolesFn(user.roles || ['user']);
-  return db('users').where({ id: userId }).update({ roles: JSON.stringify(newRoles) }).returning('*');
+  await db('users').where({ id: userId }).update({ roles: JSON.stringify(newRoles) });
+  return await db('users').where({ id: userId }).first();
 };
 
 const registerUser = async (username, email, password) => {
@@ -31,23 +32,23 @@ const registerUser = async (username, email, password) => {
     const passwordHash = await require('node-argon2').hash(password);
     const id = uuidv4();
 
-    const [user] = await knex()('users').insert({
+    await knex()('users').insert({
       id,
       username,
       email,
       password_hash: passwordHash,
       roles: JSON.stringify(['user']),
-    }).returning('*');
+    });
 
-    logger.info(`User registered: ${user.username} (${user.email})`);
+    logger.info(`User registered: ${username} (${email})`);
 
     return {
       success: true,
       data: {
-        user_id: user.id,
-        username: user.username,
-        email: user.email,
-        roles: user.roles || ['user'],
+        user_id: id,
+        username,
+        email,
+        roles: ['user'],
       },
     };
   } catch (error) {
@@ -74,16 +75,17 @@ const createUser = async ({ username, email, password, roles = ['user'], isActiv
     const passwordHash = await require('node-argon2').hash(password);
     const id = uuidv4();
 
-    const [user] = await knex()('users').insert({
+    await knex()('users').insert({
       id,
       username,
       email,
       password_hash: passwordHash,
       roles: JSON.stringify(roles),
       is_active: isActive,
-    }).returning('*');
+    });
 
-    logger.info(`Admin created user: ${user.username} (${user.email})`);
+    const user = await knex()('users').where({ id }).first();
+    logger.info(`Admin created user: ${user?.username} (${user?.email})`);
 
     return { success: true, data: user };
   } catch (error) {
@@ -192,7 +194,8 @@ const updateUser = async (userId, updateData) => {
     }
 
     updates.updated_at = new Date();
-    const [user] = await knex()('users').where({ id: userId }).update(updates).returning('*');
+    await knex()('users').where({ id: userId }).update(updates);
+    const user = await knex()('users').where({ id: userId }).first();
 
     if (!user) {
       throw new Error('User not found');
@@ -216,11 +219,9 @@ const updateUser = async (userId, updateData) => {
 
 const deleteUser = async (userId) => {
   try {
-    const [user] = await knex()('users').where({ id: userId }).del().returning('*');
-
-    if (!user) {
-      throw new Error('User not found');
-    }
+    const existing = await knex()('users').where({ id: userId }).first();
+    if (!existing) throw new Error('User not found');
+    await knex()('users').where({ id: userId }).del();
 
     logger.info(`User deleted: ${userId}`);
 
@@ -238,12 +239,12 @@ const setUserRole = async (userId, role) => {
       throw new Error(`Invalid role: ${role}`);
     }
 
-    const [user] = await updateUserRolesArray(knex(), userId, (roles) => {
+    const user = await updateUserRolesArray(knex(), userId, (roles) => {
       if (!roles.includes(role)) {
         roles.push(role);
       }
       return roles;
-    }).returning('*');
+    });
 
     if (!user) {
       throw new Error('User not found');
@@ -265,9 +266,9 @@ const removeUserRole = async (userId, role) => {
       throw new Error(`Invalid role: ${role}`);
     }
 
-    const [user] = await updateUserRolesArray(knex(), userId, (roles) => {
+    const user = await updateUserRolesArray(knex(), userId, (roles) => {
       return roles.filter(r => r !== role);
-    }).returning('*');
+    });
 
     if (!user) {
       throw new Error('User not found');

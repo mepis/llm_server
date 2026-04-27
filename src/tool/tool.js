@@ -96,6 +96,8 @@ function toJSONSchema(schema) {
         return zodToJSONSchema(zodSchema._def.innerType);
       case 'ZodDefault':
         return zodToJSONSchema(zodSchema._def.innerType);
+      case 'ZodEffects':
+        return zodToJSONSchema(zodSchema._def.schema);
       default:
         return { type: 'string', description };
     }

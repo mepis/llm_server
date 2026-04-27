@@ -23,7 +23,8 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url === '/auth/login';
+    if (error.response?.status === 401 && !isLoginRequest) {
       const authStore = useAuthStore();
       authStore.logout();
       window.location.href = '/login';

@@ -31,6 +31,9 @@ export const useChatStore = defineStore('chat', {
           const response = await apiClient.post('/chats', { session_name: name })
           session = response.data.data
           if (session?.messages) {
+            if (typeof session.messages === 'string') {
+              session.messages = JSON.parse(session.messages)
+            }
             const merged = []
             for (const msg of session.messages) {
               if (!msg.id) {
@@ -102,6 +105,9 @@ export const useChatStore = defineStore('chat', {
         const response = await apiClient.get(`/chats/${chatId}`)
         this.currentChat = response.data.data
         if (this.currentChat?.messages) {
+          if (typeof this.currentChat.messages === 'string') {
+            this.currentChat.messages = JSON.parse(this.currentChat.messages)
+          }
           const merged = []
           for (const msg of this.currentChat.messages) {
             if (!msg.id) {
@@ -210,6 +216,9 @@ export const useChatStore = defineStore('chat', {
         const response = await apiClient.post('/chats', { session_name: name })
         const persistedSession = response.data.data
         if (persistedSession?.messages) {
+          if (typeof persistedSession.messages === 'string') {
+            persistedSession.messages = JSON.parse(persistedSession.messages)
+          }
           const merged = []
           for (const msg of persistedSession.messages) {
             if (!msg.id) {

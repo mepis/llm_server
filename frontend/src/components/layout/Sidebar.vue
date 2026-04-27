@@ -86,10 +86,14 @@
             <span>Roles</span>
           </router-link>
           <router-link to="/admin/settings" class="nav-link" @click="closeAfterNav">
-            <i class="pi pi-cog"></i>
-            <span>Settings</span>
+              <i class="pi pi-cog"></i>
+              <span>Settings</span>
+            </router-link>
+          <router-link to="/debug" class="nav-link" @click="closeAfterNav">
+            <i class="pi pi-bug"></i>
+            <span>Debug</span>
           </router-link>
-        </nav>
+          </nav>
       </div>
     </div>
     <div class="sidebar-footer">

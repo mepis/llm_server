@@ -71,10 +71,10 @@ const updatePrompt = async (promptId, userId, updates) => {
     }
     parsedUpdates.updated_at = new Date();
 
-    const [prompt] = await knex().from('prompts')
+    await knex().from('prompts')
       .where({ id: promptId, user_id: userId })
-      .update(parsedUpdates)
-      .returning('*');
+      .update(parsedUpdates);
+    const prompt = await knex().from('prompts').where({ id: promptId, user_id: userId }).first();
 
     if (!prompt) {
       throw new Error('Prompt not found');
@@ -91,14 +91,11 @@ const updatePrompt = async (promptId, userId, updates) => {
 
 const deletePrompt = async (promptId, userId) => {
   try {
-    const [prompt] = await knex().from('prompts')
-      .where({ id: promptId, user_id: userId })
-      .del()
-      .returning('*');
-
-    if (!prompt) {
+    const existing = await knex().from('prompts').where({ id: promptId, user_id: userId }).first();
+    if (!existing) {
       throw new Error('Prompt not found');
     }
+    await knex().from('prompts').where({ id: promptId, user_id: userId }).del();
 
     logger.info(`Prompt deleted: ${promptId}`);
 

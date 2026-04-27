@@ -21,7 +21,7 @@ const addMessageToSessionJSON = async (sessionId, role, content, metadata = {}) 
   await knex().transaction(async (trx) => {
     await trx('chat_messages').insert(msgData);
 
-    const [session] = await trx('chat_sessions').where({ id: sessionId }).select('messages').returning('*');
+    const session = await trx('chat_sessions').where({ id: sessionId }).select('messages').first();
     if (!session) throw new Error('Session not found');
 
     let messages = typeof session.messages === 'string' ? JSON.parse(session.messages) : (session.messages || []);
@@ -55,7 +55,7 @@ const clearSessionMessagesJSON = async (sessionId) => {
 
 // Helper: update session memory
 const updateSessionMemoryJSON = async (sessionId, memoryData) => {
-  const [session] = await knex().from('chat_sessions').where({ id: sessionId }).select('memory').returning('*');
+  const session = await knex().from('chat_sessions').where({ id: sessionId }).select('memory').first();
   if (!session) throw new Error('Session not found');
 
   let currentMemory = typeof session.memory === 'string' ? JSON.parse(session.memory) : (session.memory || {});
@@ -68,7 +68,7 @@ const updateSessionMemoryJSON = async (sessionId, memoryData) => {
 
 // Helper: add rag document to session
 const addRagDocumentToSessionJSON = async (sessionId, documentId) => {
-  const [session] = await knex().from('chat_sessions').where({ id: sessionId }).select('rag_document_ids').returning('*');
+  const session = await knex().from('chat_sessions').where({ id: sessionId }).select('rag_document_ids').first();
   if (!session) throw new Error('Session not found');
 
   let docIds = typeof session.rag_document_ids === 'string' ? JSON.parse(session.rag_document_ids) : (session.rag_document_ids || []);
@@ -82,7 +82,7 @@ const addRagDocumentToSessionJSON = async (sessionId, documentId) => {
 
 // Helper: remove rag document from session
 const removeRagDocumentFromSessionJSON = async (sessionId, documentId) => {
-  const [session] = await knex().from('chat_sessions').where({ id: sessionId }).select('rag_document_ids').returning('*');
+  const session = await knex().from('chat_sessions').where({ id: sessionId }).select('rag_document_ids').first();
   if (!session) throw new Error('Session not found');
 
   let docIds = typeof session.rag_document_ids === 'string' ? JSON.parse(session.rag_document_ids) : (session.rag_document_ids || []);
@@ -236,9 +236,15 @@ const createChatSession = async (userId, sessionName, options = {}) => {
 
     const session = await knex().from('chat_sessions').where({ id }).first();
 
+    // Parse JSON columns to match frontend expectations
+    const messages = typeof session.messages === 'string' ? JSON.parse(session.messages) : (session.messages || []);
+    const memory = typeof session.memory === 'string' ? JSON.parse(session.memory) : (session.memory || {});
+    const metadata = typeof session.metadata === 'string' ? JSON.parse(session.metadata) : (session.metadata || {});
+    const ragDocumentIds = typeof session.rag_document_ids === 'string' ? JSON.parse(session.rag_document_ids) : (session.rag_document_ids || []);
+
     logger.info(`Chat session created: ${session.id} for user ${userId}`);
 
-    return { success: true, data: session };
+    return { success: true, data: { ...session, chat_id: session.id, messages, memory, metadata, rag_document_ids: ragDocumentIds } };
   } catch (error) {
     logger.error('Create chat session failed:', error.message);
     throw error;
@@ -254,7 +260,7 @@ const addMessageToSession = async (sessionId, role, content) => {
 
     const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
 
-    return { success: true, data: updatedSession };
+    return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
     logger.error('Add message failed:', error.message);
     throw error;
@@ -656,6 +662,7 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     const finalMessages = [{ role: 'system', content: systemMessage }, ...messages];
     let turnContent = '';
     const accumulatedToolCalls = {};
+    let lastCreatedToolCallIdx = -1;
     let hasStopReason = false;
 
     try {
@@ -671,13 +678,14 @@ async function* streamRunLoop(sessionId, content, options = {}) {
 
         if (choice.delta.tool_calls) {
           for (const tcDelta of choice.delta.tool_calls) {
-            const idx = tcDelta.index ?? Object.keys(accumulatedToolCalls).length - 1;
+            const idx = tcDelta.index ?? Math.max(0, lastCreatedToolCallIdx);
             if (!accumulatedToolCalls[idx]) {
               accumulatedToolCalls[idx] = {
                 id: tcDelta.id || `tc_${Date.now()}_${idx}`,
                 type: tcDelta.type || 'function',
                 function: { name: '', arguments: '' },
               };
+              lastCreatedToolCallIdx = idx;
             }
             if (tcDelta.function?.name) {
               accumulatedToolCalls[idx].function.name += tcDelta.function.name;
@@ -702,7 +710,7 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     const completedToolCalls = Object.values(accumulatedToolCalls);
     if (completedToolCalls.length > 0) {
       const toolCallObjs = completedToolCalls.map(tc => ({
-        id: tc.id, function: { name: tc.function.name, arguments: JSON.stringify(JSON.parse(tc.function.arguments)) }, type: tc.type,
+        id: tc.id, function: { name: tc.function.name, arguments: tc.function.arguments ? JSON.stringify(JSON.parse(tc.function.arguments)) : '{}' }, type: tc.type,
       }));
 
       await addMessageToSessionJSON(sessionId, 'assistant', null, {
@@ -787,7 +795,7 @@ const clearSessionMessages = async (sessionId) => {
 
     const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
 
-    return { success: true, data: updatedSession };
+    return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
     logger.error('Clear messages failed:', error.message);
     throw error;
@@ -803,7 +811,7 @@ const updateSessionMemory = async (sessionId, memoryData) => {
 
     const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
 
-    return { success: true, data: updatedSession };
+    return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
     logger.error('Update session memory failed:', error.message);
     throw error;
@@ -852,9 +860,9 @@ const deleteSession = async (sessionId) => {
   try {
     await knex().from('tool_calls').where({ session_id: sessionId }).del();
     await knex().from('chat_messages').where({ session_id: sessionId }).del();
-    const [session] = await knex().from('chat_sessions').where({ id: sessionId }).del().returning('*');
-
-    if (!session) throw new Error('Session not found');
+    const existing = await knex().from('chat_sessions').where({ id: sessionId }).first();
+    if (!existing) throw new Error('Session not found');
+    await knex().from('chat_sessions').where({ id: sessionId }).del();
 
     logger.info(`Session deleted: ${sessionId}`);
 

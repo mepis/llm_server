@@ -65,15 +65,16 @@ const createRole = async (name, description) => {
     }
 
     const id = require('uuid').v4();
-    const role = await knex().insert({
+    await knex().insert({
       id,
       name: normalizedName,
       description: description?.trim() || '',
-    }).into('roles').returning('*');
+    }).into('roles');
 
-    logger.info(`Role created: ${role[0].name}`);
+    const insertedRole = await knex().from('roles').where({ id }).first();
+    logger.info(`Role created: ${insertedRole?.name}`);
 
-    return { success: true, data: role[0] };
+    return { success: true, data: insertedRole };
   } catch (error) {
     logger.error('Create role failed:', error.message);
     throw error;
@@ -88,13 +89,13 @@ const deleteRole = async (name) => {
       throw new Error('Cannot delete built-in roles');
     }
 
-    const [role] = await knex().from('roles').where({ name: normalizedName }).del().returning('*');
-
-    if (!role) {
+    const existing = await knex().from('roles').where({ name: normalizedName }).first();
+    if (!existing) {
       throw new Error('Role not found');
     }
+    await knex().from('roles').where({ name: normalizedName }).del();
 
-    logger.info(`Role deleted: ${role.name}`);
+    logger.info(`Role deleted: ${normalizedName}`);
 
     await cascadeRemoveRoleFromTools(normalizedName);
     await cascadeRemoveRoleFromSkills(normalizedName);

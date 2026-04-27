@@ -263,9 +263,9 @@ const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
 
 const deleteDocument = async (documentId) => {
   try {
-    const [document] = await knex().from('rag_documents').where({ id: documentId }).del().returning('*');
-
+    const document = await knex().from('rag_documents').where({ id: documentId }).first();
     if (!document) throw new Error('Document not found');
+    await knex().from('rag_documents').where({ id: documentId }).del();
 
     // Delete chunks from Qdrant
     await qdrant.deleteChunksByDocument(documentId);

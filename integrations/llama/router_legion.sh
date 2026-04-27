@@ -12,8 +12,8 @@ port=11434
 host=100.78.136.115
 
 # Hardware Configs
-mainGpu=0
-tensorSplit=16,12,12
+mainGpu=1
+tensorSplit=8
 splitMode=layer
 threads=22
 PARALLEL=6

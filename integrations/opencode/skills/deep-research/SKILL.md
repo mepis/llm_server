@@ -4,11 +4,15 @@ description: "ALWAYS execute deep, multi-phase, recursive, and highly structured
 roles: ["user"]
 ---
 
+## Searching
+
+The Playwright CLI is locally installed. Use the Playwright CLI for searching the web.
+
 ## 📦 STATE MANAGEMENT
 
 ### State File Location
 
-Maintain research state in `~/.agents/deep-research/STATE.md`
+Maintain research state in `/.agents/deep-research/STATE.md`
 
 ### State File Schema
 
@@ -108,7 +112,7 @@ ALWAYS execute the research using the following mandatory, sequential phases. Pr
 
 **⚡ INITIALIZATION (Before Phase 1)**
 
-1. Check for existing state file at `~/.agents/deep-research/STATE.md`
+1. Check for existing state file at `./.agents/deep-research/STATE.md`
 2. If state exists and `status` is "active": Display "Resuming research on $TOPIC from {current_phase}" and skip to that phase
 3. If no state or status is "completed": Initialize new state file with topic, timestamp, and `current_phase: "Phase 1"`
 
