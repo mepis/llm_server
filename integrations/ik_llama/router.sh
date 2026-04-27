@@ -33,6 +33,6 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd ik_llama.cpp/build/bin/
 
-./llama-server --model $MODEL_DIR/Qwen3.6-27B-Q8_0.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $BATCH --ubatch-size $UBATCH --chat-template-kwargs '{"enable_thinking":true}' --parallel $PARALLEL --reasoning on --verbose --flash-attn 1 --repeat-penalty 1.0 --presence-penalty 1.0
+./llama-server --model $MODEL_DIR/Qwen3.6-27B-Q8_0.gguf --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $BATCH --ubatch-size $UBATCH --chat-template-kwargs '{"enable_thinking":true}' --parallel $PARALLEL --reasoning on --verbose --flash-attn 1 --repeat-penalty 1.0 --presence-penalty 1.0 --jinja
 
 # --repeat-penalty 1.0 --presence-penalty 1.5 (1.0 - 1.5)  Use if looping is a problem
