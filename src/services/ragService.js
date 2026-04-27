@@ -317,31 +317,27 @@ const getChunks = async (documentId, userId, options = {}) => {
 
     if (!document) throw new Error('Document not found');
 
-    // Get chunk count from Qdrant
     const total = await qdrant.countChunksByDocument(documentId);
     const skip = (page - 1) * limit;
 
-    // Scroll chunks from Qdrant with pagination
-    const { QdrantClient } = require('@qdrant/js-client-rest');
-    const client = new QdrantClient({
-      url: process.env.QDRANT_URL || 'http://localhost:6333',
-      apiKey: process.env.QDRANT_API_KEY || null,
-    });
+    let lastOffset = null;
+    let allPoints = [];
+    let consumed = 0;
 
-    const scrollResult = await client.scroll('rag_chunks', {
-      filter: {
-        must: [{ key: 'document_id', match: { value: documentId } }],
-      },
-      limit,
-      offset: skip,
-      with_payload: true,
-      with_vectors: false,
-    });
+    while (consumed + allPoints.length < skip + limit) {
+      const scrollResult = await qdrant.getChunksScroll(documentId, Math.max(limit, 100), lastOffset);
+      allPoints.push(...scrollResult.points);
+      consumed += scrollResult.points.length;
+      if (!scrollResult.nextPageOffset) break;
+      lastOffset = scrollResult.nextPageOffset;
+    }
 
-    const chunks = scrollResult.points.map(p => ({
-      text: p.payload.text,
-      chunk_index: p.payload.chunk_index,
-      document_id: p.payload.document_id,
+    const pagePoints = allPoints.slice(skip, skip + limit);
+
+    const chunks = pagePoints.map(p => ({
+      text: p.text,
+      chunk_index: p.chunk_index,
+      document_id: p.document_id,
     }));
 
     return {

@@ -480,6 +480,56 @@ const piscina = new Piscina({
 
 ---
 
+## Vector Store Configuration
+
+### Qdrant (gRPC)
+
+Qdrant is used as the vector store for RAG (Retrieval-Augmented Generation) operations. The migration from HTTP to gRPC client provides lower latency and better performance.
+
+#### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `QDRANT_GRPC_HOST` | No | localhost | Qdrant gRPC host |
+| `QDRANT_GRPC_PORT` | No | 6334 | Qdrant gRPC port |
+| `QDRANT_API_KEY` | No | - | Qdrant API key (if authentication is enabled) |
+| `EMBEDDING_DIM` | No | 384 | Embedding vector dimension size |
+
+#### Ports
+
+| Service | Port | Protocol |
+|---------|------|----------|
+| Qdrant gRPC | 6334 | gRPC |
+| Qdrant HTTP | 6333 | HTTP REST |
+
+#### Binary Installation
+
+A Qdrant binary installation script is provided at `scripts/install-qdrant.sh`. Run this script to download and install the Qdrant binary locally.
+
+After installation, start Qdrant with:
+
+```bash
+./bin/qdrant server
+```
+
+Or with explicit ports:
+
+```bash
+./bin/qdrant server --grpc-port 6334 --http-port 6333
+```
+
+#### Collection
+
+The server automatically creates (or verifies) the `rag_chunks` collection at startup with Cosine distance and the configured embedding dimension.
+
+#### Notes
+
+- `initQdrant()` is called at server startup. If Qdrant is unavailable, a warning is logged but the server continues (Qdrant is optional for non-RAG features).
+- The gRPC client uses `checkCompatibility: false` to skip version compatibility checks during connection.
+- No explicit close/teardown is needed for the gRPC client — Node.js handles connection teardown on exit.
+
+---
+
 ## Related Documentation
 
 - [Deployment Guide](./deployment-guide.md) - Production deployment

@@ -11,6 +11,7 @@ const { validateEnvironment } = require('./utils/environment');
 const { initTTSClient, shutdownTTS } = require('./services/llamaService');
 const roleService = require('./services/roleService');
 const { setupDatabase } = require('./utils/database');
+const { initQdrant } = require('./db/qdrant');
 
 validateEnvironment();
 
@@ -88,6 +89,12 @@ const startServer = async () => {
   try {
     await db.connectDB();
     await setupDatabase();
+
+    try {
+      await initQdrant();
+    } catch (error) {
+      logger.warn('Qdrant initialization failed (RAG features will be unavailable):', error.message);
+    }
 
     await roleService.ensureBuiltinRoles();
 

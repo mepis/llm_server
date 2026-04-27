@@ -4,6 +4,21 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-26
+
+### Qdrant gRPC Migration
+- **Migrated**: Qdrant client from HTTP (`@qdrant/js-client-rest`) to gRPC (`@qdrant/js-client-grpc`) for lower latency and better performance
+- **Updated**: `src/db/qdrant.js` — Full rewrite with protobuf types, oneof patterns, BigInt conversions, and `getChunksScroll()` helper for paginated retrieval
+- **Fixed**: `initQdrant()` now called at server startup (previously never invoked — collection was never auto-created)
+- **Fixed**: Duplicate `QdrantClient` instantiation in `ragService.getChunks()` replaced with shared `qdrant` module singleton
+- **Updated**: Environment variables `QDRANT_URL` replaced with `QDRANT_GRPC_HOST` and `QDRANT_GRPC_PORT`
+- **Updated**: `src/server.js` — Added `initQdrant()` call with graceful fallback warning
+- **Updated**: `package.json` — Replaced `@qdrant/js-client-rest` with `@qdrant/js-client-grpc@^1.17.0`
+- **Updated**: `AGENTS.md` — Qdrant startup note now mentions gRPC port 6334
+- **Updated**: `docs/technical/configuration-guide.md` — Added Qdrant gRPC configuration section
+
+---
+
 ## [Unreleased] - 2026-04-25
 
 ### chat_messages Table Migration

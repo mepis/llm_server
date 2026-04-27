@@ -23,11 +23,11 @@ Migrate the Qdrant vector database client from HTTP (`@qdrant/js-client-rest`) t
 - [x] Map all REST calls to gRPC equivalents -- 2026-04-26 -- Done
 - [x] Identify bugs in existing code (uncalled `initQdrant`, duplicate client) -- 2026-04-26 -- Done
 - [ ] Phase 1: Environment and dependencies
-- [ ] Phase 2: Rewrite `src/db/qdrant.js`
-- [ ] Phase 3: Fix `src/services/ragService.js`
-- [ ] Phase 4: Wire up server initialization
-- [ ] Phase 5: Documentation updates
-- [ ] Phase 6: Validation
+- [x] Phase 2: Rewrite `src/db/qdrant.js`
+- [x] Phase 3: Fix `src/services/ragService.js`
+- [x] Phase 4: Wire up server initialization
+- [x] Phase 5: Documentation updates
+- [x] Phase 6: Validation
 
 ---
 
