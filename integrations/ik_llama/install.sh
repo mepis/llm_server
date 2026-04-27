@@ -47,7 +47,7 @@ systemctl --user disable llama.service
 rm $HOME/.config/systemd/user/llama.service
 
 read -p "Do you want to compile ik_llama.cpp? (Y/n): " choice
-if [ "$choice" == "y"]; then
+if [ "$choice" == "y" ]; then
     
   git clone git@github.com:ikawrakow/ik_llama.cpp.git
 
