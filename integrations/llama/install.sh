@@ -1,6 +1,6 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/usr/local/cuda-13.1/bin${PATH:+:${PATH}}
+export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 
 CURRENT_DIR=$(pwd)
 
