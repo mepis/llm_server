@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BIN_PATH="$ROOT_DIR/qdrant/qdrant/qdrant"
-DATA_DIR="$ROOT_DIR/local_qdrant"
+QDRANT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BIN_PATH="$QDRANT_DIR/qdrant/qdrant"
+DATA_DIR="$QDRANT_DIR/data"
 PID_FILE="$DATA_DIR/.qdrant.pid"
 LOG_FILE="$DATA_DIR/qdrant.log"
 STORAGE_PATH="$DATA_DIR/storage"
 
 # Load .env if present
-if [[ -f "$ROOT_DIR/.env" ]]; then
+# Load .env from repo root if present
+REPO_ROOT="$(cd "$QDRANT_DIR/.." && pwd)"
+if [[ -f "$REPO_ROOT/.env" ]]; then
   set -a
-  source "$ROOT_DIR/.env"
+  source "$REPO_ROOT/.env"
   set +a
 fi
 
@@ -61,16 +62,10 @@ echo "  HTTP port: $HTTP_PORT"
 echo "  Storage:   $STORAGE_PATH"
 echo "  Logs:      $LOG_FILE"
 
-# Build command arguments
-ARGS=(server --grpc-port "$GRPC_PORT" --http-port "$HTTP_PORT" --storage-path "$STORAGE_PATH")
-
-# Add API key if set
-if [[ -n "${QDRANT_API_KEY:-}" ]]; then
-  ARGS+=(--api-key "$QDRANT_API_KEY")
-fi
-
+# Qdrant 1.12+ uses defaults (HTTP:6333, gRPC:6334, storage:./storage)
+# Run from DATA_DIR so ./storage resolves to DATA_DIR/storage
 # Start in background, redirect output to log
-nohup "$BIN_PATH" "${ARGS[@]}" >> "$LOG_FILE" 2>&1 &
+nohup bash -c "cd '$DATA_DIR' && exec '$BIN_PATH' --disable-telemetry" >> "$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 echo "$SERVER_PID" > "$PID_FILE"
 
@@ -82,11 +77,11 @@ echo "Waiting for Qdrant to be ready..."
 TIMEOUT=30
 ELAPSED=0
 while (( ELAPSED < TIMEOUT )); do
-  if curl -sf "http://localhost:$HTTP_PORT/health" >/dev/null 2>&1; then
+  if curl -sf "http://localhost:$HTTP_PORT/healthz" >/dev/null 2>&1; then
     echo "Qdrant is ready! (took ${ELAPSED}s)"
     echo ""
     echo "Health check:"
-    curl -sf "http://localhost:$HTTP_PORT/health" 2>/dev/null || true
+    curl -sf "http://localhost:$HTTP_PORT/healthz" 2>/dev/null || true
     echo ""
     exit 0
   fi

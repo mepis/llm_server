@@ -6,6 +6,12 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-27
 
+### Qdrant Integration Scripts Update
+- **Refactored**: Qdrant management scripts (`install-qdrant.sh`, `start-qdrant.sh`, `stop-qdrant.sh`, `qdrant-status.sh`) — reorganized directory structure from `local_qdrant/` to `data/` under `integrations/qdrant/`
+- **Updated**: Health check endpoint from `/health` to `/healthz` for Qdrant 1.12+ compatibility
+- **Simplified**: Start script uses Qdrant defaults (HTTP:6333, gRPC:6334, storage:./storage) with `--disable-telemetry` flag
+- **Updated**: Install script creates data directory structure during installation
+
 ### Router & Admin Views
 - **Added**: Llama, Matrix, Config, and Debug routes under admin namespace in `frontend/src/router/index.js`
 - **Added**: Redirects for `/users` → `/admin/users` and `/roles` → `/admin/roles`

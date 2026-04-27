@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PID_FILE="$ROOT_DIR/local_qdrant/.qdrant.pid"
-LOG_FILE="$ROOT_DIR/local_qdrant/qdrant.log"
+QDRANT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DATA_DIR="$QDRANT_DIR/data"
+PID_FILE="$DATA_DIR/.qdrant.pid"
+LOG_FILE="$DATA_DIR/qdrant.log"
 
 # Load .env if present
-if [[ -f "$ROOT_DIR/.env" ]]; then
+REPO_ROOT="$(cd "$QDRANT_DIR/.." && pwd)"
+if [[ -f "$REPO_ROOT/.env" ]]; then
   set -a
-  source "$ROOT_DIR/.env"
+  source "$REPO_ROOT/.env"
   set +a
 fi
 
@@ -37,7 +38,7 @@ if $RUNNING; then
   echo ""
 
   # Health endpoint details
-  HEALTH=$(curl -sf "http://localhost:$HTTP_PORT/health" 2>/dev/null || echo "{}")
+  HEALTH=$(curl -sf "http://localhost:$HTTP_PORT/healthz" 2>/dev/null || echo "{}")
   if [[ -n "$HEALTH" && "$HEALTH" != "{}" ]]; then
     VERSION=$(echo "$HEALTH" | grep -o '"version":"[^"]*"' | cut -d'"' -f4 || true)
     if [[ -n "$VERSION" ]]; then

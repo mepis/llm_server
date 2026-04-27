@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PID_FILE="$ROOT_DIR/local_qdrant/.qdrant.pid"
+QDRANT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DATA_DIR="$QDRANT_DIR/data"
+PID_FILE="$DATA_DIR/.qdrant.pid"
 
 # Load .env if present
-if [[ -f "$ROOT_DIR/.env" ]]; then
+REPO_ROOT="$(cd "$QDRANT_DIR/.." && pwd)"
+if [[ -f "$REPO_ROOT/.env" ]]; then
   set -a
-  source "$ROOT_DIR/.env"
+  source "$REPO_ROOT/.env"
   set +a
 fi
 
