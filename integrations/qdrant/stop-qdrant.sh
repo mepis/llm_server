@@ -14,8 +14,17 @@ if [[ -f "$REPO_ROOT/.env" ]]; then
 fi
 
 GRPC_PORT="${QDRANT_GRPC_PORT:-6334}"
+SERVICE_NAME="qdrant-local.service"
 
-# Check PID file
+# Stop via systemd if service is active
+if systemctl --user is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+  echo "Stopping Qdrant via systemd..."
+  systemctl --user stop "$SERVICE_NAME"
+  echo "Qdrant stopped."
+  exit 0
+fi
+
+# Fallback: manual PID-based stop
 if [[ ! -f "$PID_FILE" ]]; then
   echo "No PID file found at $PID_FILE"
   echo "Attempting fallback: killing process on port $GRPC_PORT..."
@@ -33,7 +42,6 @@ fi
 
 PID=$(cat "$PID_FILE")
 
-# Verify process exists
 if ! kill -0 "$PID" 2>/dev/null; then
   echo "Stale PID file (PID $PID not running). Cleaning up."
   rm -f "$PID_FILE"
@@ -43,7 +51,6 @@ fi
 echo "Stopping Qdrant (PID: $PID)..."
 kill "$PID" 2>/dev/null || true
 
-# Wait for graceful shutdown
 TIMEOUT=10
 ELAPSED=0
 while (( ELAPSED < TIMEOUT )); do
@@ -53,10 +60,9 @@ while (( ELAPSED < TIMEOUT )); do
     exit 0
   fi
   sleep 1
-  ELAPSED=$((ELAPSED + 1))
+  ELAPSED=$(( ELAPSED + 1 ))
 done
 
-# Force kill if still running
 echo "Qdrant did not stop within ${TIMEOUT}s. Force killing..."
 kill -9 "$PID" 2>/dev/null || true
 sleep 1

@@ -10,6 +10,7 @@ CMakeFiles/
 *.d
 *.out
 .playwright-cli/
+test-results/*
 
 # Editor/IDE files
 .vscode/

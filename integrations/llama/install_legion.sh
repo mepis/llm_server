@@ -1,12 +1,11 @@
 #!/bin/bash
 
 # User Defined
-MODEL=router.sh
+MODEL=router_legion.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
-
 CURRENT_DIR=$(pwd)
 
 mkdir $HOME/.llama_cache
