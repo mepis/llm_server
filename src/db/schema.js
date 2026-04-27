@@ -169,7 +169,7 @@ async function createTables(knex) {
 
   await knex.raw(`CREATE TABLE IF NOT EXISTS configs (
     id VARCHAR(36) PRIMARY KEY,
-    key VARCHAR(255) NOT NULL UNIQUE,
+    \`key\` VARCHAR(255) NOT NULL UNIQUE,
     value TEXT DEFAULT '',
     category ENUM('server','database','auth','llama','tts','matrix','session','logging') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -4,6 +4,28 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-27
+
+### Router & Admin Views
+- **Added**: Llama, Matrix, Config, and Debug routes under admin namespace in `frontend/src/router/index.js`
+- **Added**: Redirects for `/users` → `/admin/users` and `/roles` → `/admin/roles`
+- **Added**: New frontend view folders: `config/`, `debug/`, `llama/`, `matrix/`
+
+### Auth Store Improvements
+- **Fixed**: `frontend/src/stores/auth.js` — `fetchUser()` now validates user data shape (`user_id` or `id`) before storing; calls `logout()` and throws on invalid response to prevent stale auth state
+
+### Bug Fixes
+- **Fixed**: `src/db/schema.js` — Escaped reserved word `key` as `` `key` `` in configs table creation
+- **Fixed**: `src/services/userService.js` — Replaced broken `JSON_CONTACT` raw queries with Knex `.where()` / `.orWhere()` for username/email checks in `registerUser` and `createUser`
+- **Fixed**: `src/services/userService.js` — `loginUser` now properly parses `roles` (string → array) before passing to `generateToken`; handles serialized `preferences` JSON
+- **Fixed**: `src/services/userService.js` — `getUserById` now deserializes `roles` and `preferences` JSON columns before returning
+
+### Documentation & Testing
+- **Added**: `docs/security-audit.md` — Security audit documentation
+- **Added**: `frontend_test.py` — Frontend test script
+
+---
+
 ## [Unreleased] - 2026-04-26
 
 ### Qdrant gRPC Migration

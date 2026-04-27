@@ -140,8 +140,37 @@ const router = createRouter({
           name: 'admin-roles',
           component: () => import('../views/admin/AdminRolesView.vue'),
           meta: { requiresAdmin: true }
+        },
+        {
+          path: 'llama',
+          name: 'llama',
+          component: () => import('../views/llama/LlamaView.vue')
+        },
+        {
+          path: 'matrix',
+          name: 'matrix',
+          component: () => import('../views/matrix/MatrixView.vue')
+        },
+        {
+          path: 'config',
+          name: 'config',
+          component: () => import('../views/config/ConfigView.vue'),
+          meta: { requiresAdmin: true }
+        },
+        {
+          path: 'debug',
+          name: 'debug',
+          component: () => import('../views/debug/DebugView.vue')
         }
       ]
+    },
+    {
+      path: '/users',
+      redirect: '/admin/users'
+    },
+    {
+      path: '/roles',
+      redirect: '/admin/roles'
     }
   ]
 })

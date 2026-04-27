@@ -69,8 +69,13 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return null
       try {
         const response = await apiClient.get('/users/me')
-        this.user = response.data.data
-        return response.data.data
+        const userData = response.data?.data
+        if (!userData || (!userData.user_id && !userData.id)) {
+          this.logout()
+          throw new Error('Invalid user data from server')
+        }
+        this.user = userData
+        return userData
       } catch (error) {
         this.logout()
         throw error

@@ -22,10 +22,7 @@ const updateUserRolesArray = async (db, userId, rolesFn) => {
 
 const registerUser = async (username, email, password) => {
   try {
-    const existingUser = await knex()('users').whereRaw(
-      'JSON_CONTACT(username, ?) OR JSON_CONTACT(email, ?)',
-      [username, email]
-    ).first();
+    const existingUser = await knex()('users').where({ username }).orWhere({ email }).first();
 
     if (existingUser) {
       throw new Error('Username or email already exists');
@@ -61,10 +58,7 @@ const registerUser = async (username, email, password) => {
 
 const createUser = async ({ username, email, password, roles = ['user'], isActive = true }) => {
   try {
-    const existingUser = await knex()('users').whereRaw(
-      'JSON_CONTACT(username, ?) OR JSON_CONTACT(email, ?)',
-      [username, email]
-    ).first();
+    const existingUser = await knex()('users').where({ username }).orWhere({ email }).first();
 
     if (existingUser) {
       throw new Error('Username or email already exists');
@@ -120,7 +114,9 @@ const loginUser = async (username, password) => {
 
     await knex()('users').where({ id: user.id }).update({ last_login: new Date() });
 
-    const token = generateToken(user.id, user.username, user.roles || ['user']);
+    const roles = typeof user.roles === 'string' ? JSON.parse(user.roles) : (user.roles || ['user']);
+
+    const token = generateToken(user.id, user.username, roles);
 
     logger.info(`User logged in: ${user.username}`);
 
@@ -134,8 +130,8 @@ const loginUser = async (username, password) => {
           display_name: user.display_name,
           matrix_username: user.matrix_username,
           email: user.email,
-          roles: user.roles || ['user'],
-          preferences: user.preferences || {},
+          roles: roles,
+          preferences: JSON.parse(user.preferences || '{}'),
         },
       },
     };
@@ -163,7 +159,10 @@ const getUserById = async (userId) => {
       throw new Error('User not found');
     }
 
-    return { success: true, data: user };
+    const roles = typeof user.roles === 'string' ? JSON.parse(user.roles) : (user.roles || []);
+    const preferences = typeof user.preferences === 'string' ? JSON.parse(user.preferences) : (user.preferences || {});
+
+    return { success: true, data: { ...user, roles, preferences } };
   } catch (error) {
     logger.error('Get user failed:', error.message);
     throw error;
