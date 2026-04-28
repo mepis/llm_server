@@ -5,10 +5,10 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=1024
-export LLAMA_ARG_FIT_CTX=131072
+export LLAMA_ARG_FIT_CTX=262144
 
 # Host Configs
-port=262144
+port=11434
 host=100.106.131.63
 
 # Hardware Configs
@@ -19,7 +19,7 @@ threads=20
 PARALLEL=4
 
 # Model Configs
-context=131072
+context=262144
 temp=0.6
 topP=0.95
 minP=0.00
