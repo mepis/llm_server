@@ -5,6 +5,8 @@ const authMiddleware = require('../middleware/auth');
 const chatController = require('../controllers/chatController');
 
 router.post('/', authMiddleware, chatController.createSession);
+router.post('/bulk-delete', authMiddleware, chatController.bulkDeleteSessions);
+router.post('/regenerate-subjects', authMiddleware, chatController.regenerateStaleSubjects);
 router.get('/', authMiddleware, chatController.getUserSessions);
 router.get('/:id', authMiddleware, chatController.getSession);
 router.get('/:sessionId', authMiddleware, chatController.getSession);

@@ -122,7 +122,11 @@ const streamChatWithTools = async function* (messages, tools, options = {}) {
         const data = typeof axiosError.response.data === 'string' ? JSON.parse(axiosError.response.data) : axiosError.response.data;
         msg = `${msg}: ${JSON.stringify(data)}`;
       } catch (e) {
-        msg = `${msg}: ${axiosError.response.data}`;
+        try {
+          msg = `${msg}: ${JSON.stringify(axiosError.response.data)}`;
+        } catch (_) {
+          msg = `${msg}: (unserializable response data)`;
+        }
       }
     }
     if (!msg) msg = `${axiosError.constructor.name}`;

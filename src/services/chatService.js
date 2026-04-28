@@ -215,8 +215,12 @@ function truncateMessages(messages, maxMessages = 20) {
 }
 
 function buildMessages(session) {
-  const msgs = Array.isArray(session.messages) ? session.messages : [];
-  return msgs.map((msg) => {
+  let msgs = session.messages;
+  if (typeof msgs === 'string') {
+    try { msgs = JSON.parse(msgs); } catch { msgs = []; }
+  }
+  const messages = Array.isArray(msgs) ? msgs : [];
+  return messages.map((msg) => {
     if (msg.tool_calls && msg.tool_calls.length > 0) {
       return { role: 'assistant', content: '', tool_calls: msg.tool_calls };
     }
@@ -389,16 +393,16 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
     };
 
     await addMessageToSessionJSON(sessionId, 'user', content);
-
-    const messages = buildMessages(session);
-    const { tools, openAITools } = await resolveTools(session);
+    const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
+    const messages = buildMessages(updatedSession);
+    const { tools, openAITools } = await resolveTools(updatedSession);
 
     let ragContext = '';
     let ragCitations = [];
-    if (session.rag_enabled && ragDocumentIds.length > 0) {
+    if (updatedSession.rag_enabled && ragDocumentIds.length > 0) {
       const ragService = require('./ragService');
       const ragResult = await ragService.searchDocuments(
-        session.user_id, content, 5, ragDocumentIds
+        updatedSession.user_id, content, 5, ragDocumentIds
       );
       if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
         ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
@@ -480,16 +484,16 @@ const runLoop = async (sessionId, content, options = {}) => {
     };
 
     await addMessageToSessionJSON(sessionId, 'user', content);
-
-    const messages = buildMessages(session);
-    const { tools, openAITools } = await resolveTools(session);
+    const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
+    const messages = buildMessages(updatedSession);
+    const { tools, openAITools } = await resolveTools(updatedSession);
 
     let ragContext = '';
     let ragCitations = [];
-    if (session.rag_enabled && ragDocumentIds.length > 0) {
+    if (updatedSession.rag_enabled && ragDocumentIds.length > 0) {
       const ragService = require('./ragService');
       const ragResult = await ragService.searchDocuments(
-        session.user_id, content, 5, ragDocumentIds
+        updatedSession.user_id, content, 5, ragDocumentIds
       );
       if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
         ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
@@ -565,7 +569,8 @@ const runLoop = async (sessionId, content, options = {}) => {
 
     if (session.session_name === 'New Chat') {
       try {
-        const msgs = Array.isArray(session.messages) ? session.messages : [];
+        const refreshedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
+        const msgs = Array.isArray(refreshedSession.messages) ? refreshedSession.messages : [];
         const subject = await generateSessionSubject(msgs);
         if (subject && subject.trim()) {
           await knex().from('chat_sessions').where({ id: sessionId }).update({ session_name: subject.trim() });
@@ -634,17 +639,17 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     top_p: metadata?.top_p || 0.9,
     ...options,
   };
-    await addMessageToSessionJSON(sessionId, 'user', content);
+   await addMessageToSessionJSON(sessionId, 'user', content);
     const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
     const messages = buildMessages(updatedSession);
     const { tools, openAITools } = await resolveTools(updatedSession);
 
     let ragContext = '';
     let ragCitations = [];
-    if (session.rag_enabled && ragDocumentIds.length > 0) {
+    if (updatedSession.rag_enabled && ragDocumentIds.length > 0) {
       const ragService = require('./ragService');
-    const ragResult = await ragService.searchDocuments(
-      session.user_id, content, 5, ragDocumentIds
+      const ragResult = await ragService.searchDocuments(
+        updatedSession.user_id, content, 5, ragDocumentIds
     );
     if (ragResult && ragResult.data && ragResult.data.results && ragResult.data.results.length > 0) {
       ragContext = ragResult.data.results.map(r => r.text).join('\n\n');
@@ -784,7 +789,8 @@ async function* streamRunLoop(sessionId, content, options = {}) {
   let newSubject = null;
   if (session.session_name === 'New Chat') {
     try {
-      const msgs = Array.isArray(session.messages) ? session.messages : [];
+      const refreshedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
+      const msgs = Array.isArray(refreshedSession.messages) ? refreshedSession.messages : [];
       const subject = await generateSessionSubject(msgs);
       if (subject && subject.trim()) {
         await knex().from('chat_sessions').where({ id: sessionId }).update({ session_name: subject.trim() });
@@ -841,10 +847,11 @@ const getSessionsByUser = async (userId, options = {}) => {
     const { page = 1, limit = 10 } = options;
 
     // Count sessions with at least one message
-    const totalRows = await knex().from('chat_sessions')
+    const [totalRows] = await knex().from('chat_sessions')
       .where({ user_id: userId })
-      .whereRaw('JSON_LENGTH(messages) > 0');
-    const total = parseInt(totalRows[0]?.count || 0);
+      .whereRaw('JSON_LENGTH(messages) > 0')
+      .count('* as count');
+    const total = parseInt(totalRows.count || 0);
 
     const skip = (page - 1) * limit;
     const sessions = await knex().from('chat_sessions')
@@ -891,6 +898,32 @@ const deleteSession = async (sessionId) => {
   }
 };
 
+const deleteSessions = async (sessionIds, userId) => {
+  try {
+    const db = knex();
+    const userOwned = await db('chat_sessions')
+      .where({ user_id: userId })
+      .whereIn('id', sessionIds)
+      .pluck('id');
+
+    if (userOwned.length === 0) {
+      return { success: true, deleted: 0 };
+    }
+
+    await db.transaction(async (trx) => {
+      await trx('tool_calls').whereIn('session_id', userOwned).del();
+      await trx('chat_messages').whereIn('session_id', userOwned).del();
+      await trx('chat_sessions').whereIn('id', userOwned).where({ user_id: userId }).del();
+    });
+
+    logger.info(`Bulk deleted ${userOwned.length} sessions for user ${userId}`);
+    return { success: true, deleted: userOwned.length };
+  } catch (error) {
+    logger.error('Delete sessions failed:', error.message);
+    throw error;
+  }
+};
+
 const generateSessionSubject = (messages) => {
   try {
     const userMessages = messages
@@ -924,6 +957,37 @@ const getToolCalls = async (sessionId, messageId) => {
   }
 };
 
+const regenerateStaleSubjects = async (userId) => {
+  try {
+    const sessions = await knex()
+      .from('chat_sessions')
+      .where({ user_id: userId, session_name: 'New Chat' });
+
+    const updated = [];
+    for (const session of sessions) {
+      let messages;
+      try {
+        messages = typeof session.messages === 'string' ? JSON.parse(session.messages) : (session.messages || []);
+      } catch {
+        continue;
+      }
+
+      if (!Array.isArray(messages) || messages.length === 0) continue;
+
+      const subject = generateSessionSubject(messages);
+      if (subject && subject.trim()) {
+        await knex().from('chat_sessions').where({ id: session.id }).update({ session_name: subject.trim() });
+        updated.push({ chat_id: session.id, session_name: subject.trim() });
+      }
+    }
+
+    return { success: true, data: { updated } };
+  } catch (error) {
+    logger.error('Regenerate stale subjects failed:', error.message);
+    throw error;
+  }
+};
+
 module.exports = {
   createChatSession,
   addMessageToSession,
@@ -936,6 +1000,8 @@ module.exports = {
   updateSessionMemory,
   getSessionsByUser,
   deleteSession,
+  deleteSessions,
   getToolCalls,
   generateSessionSubject,
+  regenerateStaleSubjects,
 };

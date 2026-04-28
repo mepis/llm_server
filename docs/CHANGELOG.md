@@ -4,6 +4,27 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-28
+
+### Chat History Bulk Delete & Stale Subject Regeneration
+- **Added**: Multi-select checkboxes in `ChatHistoryView.vue` for bulk chat deletion
+- **Added**: `bulkDeleteChats` method in chat store (`frontend/src/stores/chat.js`)
+- **Added**: `POST /api/chats/bulk-delete` endpoint for deleting multiple sessions at once
+- **Added**: `regenerateStaleSubjects` in chat store and `POST /api/chats/regenerate-subjects` endpoint to fix "New Chat" titles on mount
+- **Added**: `deleteSessions` and `regenerateStaleSubjects` functions in `chatService.js`
+- **Changed**: Default page size for sessions list from 20 to 10
+
+### Bug Fixes
+- **Fixed**: `buildMessages` in `chatService.js` now handles serialized JSON string messages
+- **Fixed**: `chatWithLLM`, `runLoop`, `streamRunLoop` refresh session from DB before building messages and resolving tools
+- **Fixed**: `getSessionsByUser` count query now correctly destructures Knex count result as `totalRows.count`
+- **Fixed**: `streamRunLoop` indentation of `addMessageToSessionJSON` call
+- **Fixed**: `llamaService.js` error handler guards against unserializable response data
+
+### Other Changes
+- **Removed**: "New Chat" link from sidebar (`Sidebar.vue`) — creating new chats via main chat view
+- **Removed**: Playwright tool permission from `integrations/opencode/opencode.json`
+
 ## [Unreleased] - 2026-04-27
 
 ### Qdrant Integration Scripts Update

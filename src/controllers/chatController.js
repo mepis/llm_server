@@ -25,7 +25,7 @@ const createSession = async (req, res) => {
 
 const getUserSessions = async (req, res) => {
   try {
-    const result = await chatService.getSessionsByUser(req.user.user_id, { page: parseInt(req.query.page) || 1, limit: parseInt(req.query.limit) || 20 });
+    const result = await chatService.getSessionsByUser(req.user.user_id, { page: parseInt(req.query.page) || 1, limit: parseInt(req.query.limit) || 10 });
     res.json({ success: true, data: result.data });
   } catch (error) {
     logger.error('Get user sessions failed:', error.message);
@@ -87,6 +87,21 @@ const deleteSession = async (req, res) => {
   } catch (error) {
     logger.error('Delete session failed:', error.message);
     res.status(404).json({ success: false, error: error.message });
+  }
+};
+
+const bulkDeleteSessions = async (req, res) => {
+  try {
+    const { sessionIds } = req.body;
+    if (!Array.isArray(sessionIds) || sessionIds.length === 0) {
+      return res.status(400).json({ success: false, error: 'sessionIds array is required' });
+    }
+
+    const result = await chatService.deleteSessions(sessionIds, req.user.user_id);
+    res.json({ success: true, deleted: result.deleted });
+  } catch (error) {
+    logger.error('Bulk delete sessions failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -245,4 +260,15 @@ const updateMemory = async (req, res) => {
   }
 };
 
-module.exports = { createSession, getUserSessions, getSession, updateSession, deleteSession, addMessage, getMessages, sendToLLM, sendToLLMStream, getToolCalls, getToolCall, clearMessages, updateMemory };
+const regenerateStaleSubjects = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
+    const result = await chatService.regenerateStaleSubjects(userId);
+    res.json({ success: true, data: result.data });
+  } catch (error) {
+    logger.error('Regenerate stale subjects failed:', error.message);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+module.exports = { createSession, getUserSessions, getSession, updateSession, deleteSession, bulkDeleteSessions, addMessage, getMessages, sendToLLM, sendToLLMStream, getToolCalls, getToolCall, clearMessages, updateMemory, regenerateStaleSubjects };

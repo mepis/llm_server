@@ -484,6 +484,46 @@ export const useChatStore = defineStore('chat', {
       } finally {
         this.loading = false
       }
+    },
+
+    async bulkDeleteChats(chatIds) {
+      this.loading = true
+      this.error = null
+      try {
+        await apiClient.post('/chats/bulk-delete', { sessionIds: chatIds })
+        this.sessions = this.sessions.filter(s => !chatIds.includes(s.chat_id))
+        if (chatIds.includes(this.currentChat?.chat_id)) {
+          this.currentChat = null
+        }
+        await this.listSessions({ page: this.pagination.page, limit: this.pagination.limit })
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to delete chats'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async regenerateStaleSubjects() {
+      try {
+        const response = await apiClient.post('/chats/regenerate-subjects')
+        const data = response.data.data || {}
+        const updated = data.updated || []
+        for (const item of updated) {
+          this.sessions.forEach(s => {
+            if (s.chat_id === item.chat_id || s._id?.toString() === item.chat_id) {
+              s.session_name = item.session_name
+            }
+          })
+          if (this.currentChat && (this.currentChat.chat_id === item.chat_id || this.currentChat._id?.toString() === item.chat_id)) {
+            this.currentChat.session_name = item.session_name
+          }
+        }
+        return updated.length > 0
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Failed to regenerate subjects'
+        throw error
+      }
     }
   }
 })

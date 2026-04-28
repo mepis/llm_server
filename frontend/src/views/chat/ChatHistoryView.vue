@@ -14,15 +14,26 @@
       <div v-else class="chat-content">
         <div class="pagination-toolbar">
           <div class="page-size-selector">
-            <label>Show</label>
-            <select v-model="pagination.limit" @change="onPageSizeChange">
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-            </select>
-            <span>per page</span>
+            <Checkbox
+              v-model:checked="selectAll"
+              :indeterminate="someSelected"
+              binary
+              @click.stop
+              @change="toggleAll"
+            />
+            <label>Select All</label>
           </div>
-          <span class="record-info">{{ pagination.total }} total chats</span>
+          <div class="toolbar-right">
+            <Button
+              v-if="selectedCount > 0"
+              severity="danger"
+              outlined
+              icon="pi pi-trash"
+              :label="`Delete Selected (${selectedCount})`"
+              @click.stop="deleteSelected"
+            />
+            <span class="record-info">{{ pagination.total }} total chats</span>
+          </div>
         </div>
         <div v-if="sessions.length > 0" class="chat-list">
           <div
@@ -31,6 +42,14 @@
             :class="['chat-item', { active: currentChatId === session.chat_id }]"
             @click="loadChat(session.chat_id)"
           >
+            <div @click.stop>
+              <Checkbox
+                :modelValue="selectedChats.has(session.chat_id)"
+                @update:modelValue="(val) => toggleChatSelection(session.chat_id, val)"
+                binary
+                class="chat-checkbox"
+              />
+            </div>
             <div class="chat-info">
               <h3>{{ session.session_name || 'Untitled Chat' }}</h3>
               <p class="last-message">{{ session.message_count }} message{{ session.message_count !== 1 ? 's' : '' }}{{ session.last_message ? ' - ' + session.last_message : '' }}</p>
@@ -62,14 +81,17 @@
       modal
       :style="{ width: '400px' }"
     >
-      <p class="delete-message">
+      <p class="delete-message" v-if="selectedCount > 1">
+        Are you sure you want to delete <strong>{{ selectedCount }}</strong> selected chats? This action cannot be undone.
+      </p>
+      <p class="delete-message" v-else>
         Are you sure you want to delete chat
         <strong>"{{ deleteChatTarget?.session_name || 'Untitled Chat' }}"</strong>? This action cannot be undone.
       </p>
       <template #footer>
         <Button label="Cancel" outlined @click="deleteDialogVisible = false" />
         <Button
-          label="Delete"
+          :label="selectedCount > 1 ? `Delete ${selectedCount} Chats` : 'Delete'"
           severity="danger"
           @click="executeDelete"
           :disabled="loading"
@@ -87,6 +109,7 @@ import { useSettingsStore } from '@/stores/settings'
 import { useAuthStore } from '@/stores/auth'
 
 import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
 import Dialog from 'primevue/dialog'
 import Paginator from 'primevue/paginator'
 
@@ -97,10 +120,31 @@ const authStore = useAuthStore()
 const loading = ref(false)
 const deleteDialogVisible = ref(false)
 const deleteChatTarget = ref(null)
+const selectedChats = ref(new Set())
 
 const sessions = computed(() => chatStore.sessions)
 const pagination = computed(() => ({ ...chatStore.pagination }))
 const currentChatId = ref(null)
+
+const selectAll = computed({
+  get: () => sessions.value.length > 0 && sessions.value.every(s => selectedChats.value.has(s.chat_id)),
+  set: (val) => {
+    if (val) {
+      const s = new Set(selectedChats.value)
+      sessions.value.forEach(sess => s.add(sess.chat_id))
+      selectedChats.value = s
+    } else {
+      selectedChats.value = new Set()
+    }
+  }
+})
+
+const someSelected = computed(() => {
+  const hasSelected = sessions.value.some(s => selectedChats.value.has(s.chat_id))
+  return hasSelected && !selectAll.value
+})
+
+const selectedCount = computed(() => selectedChats.value.size)
 
 const paginatorFirst = computed(() => {
   const pageOffset = (pagination.value.page - 1) * pagination.value.limit
@@ -125,6 +169,7 @@ const loadSessions = async (opts = {}) => {
 }
 
 const onPageChange = async (event) => {
+  selectedChats.value = new Set()
   loadSessions({ page: event.page + 1, limit: event.rows })
 }
 
@@ -164,13 +209,40 @@ const deleteChat = (chatId) => {
   deleteDialogVisible.value = true
 }
 
+const toggleAll = () => {
+  selectAll.value = !selectAll.value
+}
+
+const deleteSelected = () => {
+  deleteChatTarget.value = null
+  deleteDialogVisible.value = true
+}
+
+const toggleChatSelection = (chatId, checked) => {
+  const s = new Set(selectedChats.value)
+  if (checked) {
+    s.add(chatId)
+  } else {
+    s.delete(chatId)
+  }
+  selectedChats.value = s
+}
+
 const executeDelete = async () => {
-  const chatId = deleteChatTarget.value.chat_id
   try {
-    await chatStore.deleteChat(chatId)
-    if (currentChatId.value === chatId) {
+    const selectedIds = Array.from(selectedChats.value)
+
+    if (selectedIds.length > 1) {
+      await chatStore.bulkDeleteChats(selectedIds)
+    } else if (deleteChatTarget.value?.chat_id) {
+      await chatStore.deleteChat(deleteChatTarget.value.chat_id)
+    }
+
+    if (currentChatId.value && selectedChats.value.has(currentChatId.value)) {
       currentChatId.value = null
     }
+
+    selectedChats.value = new Set()
     deleteDialogVisible.value = false
   } catch (error) {
     console.error('Failed to delete chat:', error)
@@ -185,6 +257,18 @@ onMounted(async () => {
   }
   const preferredPageSize = settingsStore.userPreferences?.chat_page_size || 10
   await loadSessions({ page: 1, limit: preferredPageSize })
+
+  const hasStale = sessions.value.some(s => s.session_name === 'New Chat')
+  if (hasStale) {
+    try {
+      const updated = await chatStore.regenerateStaleSubjects()
+      if (updated) {
+        await loadSessions({ page: 1, limit: preferredPageSize })
+      }
+    } catch (error) {
+      console.error('Failed to regenerate stale subjects:', error)
+    }
+  }
 })
 </script>
 
@@ -262,6 +346,16 @@ onMounted(async () => {
 .record-info {
   font-size: 0.875rem;
   color: #9ca3af;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chat-checkbox {
+  margin-right: 0.75rem;
 }
 
 .chat-list {

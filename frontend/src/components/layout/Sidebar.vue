@@ -14,11 +14,7 @@
             <i class="pi pi-comments"></i>
             <span>Chat</span>
           </router-link>
-          <div class="nav-link sidebar-new-chat-link" @click="createNewChat">
-            <i class="pi pi-plus"></i>
-            <span>New Chat</span>
-          </div>
-          <router-link to="/chat/history" class="nav-link" @click="closeAfterNav">
+           <router-link to="/chat/history" class="nav-link" @click="closeAfterNav">
             <i class="pi pi-history"></i>
             <span>History</span>
           </router-link>

@@ -26,8 +26,7 @@
     "glob": "allow",
     "grep": "allow",
     "read": "allow",
-    "bash": "allow",
-    "playwright": "allow"
+    "bash": "allow"
   },
   "provider": {
     "Merlin": {
