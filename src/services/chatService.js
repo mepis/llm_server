@@ -713,9 +713,11 @@ async function* streamRunLoop(sessionId, content, options = {}) {
         if (choice.finish_reason === 'stop') hasStopReason = true;
       }
     } catch (streamError) {
-      let errMsg = typeof streamError.message === 'string' ? streamError.message : null;
-      if (!errMsg) {
-        try { errMsg = JSON.stringify(streamError.message || streamError); } catch (_) { errMsg = `Stream error (${streamError.constructor.name})`; }
+      let errMsg;
+      if (typeof streamError.message === 'string') {
+        errMsg = streamError.message;
+      } else {
+        try { errMsg = JSON.stringify(streamError.message); } catch (_) { errMsg = `Stream error (${streamError.constructor.name || 'Error'})`; }
       }
       logger.error(`Stream error in runLoop: ${errMsg}`);
       yield { type: 'error', message: errMsg };

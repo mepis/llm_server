@@ -92,8 +92,9 @@ const chatWithTools = async (messages, tools, options = {}) => {
 };
 
 const streamChatWithTools = async function* (messages, tools, options = {}) {
+  let response;
   try {
-    const response = await axios.post(
+    response = await axios.post(
       `${config.llama.url}/v1/chat/completions`,
       {
         messages,
@@ -107,64 +108,53 @@ const streamChatWithTools = async function* (messages, tools, options = {}) {
           'Content-Type': 'application/json',
         },
         responseType: 'stream',
+        transformResponse: [(data) => data],
       }
     );
+  } catch (axiosError) {
+    const status = axiosError.response?.status;
+    let msg = axiosError.code;
+    if (!msg && typeof axiosError.message === 'string') {
+      msg = axiosError.message;
+    }
+    if (!msg) msg = `${axiosError.constructor.name}`;
+    throw new Error(`LLM API error (HTTP ${status || 'unknown'}): ${msg}`);
+  }
 
-    const stream = response.data;
-    let buffer = '';
+  const stream = response.data;
+  let buffer = '';
 
-    for await (const chunk of stream) {
-      buffer += chunk.toString();
+  try {
+      for await (const chunk of stream) {
+        buffer += chunk.toString();
 
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed.startsWith('data: ')) continue;
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
 
-        const dataStr = trimmed.slice(6);
-        if (dataStr === '[DONE]') return;
+          const dataStr = trimmed.slice(6);
+          if (dataStr === '[DONE]') return;
 
-        try {
-          const parsed = JSON.parse(dataStr);
-          yield parsed;
-        } catch (parseError) {
-          logger.warn('Failed to parse SSE chunk:', parseError.message);
+          try {
+            const parsed = JSON.parse(dataStr);
+            yield parsed;
+          } catch (parseError) {
+            logger.warn('Failed to parse SSE chunk:', parseError.message);
+          }
         }
       }
-    }
-  } catch (error) {
-    const status = error.response?.status;
-    const statusText = error.response?.statusText;
-    let responseData = 'N/A';
-    if (error.response?.data) {
-      if (typeof error.response.data === 'string') {
-        responseData = error.response.data.slice(0, 500);
-      } else if (Buffer.isBuffer(error.response.data)) {
-        responseData = error.response.data.toString().slice(0, 500);
-      } else if (typeof error.response.data.readable === 'function') {
-        responseData = '[stream - cannot serialize error response data]';
+    } catch (streamReadError) {
+      let msg;
+      if (typeof streamReadError.message === 'string') {
+        msg = streamReadError.message;
       } else {
-        responseData = JSON.stringify(error.response.data).slice(0, 500);
+        msg = `(${streamReadError.constructor.name || 'Error'})`;
       }
+      throw new Error(`LLM stream read error: ${msg}`);
     }
-    let safeMsg = error.message;
-    if (typeof safeMsg !== 'string') {
-      if (typeof safeMsg === 'object' && safeMsg !== null && Object.keys(safeMsg).every(k => /^\d+$/.test(k))) {
-        safeMsg = Object.values(safeMsg).join('');
-      } else {
-        try { safeMsg = JSON.stringify(safeMsg); } catch (_) { safeMsg = `[non-string error: ${error.constructor.name}]`; }
-      }
-    }
-    logger.error(`Failed to stream chat completions with tools: ${safeMsg}`, {
-      status,
-      statusText,
-      responseData: responseData.slice(0, 1000),
-      requestUrl: `${config.llama.url}/v1/chat/completions`,
-    });
-    throw new Error(`Stream error (HTTP ${status || 'unknown'}): ${safeMsg}`);
-  }
 };
 
 const getEmbeddings = async (input, model = config.llama.embeddingsModel) => {
