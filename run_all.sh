@@ -8,15 +8,15 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Starting backend server..."
-node src/server.js &
+node src/backend/server.js &
 
 echo "Starting frontend Vite dev server..."
-cd frontend && npm run dev -- --host &
+cd src/frontend && npm run dev -- --host &
 
 echo "Waiting for servers to be ready..."
 sleep 10
 
 echo "Running Playwright tests..."
-/home/jon/git/llm_server/venv/bin/python3 /home/jon/git/llm_server/src/tests/playwright/test_frontend.py
+/home/jon/git/llm_server/venv/bin/python3 /home/jon/git/llm_server/src/backend/tests/playwright/test_frontend.py
 
 echo "All processes finished."

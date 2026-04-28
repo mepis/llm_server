@@ -117,8 +117,8 @@ Create a detailed implementation plan for the user's request. Once completed, re
 
 ## Working Directory Conventions
 
-- **Template location**: `~/.agents/template/PLAN.md`
-- **Working directory**: Write plans to `~/.agents/plans/` with temp plans in `~/.agents/plans/tmp/` (gitignored). Save notes to `~/.agents/notes/`. Create these directories if they don't exist.
+- **Template location**: `.agents/template/PLAN.md`
+- **Working directory**: Write plans to `.agents/plans/` with temp plans in `.agents/plans/tmp/` (gitignored). Save notes to `.agents/notes/`. Create these directories if they don't exist.
 - **Lifecycle**: Active → Done/Abandoned (linked to PR workflow)
 
 ## Task Decomposition Best Practices

@@ -42,7 +42,7 @@ function truncateOutput(output) {
 }
 
 function saveToTemp(output) {
-  const cacheDir = path.join(process.cwd(), 'src', 'uploads', 'tools');
+  const cacheDir = path.join(process.cwd(), 'src', 'backend', 'uploads', 'tools');
 
   if (!fs.existsSync(cacheDir)) {
     fs.mkdirSync(cacheDir, { recursive: true });

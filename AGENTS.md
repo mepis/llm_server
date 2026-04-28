@@ -11,7 +11,7 @@ Node >= 24.12.0 required. No lint/typecheck scripts — verification is manual.
 ## Setup
 
 ```bash
-npm install && cd frontend && npm install && cd ..
+npm install && cd src/frontend && npm install && cd ..
 # MariaDB and Qdrant must be running before server starts
 npm run seed-admin    # creates admin/admin123 (password: admin123)
 npm run seed-config   # seeds application settings into configs table
@@ -23,12 +23,12 @@ npm run seed-config   # seeds application settings into configs table
 npm run dev          # backend (node --watch, auto-reloads)
 npm run worker       # Piscina worker thread pool (foreground)
 npm start            # backend without watch
-npm run test         # runs node src/tests/testAll.js (model-level tests, needs MariaDB + Qdrant)
+npm run test         # runs node src/backend/tests/testAll.js (model-level tests, needs MariaDB + Qdrant)
 
-cd frontend && npm run dev   # frontend dev server (vite --host by default)
-cd frontend && npm run build # production build
+cd src/frontend && npm run dev   # frontend dev server (vite --host by default)
+cd src/frontend && npm run build # production build
 
-python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers running)
+python3 src/backend/tests/playwright/test_frontend.py   # E2E tests (needs both servers running)
 ./run_all.sh                           # full stack: backend + frontend + Playwright
 ```
 
@@ -47,21 +47,21 @@ python3 src/tests/playwright/test_frontend.py   # E2E tests (needs both servers 
 - **User profile** endpoints are at `/api/users/me` (GET/PUT/DELETE), protected by `authMiddleware`. User CRUD (`/api/users/*`) requires `rbac.requireAdmin`.
 - **Frontend axios** has two interceptors: `apiClient` in `axios.js` (Pinia-based token) and a separate one in `main.js` (localStorage-based). Both send Bearer tokens.
 - **401/403** in frontend auto-redirects to `/login` via axios response interceptor.
-- **Tool execution** for custom tools is `POST /api/tools/:id/call` (not `/execute`). Builtin tools (bash, read, write, glob, grep, question, todo, skill) are registered via `src/tool/index.js`.
+- **Tool execution** for custom tools is `POST /api/tools/:id/call` (not `/execute`). Builtin tools (bash, read, write, glob, grep, question, todo, skill) are registered via `src/backend/tool/index.js`.
 - **Chat routes** are mounted under both `/api/chat` and `/api/chats` in `api.js`.
 - Do not commit actual environment secrets. Use `.env.example` as a template and ensure `.env` is added to `.gitignore` in all environments.
 - **Qwen3-TTS** runs as an external HTTP service (not spawned by the backend). Configure `TTS_SERVER_URL` in `.env`. The service requires GPU and Python 3.9+. Reference implementation at `integrations/qwen3-tts/`.
 
 ## Entry Points
 
-- Backend: `src/server.js` → `src/routes/api.js` → route files → controllers → services → database (Knex)
-- Frontend: `frontend/src/main.js` → `App.vue` → views, stores, components
-- Worker pool: `src/workers/worker.js` (argon2 hashing, bash execution)
+- Backend: `src/backend/server.js` → `src/backend/routes/api.js` → route files → controllers → services → database (Knex)
+- Frontend: `src/frontend/src/main.js` → `App.vue` → views, stores, components
+- Worker pool: `src/backend/workers/worker.js` (argon2 hashing, bash execution)
 
 ## File Layout
 
 ```
-src/
+src/backend/
 ├── config/       database.js, mariadb.js, db.js, rateLimiter.js, workerPool.js
 ├── controllers/  chat, llama, log, matrix, monitor, prompt, rag, skill, tool, user, documentGroup, memory
 ├── middleware/   auth.js, rbac.js (authorize, requireAdmin, requireSystem), validation.js
@@ -72,7 +72,7 @@ src/
 ├── workers/      argon2Worker.js, worker.js
 └── scripts/      createAdmin.js, seedConfig.js
 
-frontend/src/
+src/frontend/src/
 ├── stores/       auth, chat, debug, llama, log, matrix, prompt, rag, skill, tool, user
 ├── views/        auth/, chat/, debug/, home/, logs/, monitor/, prompts/, rag/, skills/, tools/
 ├── components/   auth/, layout/ (Header, Sidebar)

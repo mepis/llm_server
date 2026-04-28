@@ -8,7 +8,7 @@
   "tools": {},
   "server": {
     "port": 4096,
-    "hostname": "100.78.136.115",
+    "hostname": "100.122.105.15",
     "mdns": true,
     "cors": ["*"]
   },
@@ -80,22 +80,6 @@
           "name": "BugTraceAI-Apex-G4-26B-Q4",
           "limit": {
             "context": 262144,
-            "output": 32768
-          }
-        }
-      }
-    },
-    "Local": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Local",
-      "options": {
-        "baseURL": "http://100.78.136.115:11434/v1"
-      },
-      "models": {
-        "Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M": {
-          "name": "Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M",
-          "limit": {
-            "context": 131072,
             "output": 32768
           }
         }

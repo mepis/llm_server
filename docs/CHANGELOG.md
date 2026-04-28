@@ -6,6 +6,13 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-28
 
+### Project Structure Restructure
+- **Moved**: `src/` → `src/backend/` — Backend source files reorganized under `src/backend/` (config, controllers, middleware, routes, services, tool, workers, scripts, db, tests, utils)
+- **Moved**: `frontend/` → `src/frontend/` — Frontend source moved inside `src/` alongside backend for unified project structure
+- **Added**: `integrations/opencode/install_playwright.sh` — New Playwright installation script
+
+## [Unreleased] - 2026-04-28
+
 ### Chat History Bulk Delete & Stale Subject Regeneration
 - **Added**: Multi-select checkboxes in `ChatHistoryView.vue` for bulk chat deletion
 - **Added**: `bulkDeleteChats` method in chat store (`frontend/src/stores/chat.js`)

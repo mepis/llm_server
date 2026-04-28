@@ -1,5 +1,5 @@
-const { setupDatabase } = require('./src/utils/database');
-const { connectDB, disconnectDB } = require('./src/config/db');
+const { setupDatabase } = require('./src/backend/utils/database');
+const { connectDB, disconnectDB } = require('./src/backend/config/db');
 
 (async () => {
   try {
