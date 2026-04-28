@@ -218,7 +218,7 @@ function buildMessages(session) {
   const msgs = Array.isArray(session.messages) ? session.messages : [];
   return msgs.map((msg) => {
     if (msg.tool_calls && msg.tool_calls.length > 0) {
-      return { role: 'assistant', content: null, tool_calls: msg.tool_calls };
+      return { role: 'assistant', content: '', tool_calls: msg.tool_calls };
     }
     if (msg.role === 'tool' && msg.tool_call_id) {
       return { role: 'tool', tool_call_id: msg.tool_call_id, content: msg.content || '' };
@@ -634,15 +634,15 @@ async function* streamRunLoop(sessionId, content, options = {}) {
     top_p: metadata?.top_p || 0.9,
     ...options,
   };
+    await addMessageToSessionJSON(sessionId, 'user', content);
+    const updatedSession = await knex().from('chat_sessions').where({ id: sessionId }).first();
+    const messages = buildMessages(updatedSession);
+    const { tools, openAITools } = await resolveTools(updatedSession);
 
-  await addMessageToSessionJSON(sessionId, 'user', content);
-  const messages = buildMessages(session);
-  const { tools, openAITools } = await resolveTools(session);
-
-  let ragContext = '';
-  let ragCitations = [];
-  if (session.rag_enabled && ragDocumentIds.length > 0) {
-    const ragService = require('./ragService');
+    let ragContext = '';
+    let ragCitations = [];
+    if (session.rag_enabled && ragDocumentIds.length > 0) {
+      const ragService = require('./ragService');
     const ragResult = await ragService.searchDocuments(
       session.user_id, content, 5, ragDocumentIds
     );

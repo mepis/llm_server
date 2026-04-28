@@ -14,7 +14,7 @@ CURRENT_DIR=$(pwd)
 
 ## NEMOTRON ##
 ##--------
-MODEL=Nemotron-3-Nano-30B.sh
+# MODEL=Nemotron-3-Nano-30B.sh
 
 ## QWEN ##
 ##--------
@@ -25,7 +25,7 @@ MODEL=Nemotron-3-Nano-30B.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-# MODEL=Qwen3.6-27B-Q8_0.sh
+MODEL=Qwen3.6-27B-Q8_0.sh
 
 rm run.sh
 echo -e "#!/bin/bash
@@ -68,7 +68,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=$CURRENT_DIR
-ExecStart=$CURRENT_DIR/router.sh
+ExecStart=$CURRENT_DIR/run.sh
 Restart=on-failure
 RestartSec=5
 

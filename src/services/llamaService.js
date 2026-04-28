@@ -117,6 +117,14 @@ const streamChatWithTools = async function* (messages, tools, options = {}) {
     if (!msg && typeof axiosError.message === 'string') {
       msg = axiosError.message;
     }
+    if (status && axiosError.response?.data) {
+      try {
+        const data = typeof axiosError.response.data === 'string' ? JSON.parse(axiosError.response.data) : axiosError.response.data;
+        msg = `${msg}: ${JSON.stringify(data)}`;
+      } catch (e) {
+        msg = `${msg}: ${axiosError.response.data}`;
+      }
+    }
     if (!msg) msg = `${axiosError.constructor.name}`;
     throw new Error(`LLM API error (HTTP ${status || 'unknown'}): ${msg}`);
   }
