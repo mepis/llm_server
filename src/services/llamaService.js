@@ -135,8 +135,35 @@ const streamChatWithTools = async function* (messages, tools, options = {}) {
       }
     }
   } catch (error) {
-    logger.error('Failed to stream chat completions with tools:', error.message);
-    throw error;
+    const status = error.response?.status;
+    const statusText = error.response?.statusText;
+    let responseData = 'N/A';
+    if (error.response?.data) {
+      if (typeof error.response.data === 'string') {
+        responseData = error.response.data.slice(0, 500);
+      } else if (Buffer.isBuffer(error.response.data)) {
+        responseData = error.response.data.toString().slice(0, 500);
+      } else if (typeof error.response.data.readable === 'function') {
+        responseData = '[stream - cannot serialize error response data]';
+      } else {
+        responseData = JSON.stringify(error.response.data).slice(0, 500);
+      }
+    }
+    let safeMsg = error.message;
+    if (typeof safeMsg !== 'string') {
+      if (typeof safeMsg === 'object' && safeMsg !== null && Object.keys(safeMsg).every(k => /^\d+$/.test(k))) {
+        safeMsg = Object.values(safeMsg).join('');
+      } else {
+        try { safeMsg = JSON.stringify(safeMsg); } catch (_) { safeMsg = `[non-string error: ${error.constructor.name}]`; }
+      }
+    }
+    logger.error(`Failed to stream chat completions with tools: ${safeMsg}`, {
+      status,
+      statusText,
+      responseData: responseData.slice(0, 1000),
+      requestUrl: `${config.llama.url}/v1/chat/completions`,
+    });
+    throw new Error(`Stream error (HTTP ${status || 'unknown'}): ${safeMsg}`);
   }
 };
 

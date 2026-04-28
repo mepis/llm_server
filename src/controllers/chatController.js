@@ -133,8 +133,12 @@ const sendToLLM = async (req, res) => {
     });
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Send to LLM failed:', error.message);
-    res.status(500).json({ success: false, error: error.message });
+    let errMsg = typeof error.message === 'string' ? error.message : null;
+    if (!errMsg) {
+      try { errMsg = JSON.stringify(error.message || error); } catch (_) { errMsg = `LLM request failed (${error.constructor.name})`; }
+    }
+    logger.error(`Send to LLM failed: ${errMsg}`);
+    res.status(500).json({ success: false, error: errMsg });
   }
 };
 
@@ -164,13 +168,21 @@ const sendToLLMStream = async (req, res) => {
         res.write(`data: ${JSON.stringify(event)}\n\n`);
       }
     } catch (streamError) {
-      logger.error('Stream error:', streamError.message);
-      res.write(`data: ${JSON.stringify({ type: 'error', message: streamError.message })}\n\n`);
+      let errMsg = typeof streamError.message === 'string' ? streamError.message : null;
+      if (!errMsg) {
+        try { errMsg = JSON.stringify(streamError.message || streamError); } catch (_) { errMsg = `Stream error (${streamError.constructor.name})`; }
+      }
+      logger.error(`Stream error: ${errMsg}`);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: errMsg })}\n\n`);
     }
     res.end();
   } catch (error) {
-    logger.error('Send to LLM stream failed:', error.message);
-    try { res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`); } catch (_) {}
+    let errMsg = typeof error.message === 'string' ? error.message : null;
+    if (!errMsg) {
+      try { errMsg = JSON.stringify(error.message || error); } catch (_) { errMsg = `Stream failed (${error.constructor.name})`; }
+    }
+    logger.error(`Send to LLM stream failed: ${errMsg}`);
+    try { res.write(`data: ${JSON.stringify({ type: 'error', message: errMsg })}\n\n`); } catch (_) {}
     res.end();
   }
 };

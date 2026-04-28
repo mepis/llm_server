@@ -205,6 +205,15 @@ async function resolveTools(session) {
   return { tools: allTools, openAITools };
 }
 
+function truncateMessages(messages, maxMessages = 20) {
+  if (messages.length <= maxMessages) return messages;
+  const systemMsg = messages.find(m => m.role === 'system');
+  const nonSystem = messages.filter(m => m.role !== 'system');
+  if (nonSystem.length <= maxMessages) return messages;
+  const recent = nonSystem.slice(-(maxMessages - 1));
+  return systemMsg ? [systemMsg, ...recent] : recent;
+}
+
 function buildMessages(session) {
   const msgs = Array.isArray(session.messages) ? session.messages : [];
   return msgs.map((msg) => {
@@ -411,7 +420,8 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
       systemMessage = skillsPrompt + '\n\n' + systemMessage;
     }
 
-    const finalMessages = [{ role: 'system', content: systemMessage }, ...messages];
+    const truncatedMessages = truncateMessages(messages);
+    const finalMessages = [{ role: 'system', content: systemMessage }, ...truncatedMessages];
 
     const llamaService = require('./llamaService');
     const response = await llamaService.chatWithTools(finalMessages, openAITools, { temperature, max_tokens, top_p });
@@ -504,7 +514,8 @@ const runLoop = async (sessionId, content, options = {}) => {
     let finalContent = '';
 
     while (turn < maxTurns) {
-      const finalMessages = [{ role: 'system', content: systemMessage }, ...messages];
+      const truncatedMessages = truncateMessages(messages);
+      const finalMessages = [{ role: 'system', content: systemMessage }, ...truncatedMessages];
 
       const llamaService = require('./llamaService');
       const response = await llamaService.chatWithTools(finalMessages, openAITools, { temperature, max_tokens, top_p });
@@ -659,7 +670,8 @@ async function* streamRunLoop(sessionId, content, options = {}) {
   yield { type: 'turn_start', turn, maxTurns };
 
   while (turn < maxTurns) {
-    const finalMessages = [{ role: 'system', content: systemMessage }, ...messages];
+    const truncatedMessages = truncateMessages(messages);
+    const finalMessages = [{ role: 'system', content: systemMessage }, ...truncatedMessages];
     let turnContent = '';
     const accumulatedToolCalls = {};
     let lastCreatedToolCallIdx = -1;
@@ -701,8 +713,12 @@ async function* streamRunLoop(sessionId, content, options = {}) {
         if (choice.finish_reason === 'stop') hasStopReason = true;
       }
     } catch (streamError) {
-      logger.error('Stream error in runLoop:', streamError.message);
-      yield { type: 'error', message: streamError.message };
+      let errMsg = typeof streamError.message === 'string' ? streamError.message : null;
+      if (!errMsg) {
+        try { errMsg = JSON.stringify(streamError.message || streamError); } catch (_) { errMsg = `Stream error (${streamError.constructor.name})`; }
+      }
+      logger.error(`Stream error in runLoop: ${errMsg}`);
+      yield { type: 'error', message: errMsg };
       yield { type: 'done', content: fullFinalContent || '', truncated: true };
       return;
     }
