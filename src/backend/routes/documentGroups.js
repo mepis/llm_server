@@ -9,8 +9,6 @@ router.get('/accessible', authMiddleware, documentGroupController.getAccessibleD
 router.get('/:id', authMiddleware, documentGroupController.getGroup);
 router.patch('/:id', authMiddleware, documentGroupController.updateGroup);
 router.delete('/:id', authMiddleware, documentGroupController.deleteGroup);
-router.post('/:id/members', authMiddleware, documentGroupController.addMember);
-router.delete('/:id/members/:uid', authMiddleware, documentGroupController.removeMember);
 router.post('/:id/transfer', authMiddleware, documentGroupController.transferOwnership);
 router.post('/:id/documents', authMiddleware, documentGroupController.addDocumentToGroup);
 router.delete('/:id/documents/:did', authMiddleware, documentGroupController.removeDocumentFromGroup);

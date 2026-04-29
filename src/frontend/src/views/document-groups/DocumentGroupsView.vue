@@ -15,13 +15,12 @@
       </div>
 
       <div v-else class="groups-grid">
-        <div v-for="group in groups" :key="group._id" class="group-card" @click="selectGroup(group)">
+        <div v-for="group in groups" :key="group.id" class="group-card" @click="selectGroup(group)">
           <div class="group-info">
             <h3>{{ group.name }}</h3>
             <p class="group-desc">{{ group.description || 'No description' }}</p>
             <div class="group-meta">
-              <Badge :value="group.visibility" :severity="getVisibilitySeverity(group.visibility)" />
-              <span class="member-count">{{ getMemberCount(group) }} members</span>
+              <Badge v-for="role in parseRoles(group.roles)" :key="role" :value="role" />
               <span class="doc-count">{{ group.documents?.length || 0 }} docs</span>
             </div>
           </div>
@@ -38,45 +37,19 @@
           </div>
         </div>
 
-        <Tabs :value="activeTab" @update:value="activeTab = $event">
-          <TabList>
-            <Tab value="members">Members</Tab>
-            <Tab value="documents">Documents</Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel value="members">
-              <div class="members-list">
-                <div v-for="member in selectedGroup.members" :key="member.user_id._id || member.user_id" class="member-item">
-                  <span>{{ member.user_id?.username || member.user_id }}</span>
-                  <Badge :value="member.role" :severity="getRoleSeverity(member.role)" />
-                  <div v-if="isOwner && member.role !== 'owner'" class="member-actions">
-                    <Button icon="pi pi-trash" text severity="danger" @click="removeMember(member.user_id._id || member.user_id)" />
-                  </div>
-                </div>
-                <div v-if="isOwner" class="add-member-form">
-                  <InputText v-model="newMemberId" placeholder="User ID" />
-                  <Select v-model="newMemberRole" :options="['viewer', 'editor']" placeholder="Role" />
-                  <Button label="Add" icon="pi pi-plus" @click="addMember()" />
-                </div>
-              </div>
-            </TabPanel>
-            <TabPanel value="documents">
-              <div class="documents-list">
-                <div v-for="docRef in selectedGroup.documents" :key="docRef.document_id._id || docRef.document_id" class="doc-item">
-                  <span>{{ docRef.document_id?.filename || 'Unknown document' }}</span>
-                  <Badge :value="docRef.document_id?.file_type" />
-                  <div v-if="isOwner || isEditor" class="doc-actions">
-                    <Button icon="pi pi-trash" text severity="danger" @click="removeDocument(docRef.document_id._id || docRef.document_id)" />
-                  </div>
-                </div>
-                <div v-if="(isOwner || isEditor) && accessibleDocs.length > 0" class="add-doc-form">
-                  <Select v-model="selectedDocToAdd" :options="accessibleDocs" optionLabel="filename" placeholder="Select document" />
-                  <Button label="Add" icon="pi pi-plus" @click="addDocument()" />
-                </div>
-              </div>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+        <div class="documents-list">
+          <div v-for="docRef in selectedGroup.documents" :key="docRef.document_id?.id || docRef.document_id" class="doc-item">
+            <span>{{ docRef.document_id?.filename || 'Unknown document' }}</span>
+            <Badge :value="docRef.document_id?.file_type" />
+            <div v-if="isOwner || isAdmin" class="doc-actions">
+              <Button icon="pi pi-trash" text severity="danger" @click="removeDocument(docRef.document_id?.id || docRef.document_id)" />
+            </div>
+          </div>
+          <div v-if="(isOwner || isAdmin) && accessibleDocs.length > 0" class="add-doc-form">
+            <Select v-model="selectedDocToAdd" :options="accessibleDocs" optionLabel="filename" placeholder="Select document" />
+            <Button label="Add" icon="pi pi-plus" @click="addDocument()" />
+          </div>
+        </div>
       </div>
     </main>
 
@@ -86,8 +59,13 @@
         <InputText v-model="createForm.name" placeholder="Group name" />
         <label>Description (optional)</label>
         <InputText v-model="createForm.description" placeholder="Description" />
-        <label>Visibility</label>
-        <Select v-model="createForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" optionLabel="label" optionValue="value" placeholder="Visibility" />
+        <label>Roles</label>
+        <div class="role-checkboxes">
+          <label v-for="role in availableRoles" :key="role" class="role-checkbox">
+            <Checkbox v-model="selectedCreateRoles" inputId="create-role-{{ role }}" :value="role" />
+            <span>{{ role }}</span>
+          </label>
+        </div>
       </div>
       <template #footer>
         <Button label="Cancel" text @click="showCreateDialog = false" />
@@ -101,8 +79,13 @@
         <InputText v-model="editForm.name" />
         <label>Description</label>
         <InputText v-model="editForm.description" />
-        <label>Visibility</label>
-        <Select v-model="editForm.visibility" :options="[{label: 'Private', value: 'private'}, {label: 'Team', value: 'team'}, {label: 'Public', value: 'public'}]" optionLabel="label" optionValue="value" />
+        <label>Roles</label>
+        <div class="role-checkboxes">
+          <label v-for="role in availableRoles" :key="role" class="role-checkbox">
+            <Checkbox v-model="selectedEditRoles" inputId="edit-role-{{ role }}" :value="role" />
+            <span>{{ role }}</span>
+          </label>
+        </div>
       </div>
       <template #footer>
         <Button label="Cancel" text @click="showEditDialog = false" />
@@ -125,20 +108,18 @@ import { ref, onMounted, computed } from 'vue'
 import { useDocumentGroupsStore } from '@/stores/documentGroups'
 import { useRAGStore } from '@/stores/rag'
 import { useAuthStore } from '@/stores/auth'
+import { useRoleStore } from '@/stores/role'
 import Button from 'primevue/button'
 import Badge from 'primevue/badge'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Dialog from 'primevue/dialog'
-import Tabs from 'primevue/tabs'
-import TabList from 'primevue/tablist'
-import Tab from 'primevue/tab'
-import TabPanels from 'primevue/tabpanels'
-import TabPanel from 'primevue/tabpanel'
+import Checkbox from 'primevue/checkbox'
 
 const store = useDocumentGroupsStore()
 const ragStore = useRAGStore()
 const authStore = useAuthStore()
+const roleStore = useRoleStore()
 
 const groups = computed(() => store.groups)
 const loading = computed(() => store.loading)
@@ -147,13 +128,12 @@ const selectedGroup = ref(null)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const confirmDelete = ref(false)
-const activeTab = ref('members')
 
-const createForm = ref({ name: '', description: '', visibility: 'private' })
-const editForm = ref({ name: '', description: '', visibility: '' })
+const createForm = ref({ name: '', description: '' })
+const editForm = ref({ name: '', description: '' })
 
-const newMemberId = ref('')
-const newMemberRole = ref('viewer')
+const selectedCreateRoles = ref(['user'])
+const selectedEditRoles = ref([])
 const selectedDocToAdd = ref(null)
 
 const currentUserId = computed(() => authStore.user?.user_id || authStore.user?._id)
@@ -163,51 +143,49 @@ const isOwner = computed(() => {
   return selectedGroup.value.owner_id?.toString() === currentUserId.value.toString()
 })
 
-const isEditor = computed(() => {
-  if (!selectedGroup.value || !currentUserId.value) return false
-  const member = selectedGroup.value.members?.find(m => (m.user_id?._id || m.user_id)?.toString() === currentUserId.value.toString())
-  return member?.role === 'editor'
-})
+const isAdmin = computed(() => authStore.user?.roles?.includes('admin') || false)
 
 const accessibleDocs = computed(() => store.accessibleDocs)
 
+const availableRoles = computed(() => roleStore.roles.map(r => r.name))
+
+const parseRoles = (roles) => {
+  if (!roles) return []
+  try {
+    return typeof roles === 'string' ? JSON.parse(roles) : roles
+  } catch {
+    return []
+  }
+}
+
 onMounted(async () => {
-  await store.fetchGroups()
-  await ragStore.listDocuments()
-  await store.fetchAccessibleDocs()
+  await Promise.all([
+    store.fetchGroups(),
+    ragStore.listDocuments(),
+    store.fetchAccessibleDocs(),
+    roleStore.listRoles()
+  ])
 })
 
-const getVisibilitySeverity = (visibility) => {
-  const severities = { private: 'secondary', team: 'info', public: 'success' }
-  return severities[visibility] || 'secondary'
-}
-
-const getRoleSeverity = (role) => {
-  const severities = { owner: 'danger', editor: 'warn', viewer: 'info' }
-  return severities[role] || 'info'
-}
-
-const getMemberCount = (group) => group.members?.length || 0
-
 const selectGroup = async (group) => {
-  selectedGroup.value = await store.fetchGroup(group._id)
-  activeTab.value = 'members'
+  selectedGroup.value = await store.fetchGroup(group.id)
 }
 
 const openEditDialog = () => {
   editForm.value = {
     name: selectedGroup.value.name,
-    description: selectedGroup.value.description || '',
-    visibility: selectedGroup.value.visibility || 'private'
+    description: selectedGroup.value.description || ''
   }
+  selectedEditRoles.value = parseRoles(selectedGroup.value.roles)
   showEditDialog.value = true
 }
 
 const createGroup = async () => {
   try {
-    await store.createGroup(createForm.value.name, createForm.value.description, createForm.value.visibility)
+    await store.createGroup(createForm.value.name, createForm.value.description, selectedCreateRoles.value)
     showCreateDialog.value = false
-    createForm.value = { name: '', description: '', visibility: 'private' }
+    createForm.value = { name: '', description: '' }
+    selectedCreateRoles.value = ['user']
   } catch (error) {
     console.error('Failed to create group:', error)
   }
@@ -215,7 +193,10 @@ const createGroup = async () => {
 
 const updateGroup = async () => {
   try {
-    await store.updateGroup(selectedGroup.value._id, editForm.value)
+    await store.updateGroup(selectedGroup.value.id, {
+      ...editForm.value,
+      roles: selectedEditRoles.value
+    })
     showEditDialog.value = false
   } catch (error) {
     console.error('Failed to update group:', error)
@@ -224,7 +205,7 @@ const updateGroup = async () => {
 
 const deleteGroup = async () => {
   try {
-    await store.deleteGroup(selectedGroup.value._id)
+    await store.deleteGroup(selectedGroup.value.id)
     selectedGroup.value = null
     confirmDelete.value = false
   } catch (error) {
@@ -232,30 +213,11 @@ const deleteGroup = async () => {
   }
 }
 
-const addMember = async () => {
-  try {
-    await store.addMember(selectedGroup.value._id, newMemberId.value, newMemberRole.value)
-    newMemberId.value = ''
-    selectedGroup.value = await store.fetchGroup(selectedGroup.value._id)
-  } catch (error) {
-    console.error('Failed to add member:', error)
-  }
-}
-
-const removeMember = async (userId) => {
-  try {
-    await store.removeMember(selectedGroup.value._id, userId)
-    selectedGroup.value = await store.fetchGroup(selectedGroup.value._id)
-  } catch (error) {
-    console.error('Failed to remove member:', error)
-  }
-}
-
 const addDocument = async () => {
   try {
-    await store.addDocument(selectedGroup.value._id, selectedDocToAdd.value._id)
+    await store.addDocument(selectedGroup.value.id, selectedDocToAdd.value.id)
     selectedDocToAdd.value = null
-    selectedGroup.value = await store.fetchGroup(selectedGroup.value._id)
+    selectedGroup.value = await store.fetchGroup(selectedGroup.value.id)
   } catch (error) {
     console.error('Failed to add document:', error)
   }
@@ -263,8 +225,8 @@ const addDocument = async () => {
 
 const removeDocument = async (docId) => {
   try {
-    await store.removeDocument(selectedGroup.value._id, docId)
-    selectedGroup.value = await store.fetchGroup(selectedGroup.value._id)
+    await store.removeDocument(selectedGroup.value.id, docId)
+    selectedGroup.value = await store.fetchGroup(selectedGroup.value.id)
   } catch (error) {
     console.error('Failed to remove document:', error)
   }
@@ -316,9 +278,10 @@ const removeDocument = async (docId) => {
   gap: 0.5rem;
   align-items: center;
   margin-top: 1rem;
+  flex-wrap: wrap;
 }
 
-.member-count, .doc-count {
+.doc-count {
   color: var(--text-color-secondary);
   font-size: 0.75rem;
 }
@@ -349,13 +312,13 @@ const removeDocument = async (docId) => {
   font-size: 0.875rem;
 }
 
-.members-list, .documents-list {
+.documents-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.member-item, .doc-item {
+.doc-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -364,12 +327,12 @@ const removeDocument = async (docId) => {
   border-radius: 4px;
 }
 
-.member-actions, .doc-actions {
+.doc-actions {
   display: flex;
   gap: 0.25rem;
 }
 
-.add-member-form, .add-doc-form {
+.add-doc-form {
   display: flex;
   gap: 0.5rem;
   padding: 1rem;
@@ -382,5 +345,22 @@ const removeDocument = async (docId) => {
   text-align: center;
   padding: 3rem;
   color: var(--text-color-secondary);
+}
+
+.role-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+}
+
+.role-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.role-checkbox span {
+  margin-left: 0.5rem;
 }
 </style>

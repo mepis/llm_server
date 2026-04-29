@@ -4,10 +4,12 @@ const logger = require('../utils/logger');
 const createGroup = async (req, res) => {
   try {
     const userId = req.user.user_id;
-    const { name, description, visibility } = req.body;
+    const { name, description, roles } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Group name is required' });
-    const validVisibilities = ['private', 'team', 'public'];
-    const result = await documentGroupService.createGroup(userId, name.trim(), description || '', validVisibilities.includes(visibility) ? visibility : 'private');
+    if (roles && (!Array.isArray(roles) || roles.length === 0)) {
+      return res.status(400).json({ success: false, error: 'Roles must be a non-empty array' });
+    }
+    const result = await documentGroupService.createGroup(userId, name.trim(), description || '', roles || ['user']);
     res.status(201).json(result);
   } catch (error) {
     logger.error('Create group failed:', error.message);
@@ -17,7 +19,7 @@ const createGroup = async (req, res) => {
 
 const getGroups = async (req, res) => {
   try {
-    const result = await documentGroupService.getUserGroups(req.user.user_id);
+    const result = await documentGroupService.getUserGroups(req.user.roles || []);
     res.json(result);
   } catch (error) {
     logger.error('Get groups failed:', error.message);
@@ -27,9 +29,8 @@ const getGroups = async (req, res) => {
 
 const getGroup = async (req, res) => {
   try {
-    const userId = req.user.user_id;
     const groupId = req.params.id;
-    const groups = await documentGroupService.getUserGroups(userId);
+    const groups = await documentGroupService.getUserGroups(req.user.roles || []);
     const foundGroup = groups.data.find(g => g.id === groupId);
     if (!foundGroup) return res.status(404).json({ success: false, error: 'Group not found or you do not have access' });
     const docResult = await documentGroupService.getGroupDocuments(groupId);
@@ -59,30 +60,6 @@ const deleteGroup = async (req, res) => {
     logger.error('Delete group failed:', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(403).json({ success: false, error: error.message });
-  }
-};
-
-const addMember = async (req, res) => {
-  try {
-    const { user_id: memberUserId, role } = req.body;
-    if (!memberUserId) return res.status(400).json({ success: false, error: 'Member user_id is required' });
-    const result = await documentGroupService.addMember(req.params.id, req.user.user_id, memberUserId, role || 'viewer');
-    res.json(result);
-  } catch (error) {
-    logger.error('Add member failed:', error.message);
-    if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
-    res.status(400).json({ success: false, error: error.message });
-  }
-};
-
-const removeMember = async (req, res) => {
-  try {
-    const result = await documentGroupService.removeMember(req.params.id, req.user.user_id, req.params.uid);
-    res.json(result);
-  } catch (error) {
-    logger.error('Remove member failed:', error.message);
-    if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
-    res.status(400).json({ success: false, error: error.message });
   }
 };
 
@@ -125,7 +102,7 @@ const removeDocumentFromGroup = async (req, res) => {
 
 const getAccessibleDocs = async (req, res) => {
   try {
-    const result = await documentGroupService.getGroupAccessibleDocuments(req.user.user_id);
+    const result = await documentGroupService.getGroupAccessibleDocuments(req.user.user_id, req.user.roles || []);
     res.json(result);
   } catch (error) {
     logger.error('Get accessible docs failed:', error.message);
@@ -133,4 +110,4 @@ const getAccessibleDocs = async (req, res) => {
   }
 };
 
-module.exports = { createGroup, getGroups, getGroup, updateGroup, deleteGroup, addMember, removeMember, transferOwnership, addDocumentToGroup, removeDocumentFromGroup, getAccessibleDocs };
+module.exports = { createGroup, getGroups, getGroup, updateGroup, deleteGroup, transferOwnership, addDocumentToGroup, removeDocumentFromGroup, getAccessibleDocs };

@@ -85,6 +85,7 @@ const getEnvConfig = () => {
     { key: 'NODE_ENV', value: config.env, category: 'server' },
     { key: 'FRONTEND_URL', value: process.env.FRONTEND_URL || '', category: 'server' },
     { key: 'MARIADB_URI', value: `mysql2://${config.db?.host || 'localhost'}:${config.db?.port || 3306}/${config.db?.database || 'llm_server'}`, category: 'database' },
+    { key: 'QDRANT_API_KEY', value: process.env.QDRANT_API_KEY || '', category: 'database' },
     { key: 'JWT_SECRET', value: config.jwt.secret, category: 'auth' },
     { key: 'JWT_EXPIRES_IN', value: config.jwt.expiresin, category: 'auth' },
     { key: 'LLAMA_SERVER_URL', value: config.llama.url, category: 'llama' },

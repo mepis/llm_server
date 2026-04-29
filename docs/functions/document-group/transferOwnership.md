@@ -1,49 +1,47 @@
-tags: [documents, groups, rbac, transactions]
+tags: [documents, groups, rbac]
 role: backend-developer
 
 # transferOwnership(groupId, userId, newOwnerId)
 
-Transfers group ownership using a MongoDB transaction. Old owner becomes viewer; new owner must be an existing member.
+Transfers group ownership. New owner must have overlapping roles with the group to ensure they can view it.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| groupId | ObjectId | Group to transfer |
-| userId | ObjectId | Current owner requesting transfer |
-| newOwnerId | ObjectId | User to become new owner |
+| groupId | String (UUID) | Group to transfer |
+| userId | String (UUID) | Current owner requesting transfer |
+| newOwnerId | String (UUID) | User to become new owner |
 
-**Transaction flow:**
+**Process:**
 
 ```
   transferOwnership(groupId, userId, newOwnerId)
-        │
-  Start MongoDB session + transaction
-        │
-  ┌─────▼──────────────────────────────────┐
-  │ Load group within transaction:         │
-  │   findById(groupId).session(session)   │
-  ├──────────────────────────────────────────┤
-  │ Validate:                                │
-  │   caller is current owner                │
-  │   new owner is not already owner         │
-  │   new owner is existing member           │
-  ├──────────────────────────────────────────┤
-  │ Update group.owner_id = newOwnerId       │
-  │                                          │
-  │ Find old owner in members:               │
-  │   Set role = 'viewer' (or add if missing)│
-  │                                          │
-  │ Find new owner in members:               │
-  │   Set role = 'owner' (or add if missing) │
-  ├──────────────────────────────────────────┤
-  │ group.save({ session })                  │
-  │ session.commitTransaction()              │
-  │ session.endSession()                     │
-  └──────────────┬───────────────────────────┘
-                │
+        |
+  Load group from DB
+        |
+  +-------------------------------------------+
+  | Validate:                                 |
+  |   caller is current owner or admin        |
+  |   new owner is not already owner          |
+  |   new owner exists in users table         |
+  |   new owner has overlapping roles with    |
+  |     the group (JSON_OVERLAPS check)       |
+  +-------------------------------------------+
+        |
+  UPDATE document_groups
+    SET owner_id = newOwnerId,
+        updated_at = NOW()
+    WHERE id = groupId
+        |
+  Fetch updated group
+        |
   Return { success: true, data: group }
 ```
+
+**Notes:**
+- After transfer, the old owner loses mutation privileges but retains read access if their user roles overlap with the group's roles
+- No member manipulation needed — the members concept has been removed in favor of role-based visibility
 
 **Returns:** `{ success: true, data: group }` with updated ownership.
 

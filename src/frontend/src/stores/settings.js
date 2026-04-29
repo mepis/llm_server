@@ -158,6 +158,21 @@ export const useSettingsStore = defineStore('settings', {
     getConfigValue(key) {
       const setting = this.configSettings.find(s => s.key === key)
       return setting ? setting.value : null
+    },
+
+    async resetConfigSettings() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/config/reset')
+        await this.fetchConfigSettings()
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data?.error || 'Failed to reset config settings'
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

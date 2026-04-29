@@ -6,6 +6,23 @@ All notable changes to the LLM Server application.
 
 ## [Unreleased] - 2026-04-29
 
+### Document Groups RBAC Migration
+- **Migrated**: Document groups from membership-based access (visibility enum + members JSON) to RBAC role-based visibility using `roles` JSON column with `JSON_OVERLAPS()` queries
+- **Removed**: `visibility` ENUM column and `members` JSON column from `document_groups` table
+- **Added**: `roles` JSON column (default `'["user"]'`) with prefix index `idx_roles`
+- **Added**: Migration script at `src/backend/scripts/migrateGroupRoles.js` — converts existing groups (public -> `['user']`, team -> `['admin']`, private -> owner's roles + member roles)
+- **Removed**: Member-related API endpoints (`POST /:id/members`, `DELETE /:id/members/:uid`)
+- **Removed**: `addMember`, `removeMember` service functions and controller actions
+- **Changed**: `createGroup` signature now accepts `roles` array instead of `visibility` string
+- **Changed**: `getUserGroups` queries via `JSON_OVERLAPS(roles, userRoles)` instead of membership checks
+- **Changed**: `getGroupAccessibleDocuments` takes both `userId` and `userRoles` parameters for role-based group access
+- **Changed**: `transferOwnership` simplified — no member manipulation; new owner must have overlapping roles with group
+- **Added**: `cascadeRemoveRoleFromGroups` in `roleService.js` — cascades role deletion to document groups
+- **Changed**: `ragService.searchDocuments` signature updated to accept `userRoles` for group document access
+- **Fixed**: `_id` -> `id` mismatch throughout frontend store and view (MariaDB uses `id`, not MongoDB's `_id`)
+- **Removed**: Members tab from DocumentGroupsView; replaced visibility dropdown with role checkboxes
+- **Added**: `isAdmin` computed property replaces `isEditor` for document mutation permissions
+
 ### Bug Fixes
 - **Fixed**: `getAllUsers` endpoint now parses the `roles` JSON column from MariaDB string into a proper array, resolving roles displaying as stringified text in the User Management table
 - **Fixed**: `updateUserRolesArray` in `userService.js` now parses `user.roles` before passing to the roles callback, fixing role add/remove operations which failed with "User not found"

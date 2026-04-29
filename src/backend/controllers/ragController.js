@@ -56,7 +56,7 @@ const searchDocuments = async (req, res) => {
   try {
     const { query, top_k, filter_document_ids } = req.body;
     if (!query) return res.status(400).json({ success: false, error: 'Query is required' });
-    const result = await ragService.searchDocuments(req.user.user_id, query, top_k || 10, filter_document_ids);
+    const result = await ragService.searchDocuments(req.user.user_id, req.user.roles || [], query, top_k || 10, filter_document_ids);
     res.json({ success: true, data: result.data });
   } catch (error) {
     logger.error('Search documents failed:', error.message);

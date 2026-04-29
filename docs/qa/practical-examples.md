@@ -363,35 +363,41 @@ curl -s -X POST http://localhost:3000/api/memory/extract \
 
 ## Document Group Collaboration
 
-Create a group, add members with different permissions, and share documents.
+Create a group with role-based visibility, and share documents.
 
-### Create Document Group (admin)
+### Create Document Group
 
 ```bash
 curl -s -X POST http://localhost:3000/api/document-groups \
-  -H "Authorization: Bearer ADMIN_TOKEN" \
+  -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Engineering Team",
     "description": "Shared RAG documents for engineering team",
-    "members": [
-      { "user_id": "USER_1_ID", "permission": "read" },
-      { "user_id": "USER_2_ID", "permission": "write" }
-    ]
+    "roles": ["user"]
   }'
 
-# Response: { success: true, data: { document_group_id: "dg_abc123", ... } }
+# Response: { success: true, data: { id: "grp_abc123", roles: ["user"], ... } }
 ```
 
-### Upload Document to Group
+### List Accessible Groups
 
 ```bash
-curl -s -X POST http://localhost:3000/api/rag/documents \
-  -H "Authorization: Bearer USER_2_TOKEN" \
-  -F "file=@./engineering-spec.pdf" \
-  -F "document_group_id=dg_abc123"
+curl -s http://localhost:3000/api/document-groups \
+  -H "Authorization: Bearer TOKEN"
 
-# Document is shared with all group members based on their permissions
+# Returns groups where user's roles overlap with group roles (JSON_OVERLAPS)
+```
+
+### Add Document to Group
+
+```bash
+curl -s -X POST http://localhost:3000/api/document-groups/GROUP_ID/documents \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"document_id": "DOC_ID"}'
+
+# Document is now accessible to all users whose roles overlap with the group's roles
 ```
 
 ### Search Shared Documents

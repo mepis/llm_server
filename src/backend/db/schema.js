@@ -182,13 +182,12 @@ async function createTables(knex) {
     name VARCHAR(100) NOT NULL,
     description TEXT DEFAULT '',
     owner_id VARCHAR(36) NOT NULL,
-    visibility ENUM('private','team','public') DEFAULT 'private',
-    members JSON DEFAULT '[]',
+    roles JSON DEFAULT '["user"]',
     documents JSON DEFAULT '[]',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_owner_id (owner_id),
-    INDEX idx_visibility (visibility),
+    INDEX idx_roles (roles(10)),
     UNIQUE INDEX idx_name_owner (name, owner_id)
   ) ENGINE=InnoDB`);
 

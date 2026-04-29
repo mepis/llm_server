@@ -244,34 +244,35 @@ Phase 6: Integration Testing + Documentation
 
 ### Phase 2: Document Groups + RBAC
 
-**Purpose**: Enable document sharing between users through document groups. Note: DocumentGroup uses a custom owner/editor/viewer permission model independent of the system Role model (which has no permissions field).
+**Purpose**: Enable document sharing between users through document groups. Groups use the system's RBAC roles (via `roles` JSON column) for visibility, with `JSON_OVERLAPS()` queries for access control. The group owner and global admins can mutate groups.
+
+**NOTE (2026-04-29)**: Migrated from membership-based model (visibility enum + members JSON) to RBAC role-based visibility. See `.agents/plans/document-groups-rbac_PLAN.md` for migration details.
 
 **Dependencies**: Phase 1 (DocumentParser), Phase 1.0 (bug fix)
 
 #### Tasks
 
-1. **Create DocumentGroup model** (`src/models/DocumentGroup.js`)
+1. **Schema** (`src/backend/db/schema.js` — MariaDB table)
    ```
-   name: String (trimmed, unique per-owner via compound index { owner_id: 1, name: 1 })
-   description: String
-   owner_id: ObjectId (ref: User) — required
-   visibility: Enum ['private', 'team', 'public'] — default 'private'
-   members: [{ user_id: ObjectId (ref: User), role: Enum ['owner', 'editor', 'viewer'] }]
-   documents: [{ document_id: ObjectId (ref: RAGDocument), added_by, added_at }]
+   id: VARCHAR(36) PRIMARY KEY (UUID)
+   name: VARCHAR(100) NOT NULL
+   description: TEXT DEFAULT ''
+   owner_id: VARCHAR(36) NOT NULL
+   roles: JSON DEFAULT '["user"]'
+   documents: JSON DEFAULT '[]'
    ```
-   - Indexes: `{ owner_id: 1 }`, `{ visibility: 1 }`, `{ 'members.user_id': 1 }`
+   - Indexes: `idx_owner_id (owner_id)`, `idx_roles (roles(10))`, `idx_name_owner (name, owner_id) UNIQUE`
 
-2. **Create DocumentGroup service** (`src/services/documentGroupService.js`)
-   - `createGroup(userId, name, description)` — creates group with user as owner
-   - `updateGroup(groupId, userId, updateData)` — validates edit permission
-   - `deleteGroup(groupId, userId)` — only owner can delete; docs NOT deleted
-   - `addMember(groupId, userId, role)` — adds member; prevents adding 'owner' role
-   - `removeMember(groupId, userId)` — owner removes self or other; owner cannot remove themselves (must transfer first)
-   - **`transferOwnership(groupId, newOwnerId, requesterId)`** — atomic with Mongoose sessions; updates owner_id, adjusts old/new owner member roles
+2. **DocumentGroup service** (`src/backend/services/documentGroupService.js`)
+   - `createGroup(userId, name, description, roles)` — creates group with roles JSON array
+   - `getUserGroups(userRoles)` — queries via `JSON_OVERLAPS(roles, userRoles)`
+   - `updateGroup(groupId, userId, updateData)` — validates owner/admin; allows name/description/roles updates
+   - `deleteGroup(groupId, userId)` — only owner or admin can delete
+   - **`transferOwnership(groupId, userId, newOwnerId)`** — new owner must have overlapping roles with group
    - `addDocumentToGroup(groupId, documentId, userId)` — validates edit + ownership
    - `removeDocumentFromGroup(groupId, documentId, userId)` — validates edit permission
-   - `getGroupAccessibleDocuments(userId)` — returns all accessible docs (own + group + public); uses two-phase search to avoid MongoDB $in blowup on large sets
-   - `getGroupDocuments(groupId)` — returns documents for a specific group with populate
+   - `getGroupAccessibleDocuments(userId, userRoles)` — returns all accessible docs via JSON_OVERLAPS
+   - `getGroupDocuments(groupId)` — returns documents for a specific group
 
 3. **Create DocumentGroup controller** (`src/controllers/documentGroupController.js`)
    - 10 endpoints: CRUD for groups, add/remove members, transfer ownership, add/remove documents, list accessible docs
@@ -476,18 +477,16 @@ Phase 6: Integration Testing + Documentation
 #### Tasks
 
 1. **Create DocumentGroupsView.vue** (`frontend/src/views/document-groups/`)
-   - Card grid showing groups: name, description, visibility badge, member count, document count
-   - Create group dialog (name, description, visibility dropdown)
-   - Group detail view with two tabs: Members | Documents
-   - Members tab: list with role badges, add/remove members (with user search), transfer ownership button for owner
-   - Documents tab: list of group documents with add/remove
+   - Card grid showing groups: name, description, roles badges, document count
+   - Create group dialog (name, description, role checkboxes)
+   - Group detail view with documents list (no members tab — access controlled by RBAC roles)
+   - Documents list: add/remove for owner/admin users
    - Delete group confirmation dialog
-   - Pagination for large group lists (following existing chat store pattern)
    - Responsive design with `@media (max-width: 768px)` breakpoint
 
 2. **Create DocumentGroups store** (`frontend/src/stores/documentGroups.js`)
-   - Pinia state: groups, currentGroup, accessibleDocs, loading, error, pagination
-   - Actions: createGroup, fetchGroups(with pagination), fetchGroup, updateGroup, deleteGroup, addMember, removeMember, transferOwnership, addDocument, removeDocument, fetchAccessibleDocs
+   - Pinia state: groups, currentGroup, accessibleDocs, loading, error
+   - Actions: createGroup(with roles), fetchGroups, fetchGroup, updateGroup(with roles), deleteGroup, transferOwnership, addDocument, removeDocument, fetchAccessibleDocs
 
 3. **Create MemoriesView.vue** (`frontend/src/views/memory/`)
    - Tabbed interface: Episodic | Semantic | Procedural

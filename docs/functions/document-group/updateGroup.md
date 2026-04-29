@@ -3,23 +3,29 @@ role: backend-developer
 
 # updateGroup(groupId, userId, updateData)
 
-Edits group properties. Requires `canEdit()` permission (owner or editor role).
+Edits group properties. Requires owner or admin permission.
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| groupId | ObjectId | Group to update |
-| userId | ObjectId | User making the change |
+| groupId | String (UUID) | Group to update |
+| userId | String (UUID) | User making the change |
 | updateData | Object | Fields to update |
 
-**Allowed fields:** `name`, `description`, `visibility`. Other fields are silently ignored.
+**Allowed fields:** `name`, `description`, `roles`. Other fields are silently ignored.
+
+When updating `roles`:
+- Must be a non-empty array
+- Each role is validated via `roleService.isValidRole()` (checks against built-in roles + existing custom roles)
+- Array is stringified to JSON before persisting
 
 **Process:**
 1. Loads group by ID
-2. Checks `group.canEdit(userId)` — throws if insufficient permissions
-3. Applies allowed fields from `updateData`
-4. Saves the group
+2. Checks user is owner or has admin role — throws if insufficient permissions
+3. Validates `roles` array if provided
+4. Applies allowed fields from `updateData`
+5. Updates the group in DB
 
 **Returns:** `{ success: true, data: group }`.
 

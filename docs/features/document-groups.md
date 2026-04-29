@@ -1,102 +1,75 @@
-tags: [document-groups, rag, collaboration]
+tags: [document-groups, rag, collaboration, rbac]
 role: [developer, admin]
 
 # Document Groups
 
-Collaborative document organization with visibility controls and role-based access.
+Collaborative document organization with RBAC role-based visibility.
 
 ## Overview
 
-DocumentGroups allow users to organize RAG documents into named collections with shared access. Each group has an owner, configurable members with roles (owner/editor/viewer), and visibility settings (private/team/public). Documents are stored as references in the `RAGDocument` collection. MongoDB transactions ensure consistency during creation and ownership transfer.
+DocumentGroups allow users to organize RAG documents into named collections with role-based access control. Each group has an owner and a `roles` JSON column that defines which user roles can view the group. Access is determined via `JSON_OVERLAPS(group.roles, user.roles)`, following the same pattern as the tools table.
+
+Documents are stored as references in MariaDB. The group owner and global admins can modify groups and manage documents.
 
 **Base path:** `/api/document-groups`
 
-## DocumentGroup Model
+## DocumentGroup Schema
 
 ```
 +-----------------------------------------------------------+
-| DocumentGroup                                             |
+| document_groups (MariaDB)                                 |
 +-----------------------------------------------------------+
-| _id          ObjectId                                     |
-| name         String (max 100)                             |
-| description  String                                       |
-| owner_id     ObjectId -> User                             |
-| visibility   Enum: private, team, public                  |
-| members      [{ user_id -> User, role }]                  |
-| documents    [{ document_id -> RAGDocument, added_by,     |
-|                added_at }]                                |
-| created_at   Date                                         |
-| updated_at   Date                                         |
+| id           VARCHAR(36) PRIMARY KEY                       |
+| name         VARCHAR(100) NOT NULL                         |
+| description  TEXT DEFAULT ''                               |
+| owner_id     VARCHAR(36) NOT NULL                          |
+| roles        JSON DEFAULT '["user"]'                       |
+| documents    JSON DEFAULT '[]'                             |
+| created_at   TIMESTAMP                                     |
+| updated_at   TIMESTAMP                                     |
 +-----------------------------------------------------------+
 
 Indexes:
-- owner_id
-- visibility
-- members.user_id
-- (name, owner_id) unique — prevents duplicate group names per user
+- idx_owner_id (owner_id)
+- idx_roles (roles(10))
+- idx_name_owner (name, owner_id) UNIQUE — prevents duplicate group names per user
 ```
 
 ## Schema Diagram
 
 ```
 +--------------------------+        +----------------------------------+
-| DocumentGroup            |        | RAGDocument (external)          |
+| document_groups          |        | rag_documents                    |
 +--------------------------+        +----------------------------------+
-| _id: "grp_abc123"       |<-------| _id: "doc_xyz789"               |
+| id: "grp_abc123"        |<-------| id: "doc_xyz789"                |
 | name: "Project Alpha"   |  ref   | filename: "spec.pdf"            |
 | description: "..."      |        | file_type: "pdf"                |
-| owner_id -> User         |        | user_id -> User                 |
-| visibility: "team"      |        | status: "indexed"               |
+| owner_id: "user_123"    |        | user_id: "user_456"             |
+| roles: ["user","admin"] |        | status: "indexed"               |
 |                          |        +----------------------------------+
-| members: [               |
+| documents: [             |
 |   {                     |
-|     user_id -> User,    |
-|     role: "owner"       |
-|   },                    |
-|   {                     |
-|     user_id -> User,    |
-|     role: "editor"     |
-|   }                     |
-| ],                      |
-|                          |
-| documents: [            |
-|   {                     |
-|     document_id ->      |
-|       RAGDocument,      |
-|     added_by -> User,   |
+|     document_id: "doc1",|
+|     added_by: "user1",  |
 |     added_at: Date      |
 |   }                     |
 | ]                       |
 +--------------------------+
+
+Access check: JSON_OVERLAPS(group.roles, user.roles)
 ```
 
-## Visibility Levels
+## Role-Based Access Model
 
-| Level | Who Can See | Who Can Edit |
+Groups define which user roles can view them via the `roles` JSON column:
+
+| Group Roles | Who Can View | Example |
 |---|---|---|
-| `private` | Owner only | Owner only |
-| `team` | Owner + members | Owner + editors |
-| `public` | Any authenticated user | Owner + editors |
+| `["user"]` | Any authenticated user | Public-like group |
+| `["admin"]` | Admins only | Restricted group |
+| `["user","admin"]` | All users + admins | Open group |
 
-## Model Methods
-
-| Method | Parameters | Returns | Description |
-|---|---|---|---|
-| `isOwner(userId)` | userId | boolean | True if userId matches owner_id |
-| `isMember(userId)` | userId | boolean | True if userId is in members array |
-| `getRole(userId)` | userId | "owner" \| "editor" \| "viewer" \| null | Member role or null |
-| `canEdit(userId)` | userId | boolean | True for owner or editor |
-| `canView(userId)` | userId | boolean | True for owner, member, or public groups |
-
-### canView() Logic
-
-```
-canView(userId):
-  if isOwner(userId)      -> true
-  if isMember(userId)     -> true
-  if visibility == "public" -> true
-  else                    -> false
-```
+**Mutation permissions:** Only the group owner or global admin can edit/delete groups and add/remove documents.
 
 ## API Endpoints
 
@@ -113,14 +86,13 @@ Content-Type: application/json
 **Request body:**
 
 ```json
-{ "name": "Project Alpha", "description": "Shared docs" }
+{ "name": "Project Alpha", "description": "Shared docs", "roles": ["user"] }
 ```
 
-- Creates with `visibility: "private"` and owner as first member (role: `"owner"`)
-- Uses MongoDB session-based transaction
-- Duplicate group name for same user returns 409 (error code 11000)
+- Creates with default `roles: ["user"]` if not specified
+- Duplicate group name for same user returns 409
 
-**Response:** Created DocumentGroup document.
+**Response:** Created group object.
 
 ### List Groups
 
@@ -129,7 +101,7 @@ GET /api/document-groups
 Authorization: Bearer <token>
 ```
 
-Returns groups where the user is either owner or member.
+Returns groups where the user's roles overlap with the group's `roles` column via `JSON_OVERLAPS()`.
 
 ### Get Single Group
 
@@ -137,6 +109,8 @@ Returns groups where the user is either owner or member.
 GET /api/document-groups/:id
 Authorization: Bearer <token>
 ```
+
+Returns group if the user has access (roles overlap). Returns 404 otherwise.
 
 ### Update Group
 
@@ -149,10 +123,10 @@ Content-Type: application/json
 **Request body:** Partial update with allowed fields.
 
 ```json
-{ "name": "Updated Name", "visibility": "team" }
+{ "name": "Updated Name", "roles": ["admin"] }
 ```
 
-Allowed fields: `name`, `description`, `visibility`. Requires `canEdit()` permission.
+Allowed fields: `name`, `description`, `roles`. Requires owner or admin permission. Roles are validated against existing roles in the system.
 
 ### Delete Group
 
@@ -161,36 +135,7 @@ DELETE /api/document-groups/:id
 Authorization: Bearer <token>
 ```
 
-Only the owner can delete a group.
-
-### Add Member
-
-```
-POST /api/document-groups/:id/members
-Authorization: Bearer <token>
-Content-Type: application/json
-```
-
-**Request body:**
-
-```json
-{ "user_id": "<userId>", "role": "editor" }
-```
-
-- Only the owner can add members
-- Cannot assign `"owner"` role (only creator is owner)
-- Returns 400 if user already a member or not found
-
-### Remove Member
-
-```
-DELETE /api/document-groups/:id/members/:uid
-Authorization: Bearer <token>
-```
-
-- Owner can remove any member except themselves as owner
-- Members can remove themselves
-- Cannot remove the owner — transfer ownership first
+Only the owner or admin can delete a group.
 
 ### Transfer Ownership
 
@@ -206,10 +151,9 @@ Content-Type: application/json
 { "new_owner_id": "<userId>" }
 ```
 
-- Only current owner can initiate
-- New owner must already be a member of the group
-- Old owner becomes a `"viewer"` if not already in members
-- Uses MongoDB session-based transaction
+- Only current owner or admin can initiate
+- New owner must have overlapping roles with the group (can view it)
+- Old owner retains read access if their user roles overlap with group roles
 
 ### Add Document to Group
 
@@ -225,7 +169,7 @@ Content-Type: application/json
 { "document_id": "<ragDocId>" }
 ```
 
-- Requires `canEdit()` permission
+- Requires owner or admin permission
 - Can only add documents owned by the requesting user
 - Duplicate detection prevents adding same document twice
 
@@ -236,7 +180,7 @@ DELETE /api/document-groups/:id/documents/:did
 Authorization: Bearer <token>
 ```
 
-Requires `canEdit()` permission.
+Requires owner or admin permission.
 
 ### Get Accessible Documents
 
@@ -245,7 +189,7 @@ GET /api/document-groups/accessible
 Authorization: Bearer <token>
 ```
 
-Returns all indexed RAGDocuments accessible to the user — both personal documents and documents from groups the user belongs to. Each document includes a `source` field (`"personal"` or `"group"`).
+Returns all indexed RAGDocuments accessible to the user — both personal documents and documents from groups the user can access via role overlap. Each document includes a `source` field (`"personal"` or `"group"`).
 
 ## Group CRUD Flow
 
@@ -254,31 +198,27 @@ POST /api/document-groups
         |
         v
 +--------------------------+
-| Start MongoDB session    |
-| begin transaction        |
+| Validate:                |
+| - name is non-empty      |
+| - roles is valid array   |
 +--------------------------+
         |
         v
 +------------------------+
-| Create DocumentGroup   |
+| INSERT INTO            |
+| document_groups:       |
+| - id (UUID)           |
 | - name, description    |
 | - owner_id             |
-| - visibility: private  |
-| - members: [owner]     |
+| - roles (JSON)         |
 +------------------------+
         | success
         v
-+--------------------------+
-| Commit transaction       |
-| end session              |
-+--------------------------+
-        |
-        v
-  Return group document
+  Return group object
 
 Error handling:
-  MongoDB 11000 -> "Group name already exists"
-  Other errors -> abort transaction, return error
+  ER_DUP_ENTRY -> "Group name already exists"
+  Other errors -> return error message
 ```
 
 ## Ownership Transfer Flow
@@ -287,59 +227,46 @@ Error handling:
 POST /api/document-groups/:id/transfer
         |
         v
-+-------------------------+
-| Start MongoDB session   |
-| begin transaction       |
-+-------------------------+
-        |
-        v
 +-----------------------------+
 | Validate:                 |
-| - requester is owner      |
-| - new_owner is member     |
-| - new_owner != current    |
+| - requester is owner/admin |
+| - new_owner exists         |
+| - new_owner has overlapping|
+|   roles with group         |
 +-----------------------------+
         | pass
         v
 +----------------------------------+
-| Update fields (in transaction):  |
-| 1. owner_id = newOwnerId         |
-| 2. oldOwner -> role "viewer"     |
-| 3. newOwner -> role "owner"      |
+| UPDATE document_groups           |
+|   SET owner_id = newOwnerId      |
+|   WHERE id = groupId             |
 +----------------------------------+
-        |
-        v
-+--------------------------+
-| Commit transaction       |
-| end session              |
-+--------------------------+
         |
         v
   Return updated group
 
 Error handling:
-  Any validation failure -> abort transaction, return error message
+  Any validation failure -> return error message
 ```
 
 ## Service Methods
 
-All methods in `DocumentGroupService` wrap the standard API response format `{ success: true, data: ... }`.
+All methods in `documentGroupService` wrap responses in `{ success: true, data: ... }`.
 
 | Method | Key Details |
 |---|---|
-| `createGroup(userId, name, desc)` | Session transaction, private by default |
-| `updateGroup(groupId, userId, data)` | Validates canEdit(), limited field updates |
-| `deleteGroup(groupId, userId)` | Owner-only check |
-| `addMember(groupId, userId, memberUserId, role)` | Owner-only, no owner role assignment |
-| `removeMember(groupId, userId, memberUserId)` | Owner or self-removal |
-| `transferOwnership(groupId, userId, newOwnerId)` | Session transaction, old owner -> viewer |
-| `addDocumentToGroup(groupId, userId, docId)` | canEdit() + own-doc-only check |
-| `removeDocumentFromGroup(groupId, userId, docId)` | canEdit() check |
-| `getGroupAccessibleDocuments(userId)` | Personal + group docs merged |
-| `getGroupDocuments(groupId)` | Populated RAGDocument references |
+| `createGroup(userId, name, desc, roles)` | Inserts group with roles JSON |
+| `getUserGroups(userRoles)` | Queries via JSON_OVERLAPS |
+| `updateGroup(groupId, userId, data)` | Validates owner/admin, validates roles |
+| `deleteGroup(groupId, userId)` | Owner or admin check |
+| `transferOwnership(groupId, userId, newOwnerId)` | Ownership transfer with access check |
+| `addDocumentToGroup(groupId, userId, docId)` | Owner/admin + own-doc-only check |
+| `removeDocumentFromGroup(groupId, userId, docId)` | Owner/admin check |
+| `getGroupAccessibleDocuments(userId, userRoles)` | Personal + group docs merged via JSON_OVERLAPS |
+| `getGroupDocuments(groupId)` | Returns document references for a group |
 
 ## Related Pages
 
-- [RAG Documents](./rag-documents.md) — underlying document storage
-- [Config Management](./config-management.md) — visibility and access config
-- [API Reference](../api/document-groups-api.md)
+- [RAG System](./rag-system.md) — underlying document storage and search
+- [Role Management](./role-management.md) — RBAC roles used for group visibility
+- [API Reference](../api/api-endpoints.md)

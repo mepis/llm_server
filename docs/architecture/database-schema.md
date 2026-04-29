@@ -370,13 +370,12 @@ The LLM Server uses MongoDB as its primary database. All collections are organiz
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │  DocumentGroups:                                         │   │
-│  │  • _id (Unique)                                          │   │
-│  │  • owner_id (Indexed)                                    │   │
-│  │  • visibility (Indexed)                                  │   │
-│  │  • members.user_id (Indexed)                             │   │
-│  │  • name + owner_id (Compound Unique)                    │   │
-│  └─────────────────────────────────────────────────────────┘   │
+ │  │  DocumentGroups:                                         │   │
+  │  │  • id (Unique)                                           │   │
+  │  │  • owner_id (Indexed)                                    │   │
+  │  │  • roles (Indexed - prefix)                              │   │
+  │  │  • name + owner_id (Compound Unique)                    │   │
+  │  └─────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │  UserMemories:                                           │   │
@@ -393,19 +392,20 @@ The LLM Server uses MongoDB as its primary database. All collections are organiz
 
 ## New Collections (2026-04-23)
 
-### DocumentGroups Collection
+### DocumentGroups Table
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `_id` | ObjectId | Unique identifier |
-| `name` | String | Group name (unique per owner) |
-| `description` | String | Group description |
-| `owner_id` | ObjectId (ref: User) | Group creator/owner |
-| `visibility` | Enum | private, team, public |
-| `members` | Array | [{ user_id (ref: User), role (owner/editor/viewer) }] |
-| `documents` | Array | [{ document_id (ref: RAGDocument), added_by, added_at }] |
-| `created_at` | Timestamp | Auto-generated |
-| `updated_at` | Timestamp | Auto-generated |
+| `id` | VARCHAR(36) | Unique identifier (UUID) |
+| `name` | VARCHAR(100) | Group name (unique per owner) |
+| `description` | TEXT | Group description |
+| `owner_id` | VARCHAR(36) (ref: users.id) | Group creator/owner |
+| `roles` | JSON | RBAC roles for visibility, e.g. `["user"]`, `["admin"]` |
+| `documents` | JSON | [{ document_id, added_by, added_at }] |
+| `created_at` | TIMESTAMP | Auto-generated |
+| `updated_at` | TIMESTAMP | Auto-generated on update |
+
+Access is controlled via `JSON_OVERLAPS(group.roles, user.roles)`. The group owner and global admins can modify groups and manage documents.
 
 ### UserMemories Collection
 

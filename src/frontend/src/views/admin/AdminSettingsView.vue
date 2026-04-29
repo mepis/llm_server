@@ -28,6 +28,28 @@
             <div v-if="configLoading" class="loading-state">
               <p>Loading system settings...</p>
             </div>
+            <div v-else-if="configError || configSettings.length === 0" class="settings-section">
+              <div class="error-banner">
+                <p v-if="configError" class="error-message">{{ configError }}</p>
+                <p v-else class="empty-message">No system settings found in the database.</p>
+                <p class="reset-hint">Run the config seed script to initialize settings from environment variables.</p>
+                <div class="reset-actions">
+                  <Button
+                    label="Reset to Defaults"
+                    icon="pi pi-refresh"
+                    :loading="resetting"
+                    @click="resetConfig"
+                  />
+                  <Button
+                    label="Retry"
+                    icon="pi pi-sync"
+                    text
+                    :loading="configLoading"
+                    @click="loadConfigSettings"
+                  />
+                </div>
+              </div>
+            </div>
             <div v-else class="settings-section">
               <div v-for="category in categories" :key="category" class="category-group">
                 <h3>{{ categoryLabels[category] }}</h3>
@@ -155,6 +177,8 @@ const integrationLabels = {
 const sensitiveKeys = ['MARIADB_PASSWORD', 'JWT_SECRET', 'MATRIX_ACCESS_TOKEN', 'QDRANT_API_KEY']
 const revealedKeys = ref([])
 const savingKeys = ref([])
+const configError = ref(null)
+const resetting = ref(false)
 
 const configLoading = computed(() => settingsStore.loading && settingsStore.configSettings.length === 0)
 
@@ -194,6 +218,7 @@ const statusLabel = (status) => {
 
 const loadConfigSettings = async () => {
   try {
+    configError.value = null
     await settingsStore.fetchConfigSettings()
     editableSettings.value = {}
     configSettings.value.forEach(s => {
@@ -201,6 +226,7 @@ const loadConfigSettings = async () => {
     })
   } catch (error) {
     console.error('Failed to load config:', error)
+    configError.value = error.response?.data?.error || error.message || 'Failed to load system settings'
   }
 }
 
@@ -214,6 +240,25 @@ const saveSetting = async (key) => {
     toast.add({ severity: 'error', summary: 'Error', detail: `Failed to update ${key}`, life: 5000 })
   } finally {
     savingKeys.value = savingKeys.value.filter(k => k !== key)
+  }
+}
+
+const resetConfig = async () => {
+  resetting.value = true
+  configError.value = null
+  try {
+    await settingsStore.resetConfigSettings()
+    editableSettings.value = {}
+    configSettings.value.forEach(s => {
+      editableSettings.value[s.key] = s.value
+    })
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Settings reset to defaults', life: 3000 })
+  } catch (error) {
+    console.error('Failed to reset config:', error)
+    configError.value = error.response?.data?.error || error.message || 'Failed to reset settings'
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to reset settings', life: 5000 })
+  } finally {
+    resetting.value = false
   }
 }
 
@@ -430,6 +475,41 @@ onMounted(async () => {
 
 .sensitive-field .p-inputtext {
   flex: 1;
+}
+
+.error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.error-message {
+  color: #991b1b;
+  font-size: 0.875rem;
+  margin: 0;
+  font-weight: 500;
+}
+
+.empty-message {
+  color: #374151;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.reset-hint {
+  color: #6b7280;
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+.reset-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 @media (max-width: 768px) {

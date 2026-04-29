@@ -99,6 +99,7 @@ const deleteRole = async (name) => {
 
     await cascadeRemoveRoleFromTools(normalizedName);
     await cascadeRemoveRoleFromSkills(normalizedName);
+    await cascadeRemoveRoleFromGroups(normalizedName);
 
     return { success: true };
   } catch (error) {
@@ -168,6 +169,25 @@ ${data.roles ? `roles: [${data.roles.map(r => `"${r}"`).join(', ')}]
     logger.info(`Removed role "${roleName}" from skills`);
   } catch (error) {
     logger.error('Cascade remove role from skills failed:', error.message);
+  }
+};
+
+const cascadeRemoveRoleFromGroups = async (roleName) => {
+  try {
+    const groups = await knex().from('document_groups');
+    for (const group of groups) {
+      const roles = typeof group.roles === 'string' ? JSON.parse(group.roles) : (group.roles || []);
+      const newRoles = roles.filter(r => r !== roleName);
+      if (newRoles.length === 0) {
+        newRoles.push('user');
+      }
+      await knex().from('document_groups')
+        .where({ id: group.id })
+        .update({ roles: JSON.stringify(newRoles) });
+    }
+    logger.info(`Removed role "${roleName}" from document groups`);
+  } catch (error) {
+    logger.error('Cascade remove role from groups failed:', error.message);
   }
 };
 

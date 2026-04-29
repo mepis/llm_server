@@ -8,7 +8,8 @@ const getEnvConfig = () => {
     { key: 'PORT', value: String(config.port), category: 'server' },
     { key: 'NODE_ENV', value: config.env, category: 'server' },
     { key: 'FRONTEND_URL', value: process.env.FRONTEND_URL || '', category: 'server' },
-    { key: 'MARIADB_HOST', value: config.host || 'localhost', category: 'database' },
+    { key: 'MARIADB_URI', value: `mysql2://${config.db?.host || 'localhost'}:${config.db?.port || 3306}/${config.db?.database || 'llm_server'}`, category: 'database' },
+    { key: 'QDRANT_API_KEY', value: process.env.QDRANT_API_KEY || '', category: 'database' },
     { key: 'JWT_SECRET', value: config.jwt.secret, category: 'auth' },
     { key: 'JWT_EXPIRES_IN', value: config.jwt.expiresin, category: 'auth' },
     { key: 'LLAMA_SERVER_URL', value: config.llama.url, category: 'llama' },
@@ -52,7 +53,7 @@ const seedConfig = async () => {
 
     console.log(`Config seeded: ${rows.length} entries`);
     for (const entry of envConfig) {
-      const masked = ['MARIADB_HOST', 'JWT_SECRET'].includes(entry.key) ? maskValue(entry.value) : entry.value;
+      const masked = ['MARIADB_URI', 'JWT_SECRET', 'QDRANT_API_KEY'].includes(entry.key) ? maskValue(entry.value) : entry.value;
       console.log(`  ${entry.key}=${masked}`);
     }
 

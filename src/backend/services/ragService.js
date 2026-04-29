@@ -191,7 +191,7 @@ const chunkText = (text, chunkSize = 500) => {
   return chunks;
 };
 
-const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
+const searchDocuments = async (userId, userRoles, query, limit = 10, documentIds = []) => {
   try {
     const queryEmbedding = await llamaService.getEmbeddings(query);
     const queryVector = queryEmbedding.data[0]?.embedding;
@@ -213,7 +213,7 @@ const searchDocuments = async (userId, query, limit = 10, documentIds = []) => {
 
       // Group-shared documents
       const documentGroupService = require('./documentGroupService');
-      const accessibleDocsResult = await documentGroupService.getGroupAccessibleDocuments(userId);
+      const accessibleDocsResult = await documentGroupService.getGroupAccessibleDocuments(userId, userRoles || []);
       if (accessibleDocsResult.success) {
         const groupDocs = accessibleDocsResult.data.filter(d => d.source === 'group');
         const groupDocIds = groupDocs.map(d => d.id);
