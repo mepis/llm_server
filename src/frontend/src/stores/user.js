@@ -46,10 +46,10 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await apiClient.put(`/users/${userId}`, data)
         const updated = response.data.data
-        const index = this.users.findIndex(u => u._id === userId)
-        if (index !== -1) {
-          this.users[index] = updated
-        }
+       const index = this.users.findIndex(u => u.id === userId)
+          if (index !== -1) {
+            this.users[index] = updated
+          }
         return updated
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to update user'
@@ -64,7 +64,7 @@ export const useUserStore = defineStore('user', {
       this.error = null
       try {
         await apiClient.delete(`/users/${userId}`)
-        this.users = this.users.filter(u => u._id !== userId)
+        this.users = this.users.filter(u => u.id !== userId)
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to delete user'
         throw error
@@ -95,11 +95,11 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await apiClient.patch(`/users/${userId}/role`, { role })
         const updated = response.data.data
-        const index = this.users.findIndex(u => u._id === userId)
-        if (index !== -1) {
-          this.users[index] = updated
-        }
-        return updated
+       const index = this.users.findIndex(u => u.id === userId)
+          if (index !== -1) {
+            this.users[index] = updated
+          }
+          return updated
       } catch (error) {
         this.error = error.response?.data?.message || 'Failed to add role'
         throw error
@@ -114,7 +114,7 @@ export const useUserStore = defineStore('user', {
       try {
         const response = await apiClient.patch(`/users/${userId}/role`, { removeRole: role })
         const updated = response.data.data
-        const index = this.users.findIndex(u => u._id === userId)
+        const index = this.users.findIndex(u => u.id === userId)
         if (index !== -1) {
           this.users[index] = updated
         }

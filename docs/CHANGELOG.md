@@ -4,6 +4,24 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-04-29
+
+### Bug Fixes
+- **Fixed**: `getAllUsers` endpoint now parses the `roles` JSON column from MariaDB string into a proper array, resolving roles displaying as stringified text in the User Management table
+- **Fixed**: `updateUserRolesArray` in `userService.js` now parses `user.roles` before passing to the roles callback, fixing role add/remove operations which failed with "User not found"
+- **Fixed**: `updateUserRole` controller response now parses `roles` before sending to frontend, enabling live dialog updates after role changes
+- **Fixed**: Replaced all `_id` references with `id` in `AdminUsersView.vue` and `user.js` store — MariaDB uses `id`, not MongoDB's `_id`
+- **Added**: `refreshSelectedUser()` in `AdminUsersView.vue` to sync the role management dialog's `selectedUser` after add/remove operations
+
+## [Unreleased] - 2026-04-29
+
+### Bug Fixes
+- **Fixed**: `getAllUsers` endpoint now parses the `roles` JSON column from MariaDB string into a proper array, resolving roles displaying as stringified text in the User Management table
+- **Fixed**: `updateUserRolesArray` in `userService.js` now parses `user.roles` before passing to the roles callback, fixing role add/remove operations which failed with "User not found"
+- **Fixed**: `updateUserRole` controller response now parses `roles` before sending to frontend, enabling live dialog updates after role changes
+- **Fixed**: Replaced all `_id` references with `id` in `AdminUsersView.vue` and `user.js` store — MariaDB uses `id`, not MongoDB's `_id`
+- **Added**: `refreshSelectedUser()` in `AdminUsersView.vue` to sync the role management dialog's `selectedUser` after add/remove operations
+
 ## [Unreleased] - 2026-04-28
 
 ### Project Structure Restructure

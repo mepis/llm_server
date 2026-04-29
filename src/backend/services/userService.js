@@ -16,7 +16,8 @@ const userUpdateSchema = zod.object({
 const updateUserRolesArray = async (db, userId, rolesFn) => {
   const user = await db('users').where({ id: userId }).first();
   if (!user) return null;
-  const newRoles = rolesFn(user.roles || ['user']);
+  const parsedRoles = typeof user.roles === 'string' ? JSON.parse(user.roles) : user.roles;
+  const newRoles = rolesFn(parsedRoles || ['user']);
   await db('users').where({ id: userId }).update({ roles: JSON.stringify(newRoles) });
   return await db('users').where({ id: userId }).first();
 };

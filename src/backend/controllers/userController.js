@@ -85,7 +85,10 @@ const getAllUsers = async (req, res) => {
   try {
     const db = require('../config/db').getDB();
     const users = await db('users').orderBy('created_at', 'desc');
-    const sanitized = users.map(({ password_hash, ...user }) => user);
+    const sanitized = users.map(({ password_hash, ...user }) => ({
+      ...user,
+      roles: typeof user.roles === 'string' ? JSON.parse(user.roles) : (user.roles || ['user'])
+    }));
     res.json({ success: true, data: sanitized });
   } catch (error) {
     logger.error('Get all users failed:', error.message);
@@ -134,7 +137,11 @@ const updateUserRole = async (req, res) => {
     } else {
       return res.status(400).json({ success: false, error: 'Either "role" or "removeRole" must be provided' });
     }
-    res.json({ success: true, data: result.data });
+    const parsedUser = {
+      ...result.data,
+      roles: typeof result.data.roles === 'string' ? JSON.parse(result.data.roles) : (result.data.roles || ['user'])
+    };
+    res.json({ success: true, data: parsedUser });
   } catch (error) {
     logger.error('Update user role failed:', error.message);
     res.status(404).json({ success: false, error: error.message });

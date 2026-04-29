@@ -464,7 +464,7 @@ const createUser = async () => {
 }
 
 const openEditDialog = (user) => {
-  editingUserId.value = user._id
+  editingUserId.value = user.id
   editForm.value = {
     username: user.username,
     displayName: user.display_name || '',
@@ -502,14 +502,23 @@ const openRoleDialog = (user) => {
   roleDialogVisible.value = true
 }
 
+const refreshSelectedUser = () => {
+  if (!selectedUser.value) return
+  const updated = userStore.users.find(u => u.id === selectedUser.value.id)
+  if (updated) {
+    selectedUser.value = { ...updated }
+  }
+}
+
 const addSelectedRole = async () => {
   if (!selectedRoleToAdd.value || !selectedUser.value) return
 
   try {
-    await userStore.addRole(selectedUser.value._id, selectedRoleToAdd.value)
+    await userStore.addRole(selectedUser.value.id, selectedRoleToAdd.value)
     toast.add({ severity: 'success', summary: 'Success', detail: `Role "${selectedRoleToAdd.value}" added`, life: 2000 })
     selectedRoleToAdd.value = null
     await loadUsers()
+    refreshSelectedUser()
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to add role', life: 2000 })
   }
@@ -519,9 +528,10 @@ const removeUserRole = async (role) => {
   if (!selectedUser.value) return
 
   try {
-    await userStore.removeRole(selectedUser.value._id, role)
+    await userStore.removeRole(selectedUser.value.id, role)
     toast.add({ severity: 'success', summary: 'Success', detail: `Role "${role}" removed`, life: 2000 })
     await loadUsers()
+    refreshSelectedUser()
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || 'Failed to remove role', life: 2000 })
   }
@@ -534,7 +544,7 @@ const confirmDelete = (user) => {
 
 const deleteUser = async () => {
   try {
-    await userStore.deleteUser(deleteUserTarget.value._id)
+    await userStore.deleteUser(deleteUserTarget.value.id)
     toast.add({ severity: 'success', summary: 'Success', detail: 'User deleted successfully', life: 2000 })
     deleteDialogVisible.value = false
   } catch (error) {
@@ -562,7 +572,7 @@ const resetPassword = async () => {
   }
 
   try {
-    await userStore.resetPassword(resetPasswordTarget.value._id, resetPasswordForm.value.password)
+    await userStore.resetPassword(resetPasswordTarget.value.id, resetPasswordForm.value.password)
     toast.add({ severity: 'success', summary: 'Success', detail: `Password reset for "${resetPasswordTarget.value.username}"`, life: 3000 })
     resetPasswordDialogVisible.value = false
   } catch (error) {
