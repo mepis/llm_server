@@ -32,7 +32,9 @@ rm run.sh
 echo -e "#!/bin/bash
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
-$CURRENT_DIR/models/./$MODEL
+# $CURRENT_DIR/models/./$MODEL
+$CURRENT_DIR/./$MODEL
+
 " >> $CURRENT_DIR/run.sh
 chmod 755 run.sh
 
