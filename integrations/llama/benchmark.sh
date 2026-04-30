@@ -31,9 +31,9 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 
 ## added for benchmarks
-# export LLAMA_ARG_MLOCK=on
-# export LLAMA_ARG_SWA_FULL=on
-# export LLAMA_ARG_MMAP=off
+export LLAMA_ARG_MLOCK=on
+export LLAMA_ARG_SWA_FULL=on
+export LLAMA_ARG_MMAP=off
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
