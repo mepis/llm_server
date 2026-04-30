@@ -5,7 +5,7 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=1024
-export LLAMA_ARG_FIT_CTX=131072
+export LLAMA_ARG_FIT_CTX=262144
 
 # Host Configs
 port=11434
