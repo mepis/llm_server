@@ -25,15 +25,15 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-export CUDA_SCALE_LAUNCH_QUEUES=64x 
+export CUDA_SCALE_LAUNCH_QUEUES=4x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 
 ## added for benchmarks
-export LLAMA_ARG_MLOCK=on
-export LLAMA_ARG_SWA_FULL=on
-export LLAMA_ARG_MMAP=off
+# export LLAMA_ARG_MLOCK=on
+# export LLAMA_ARG_SWA_FULL=on
+# export LLAMA_ARG_MMAP=off
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
@@ -42,6 +42,6 @@ export LLAMA_ARG_CONT_BATCHING=on
 # export LLAMA_ARG_N_PREDICT=0
 # export LLAMA_ARG_N_PARALLEL=6
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --fit-target 512 --fit-ctx 262144 -fa 1
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --fit-target 512 --fit-ctx 262144 
 
 # --verbose --mlock 1  --fit on --fit-target 512 --fit-ctx 262144 --swa-full --cont-batching --parallel 6 --sequences 2
