@@ -17,7 +17,7 @@ tensorSplit=16,12,12
 splitMode=tensor
 
 # Model Configs
-context=262144
+context=131071
 
 ####################
 MODEL_DIR=$HOME/.llm_models
@@ -42,6 +42,6 @@ export LLAMA_ARG_CONT_BATCHING=on
 # export LLAMA_ARG_N_PREDICT=0
 export LLAMA_ARG_N_PARALLEL=6
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads 
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --verbose
 
 # --verbose --mlock 1  --fit on --fit-target 512 --fit-ctx 262144 --swa-full --cont-batching --parallel 6 --sequences 2
