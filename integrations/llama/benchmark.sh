@@ -14,7 +14,7 @@ threads=20
 # Hardware Configs
 mainGpu=0
 tensorSplit=16,12,12
-splitMode=graph
+splitMode=tensor
 
 # Model Configs
 context=262144
