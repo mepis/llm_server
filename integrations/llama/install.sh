@@ -25,7 +25,8 @@ CURRENT_DIR=$(pwd)
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-MODEL=Qwen3.6-27B-Q8_0.sh
+# MODEL=Qwen3.6-27B-Q8_0.sh
+MODEL=router.sh
 
 rm run.sh
 echo -e "#!/bin/bash
