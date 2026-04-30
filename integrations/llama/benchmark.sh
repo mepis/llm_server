@@ -17,7 +17,7 @@ tensorSplit=16,12,12
 splitMode=tensor
 
 # Model Configs
-context=131071
+context=65536
 
 ####################
 MODEL_DIR=$HOME/.llm_models
