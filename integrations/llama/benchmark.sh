@@ -8,7 +8,7 @@ MODEL=Qwen3.6-27B-Q8_0.gguf
 batch_size=128,256,512,1024
 ubatch_size=128,256,512
 
-threads=20
+threads=2
 
 
 # Hardware Configs
