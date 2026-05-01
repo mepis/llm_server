@@ -1,18 +1,69 @@
 ---
 name: deep-research
 description: "ALWAYS execute deep, multi-phase, recursive, and highly structured research on a specified topic ($TOPIC). The primary goal is to build a complete knowledge base, culminating in a definitive, formal analysis report."
+allowed-tools: playwright
 roles: ["user"]
 ---
 
-## Searching
+## WHEN TO USE ME
 
-The Playwright CLI is locally installed. Use the Playwright CLI for searching the web.
+Use this skill when the task demands not just _information retrieval_, but _cognitive construction_. Use it for complex whitepapers, comprehensive competitive analyses, or deep technical due diligence.
+
+## Tools
+
+- Use the mcp-playwright tool to browse the internet.
+  -- Use online sources for research
+  -- Use Duck Duck Go, Bing, and other search engines to find data and information
+  -- Prioritize authoriatize sources
+
+## 📚 USAGE EXAMPLES
+
+### Starting Fresh Research
+
+```
+Research "quantum error correction methods"
+```
+
+Skill initializes new state file, begins Phase 1.
+
+### Resuming Interrupted Research
+
+```
+Continue research
+```
+
+Skill reads state file, displays "Resuming research on quantum error correction from Phase 2", continues from checkpoint.
+
+### Checking Progress
+
+```
+What's the research status?
+```
+
+Skill reads state file, displays:
+
+- Current phase and completion status
+- Sub-topics identified
+- Gaps discovered
+- Next actions required
+
+### Pausing and Resuming Later
+
+State persists automatically. Next session automatically resumes from last phase.
+
+### Cross-Session Research
+
+Research can span days/weeks. State file ensures:
+
+- No duplicate work across sessions
+- All findings preserved through context compaction
+- Seamless continuation from any interruption point
 
 ## 📦 STATE MANAGEMENT
 
 ### State File Location
 
-Maintain research state in `/.agents/deep-research/STATE.md`
+Maintain research state in `./.agents/deep-research/STATE.md`
 
 ### State File Schema
 
@@ -169,52 +220,6 @@ Once the criteria are met, generate the final report in strict Markdown format:
 **Detailed Findings:** (A consolidated, structured presentation of all data from Phases 1, 2, & 3—this is the bulk of the content.)
 **Conclusion:** (A definitive, high-impact statement answering the core need for $TOPIC.)
 **Future Work & Recommendations:** (Propose 3 actionable, concrete next steps for a human researcher.)
+**Citations** (Provide MLA formatted citations for all sources)
 
 ---
-
-## WHEN TO USE ME
-
-Use this skill when the task demands not just _information retrieval_, but _cognitive construction_. Use it for complex whitepapers, comprehensive competitive analyses, or deep technical due diligence.
-
-## 📚 USAGE EXAMPLES
-
-### Starting Fresh Research
-
-```
-Research "quantum error correction methods"
-```
-
-Skill initializes new state file, begins Phase 1.
-
-### Resuming Interrupted Research
-
-```
-Continue research
-```
-
-Skill reads state file, displays "Resuming research on quantum error correction from Phase 2", continues from checkpoint.
-
-### Checking Progress
-
-```
-What's the research status?
-```
-
-Skill reads state file, displays:
-
-- Current phase and completion status
-- Sub-topics identified
-- Gaps discovered
-- Next actions required
-
-### Pausing and Resuming Later
-
-State persists automatically. Next session automatically resumes from last phase.
-
-### Cross-Session Research
-
-Research can span days/weeks. State file ensures:
-
-- No duplicate work across sessions
-- All findings preserved through context compaction
-- Seamless continuation from any interruption point

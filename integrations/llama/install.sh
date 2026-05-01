@@ -1,6 +1,6 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+export PATH=/usr/local/cuda-13.1/bin${PATH:+:${PATH}}
 
 CURRENT_DIR=$(pwd)
 
@@ -24,8 +24,8 @@ CURRENT_DIR=$(pwd)
 # MODEL=Qwen3.5-27B-IQ4_NL.sh
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
-# MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
+MODEL=Qwen3.6-35B-A3B-Q8_0.sh
+# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
 
 rm run.sh

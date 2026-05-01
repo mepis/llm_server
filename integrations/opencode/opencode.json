@@ -1,14 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mcp-playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": true
+    }
+  },
+  "tools": {
+    "mcp-playwright": false
+  },
   "autoupdate": true,
   "compaction": {
     "auto": true,
     "prune": true
   },
-  "tools": {},
   "server": {
     "port": 4096,
-    "hostname": "100.83.33.20",
+    "hostname": "100.73.41.85",
     "mdns": true,
     "cors": ["*"]
   },
@@ -45,13 +54,13 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.83.33.20:11434/v1" 
+        "baseURL": "http://100.73.41.85:11434/v1"
       },
       "models": {
         "Qwen3.6-35B-A3B-Q8_0": {
           "name": "Qwen3.6-35B-A3B-Q8_0",
           "limit": {
-            "context": 131072,
+            "context": 262144,
             "output": 32768
           }
         }
@@ -64,10 +73,10 @@
         "baseURL": "http://100.103.210.3:11434/v1"
       },
       "models": {
-        "NVIDIA-Nemotron-3-Nano-4B-Q8_0": {
-          "name": "NVIDIA-Nemotron-3-Nano-4B-Q8_0",
+        "Qwen3.6-9B": {
+          "name": "Qwen3.6-9B",
           "limit": {
-            "context": 65536,
+            "context": 131072,
             "output": 32768
           }
         }

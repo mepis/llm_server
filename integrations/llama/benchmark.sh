@@ -2,9 +2,9 @@
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # MODEL=Qwen3.6-27B-Q8_0.gguf
 # MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
-# MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
+MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
-MODEL=gemma-4-E4B-it-IQ4_NL.gguf 
+# MODEL=gemma-4-E4B-it-IQ4_NL.gguf 
 
 # Benchmark configs
 batch_size=256,512,1024

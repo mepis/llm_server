@@ -3,7 +3,7 @@ model=Qwen3.6-35B-A3B-Q8_0.gguf
 
 # Host Configs
 port=11434
-host=100.83.33.20
+host=100.73.41.85
 
 # Hardware Configs
 mainGpu=0
@@ -12,7 +12,7 @@ splitMode=layer
 threads=20
 
 # Model Configs
-context=131072
+context=262144
 temp=0.7
 topP=0.95
 minP=0.00
@@ -24,15 +24,16 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
+export LLAMA_ARG_MLOCK=on
 export CUDA_SCALE_LAUNCH_QUEUES=16x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=131072
+export LLAMA_ARG_FIT_CTX=262144
 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 256 --ubatch-size 256  --parallel 4  --reasoning on
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 8  --reasoning on --batch-size 1024 --ubatch-size 256  --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja
 
 # --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5

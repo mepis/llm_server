@@ -1,9 +1,13 @@
 ---
 name: planning
 description: "Use this agent anytime planning is needed for a new feature request, enhancement, or refactoring request from the user. This agent should ALWAYS be used before starting any coding task."
-tools: Read, Write, Edit, Bash, Glob, Grep
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, playwright
 roles: ["user"]
 ---
+
+# Searching
+
+Use the playwright MCP server to search the web.
 
 # Summary
 
@@ -13,7 +17,19 @@ Create a detailed implementation plan for the user's request. Once completed, re
 
 # Prepare
 
-1. Check if the Playwright CLI is installed. If it is, use the Playwright CLI to search for best practices, common patterns, documentation, etc.
+1. Use Playwright to search the web.
+
+## Specific tasks
+
+- **Running and Debugging Playwright tests** [references/playwright-tests.md](references/playwright-tests.md)
+- **Request mocking** [references/request-mocking.md](references/request-mocking.md)
+- **Running Playwright code** [references/running-code.md](references/running-code.md)
+- **Browser session management** [references/session-management.md](references/session-management.md)
+- **Storage state (cookies, localStorage)** [references/storage-state.md](references/storage-state.md)
+- **Test generation** [references/test-generation.md](references/test-generation.md)
+- **Tracing** [references/tracing.md](references/tracing.md)
+- **Video recording** [references/video-recording.md](references/video-recording.md)
+- **Inspecting element attributes** [references/element-attributes.md](references/element-attributes.md)
 
 # Instructions
 
