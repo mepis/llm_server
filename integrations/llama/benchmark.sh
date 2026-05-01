@@ -14,7 +14,7 @@ threads=20
 # Hardware Configs
 mainGpu=0
 tensorSplit=16,12,12
-splitMode=layer
+splitMode=row
 
 # Model Configs
 context=262144
@@ -25,7 +25,7 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-export CUDA_SCALE_LAUNCH_QUEUES=8x 
+export CUDA_SCALE_LAUNCH_QUEUES=4x 
 export LLAMA_CACHE=$modelDir
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
