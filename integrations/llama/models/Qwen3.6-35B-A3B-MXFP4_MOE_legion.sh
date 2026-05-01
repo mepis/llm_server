@@ -31,6 +31,6 @@ export LLAMA_ARG_FIT_TARGET=512
 export LLAMA_ARG_FIT_CTX=131072
 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 1024 --ubatch-size 256  --parallel 4 --reasoning on --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 1024 --ubatch-size 256  --parallel 4 --reasoning on --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8
 
 # --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5
