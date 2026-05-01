@@ -54,13 +54,6 @@
             "context": 131072,
             "output": 32768
           }
-        },
-        "Qwen3.6-27B-Q8_0": {
-          "name": "Qwen3.6-27B-Q8_0",
-          "limit": {
-            "context": 131072,
-            "output": 32768
-          }
         }
       }
     },
@@ -71,8 +64,8 @@
         "baseURL": "http://100.103.210.3:11434/v1"
       },
       "models": {
-        "gemma-4-26B-A4B-it-MXFP4_MOE": {
-          "name": "gemma-4-26B-A4B-it-MXFP4_MOE",
+        "gemma-4-E4B-it-IQ4_NL": {
+          "name": "gemma-4-E4B-it-IQ4_NL",
           "limit": {
             "context": 65536,
             "output": 32768
