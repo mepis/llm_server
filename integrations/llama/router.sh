@@ -1,11 +1,11 @@
 #!/bin/bash
-export CUDA_SCALE_LAUNCH_QUEUES=24x 
+export CUDA_SCALE_LAUNCH_QUEUES=2x 
 export LLAMA_CACHE=$HOME/.llm_models
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=523
-export LLAMA_ARG_FIT_CTX=262144
+export LLAMA_ARG_FIT_CTX=131072
 
 # Host Configs
 port=11434
@@ -19,7 +19,7 @@ threads=20
 PARALLEL=4
 
 # Model Configs
-context=262144
+context=131072
 temp=0.6
 topP=0.95
 minP=0.00
