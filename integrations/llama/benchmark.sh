@@ -14,10 +14,10 @@ threads=20
 # Hardware Configs
 mainGpu=0
 tensorSplit=16,12,12
-splitMode=row
+splitMode=layer
 
 # Model Configs
-context=262144
+context=131072
 
 ####################
 MODEL_DIR=$HOME/.llm_models
@@ -36,12 +36,12 @@ export CUDACXX=$(which nvcc)
 # export LLAMA_ARG_MMAP=off
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
-export LLAMA_ARG_FIT_CTX=262144
+export LLAMA_ARG_FIT_CTX=131072
 export LLAMA_ARG_FLASH_ATTN=1
 export LLAMA_ARG_CONT_BATCHING=on
 # export LLAMA_ARG_N_PREDICT=0
 # export LLAMA_ARG_N_PARALLEL=6
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --fit-target 512 --fit-ctx 262144 
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --fit-target 512 --fit-ctx 131072 
 
 # --verbose --mlock 1  --fit on --fit-target 512 --fit-ctx 262144 --swa-full --cont-batching --parallel 6 --sequences 2
