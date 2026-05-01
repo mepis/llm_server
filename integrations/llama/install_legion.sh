@@ -3,7 +3,7 @@
 # User Defined
 # MODEL=router_legion.sh
 
-MODEL=gemma-4-E4B-it-IQ4_NL.sh
+MODEL=NVIDIA-Nemotron-3-Nano-4B-Q8_0.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
