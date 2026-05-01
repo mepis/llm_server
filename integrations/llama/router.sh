@@ -24,7 +24,7 @@ temp=0.6
 topP=0.95
 minP=0.00
 topK=20
-BATCH=256
+BATCH=128
 UBATCH=256
 
 ####################
