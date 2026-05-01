@@ -64,8 +64,8 @@
         "baseURL": "http://100.103.210.3:11434/v1"
       },
       "models": {
-        "gemma-4-E4B-it-IQ4_NL": {
-          "name": "gemma-4-E4B-it-IQ4_NL",
+        "NVIDIA-Nemotron-3-Nano-4B-Q8_0": {
+          "name": "NVIDIA-Nemotron-3-Nano-4B-Q8_0",
           "limit": {
             "context": 65536,
             "output": 32768
