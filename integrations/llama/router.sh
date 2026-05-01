@@ -4,7 +4,7 @@ export LLAMA_CACHE=$HOME/.llm_models
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
-export LLAMA_ARG_FIT_TARGET=1024
+export LLAMA_ARG_FIT_TARGET=523
 export LLAMA_ARG_FIT_CTX=262144
 
 # Host Configs
