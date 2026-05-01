@@ -1,5 +1,5 @@
 #!/bin/bash
-model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
+model=Qwen3.5-9b-Sushi-Coder-RL.Q6_K.gguf
 
 # Host Configs
 port=11434
@@ -11,9 +11,9 @@ threads=20
 
 # Model Configs
 context=131072
-temp=0.7
+temp=0.6
 topP=0.95
-minP=0.00
+minP=0.01
 topK=20
 
 ####################
