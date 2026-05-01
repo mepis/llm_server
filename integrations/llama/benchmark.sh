@@ -3,7 +3,8 @@
 # MODEL=Qwen3.6-27B-Q8_0.gguf
 # MODEL=Nemotron-3-Nano-30B-A3B-Q8_0.gguf
 # MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
-MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
+# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
+MODEL=gemma-4-E4B-it-IQ4_NL.gguf 
 
 # Benchmark configs
 batch_size=256,512,1024
@@ -45,7 +46,7 @@ export LLAMA_ARG_CONT_BATCHING=on
 
 # ./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --batch-size $batch_size --ubatch-size $ubatch_size --threads $threads --fit-target 512 --fit-ctx 131072 
 
-./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --main-gpu $mainGpu --fit-target 512 --fit-ctx 131072 --batch-size $batch_size --ubatch-size $ubatch_size -fa 1  --cpu-strict 1  --threads 8 
+./llama-bench -m $MODEL_DIR/$MODEL -ngl 999 --main-gpu $mainGpu --fit-target 512 --fit-ctx 131072 --batch-size $batch_size --ubatch-size $ubatch_size -fa 1 --cpu-strict 1 --threads 8 
 
 
 # --verbose --mlock 1  --fit on --fit-target 512 --fit-ctx 262144 --swa-full --cont-batching --parallel 6 --sequences 2 --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja
