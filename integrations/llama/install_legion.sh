@@ -3,7 +3,8 @@
 # User Defined
 # MODEL=router_legion.sh
 
-MODEL=gemma-4-26B-A4B-it-MXFP4_MOE_legion.sh
+#MODEL=gemma-4-26B-A4B-it-MXFP4_MOE_legion.sh
+MODEL=Qwen3.6-35B-A3B-MXFP4_MOE_legion.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 

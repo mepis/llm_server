@@ -6,6 +6,7 @@ CURRENT_DIR=$(pwd)
 
 # MODELS
 # -----------------
+# MODEL=router.sh
 
 ## GEMMA ##
 ##--------
@@ -24,15 +25,14 @@ CURRENT_DIR=$(pwd)
 # MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
 # MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
+MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
-MODEL=router.sh
 
 rm run.sh
 echo -e "#!/bin/bash
 CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
-# $CURRENT_DIR/models/./$MODEL
-$CURRENT_DIR/./$MODEL
+$CURRENT_DIR/models/./$MODEL
 
 " >> $CURRENT_DIR/run.sh
 chmod 755 run.sh
@@ -56,9 +56,11 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;120"  -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on
+  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_SCHED_MAX_COPIES=8 -DGGML_CUDA_FORCE_MMQ=on 
+  
+  #  -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512
 
-  cmake --build build --config Release -j 6 --clean-first  
+  cmake --build build --config Release -j 10 --clean-first  
 
 fi
 
