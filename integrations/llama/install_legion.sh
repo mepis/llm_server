@@ -1,12 +1,23 @@
 #!/bin/bash
 
 # User Defined
-MODEL=router_legion.sh
+# MODEL=router_legion.sh
+
+MODEL=gemma-4-26B-A4B-it-MXFP4_MOE_legion.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 CURRENT_DIR=$(pwd)
+
+rm run.sh
+echo -e "#!/bin/bash
+CURRENT_DIR=$(pwd)
+cd $CURRENT_DIR
+$CURRENT_DIR/models/./$MODEL
+
+" >> $CURRENT_DIR/run.sh
+chmod 755 run.sh
 
 mkdir $HOME/.llama_cache
 mkdir $HOME/.config/systemd
@@ -40,7 +51,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=$CURRENT_DIR
-ExecStart=$CURRENT_DIR/$MODEL
+ExecStart=$CURRENT_DIR/run.sh
 Restart=on-failure
 RestartSec=5
 

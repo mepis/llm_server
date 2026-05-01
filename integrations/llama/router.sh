@@ -9,7 +9,7 @@ export LLAMA_ARG_FIT_CTX=131072
 
 # Host Configs
 port=11434
-host=100.125.73.107
+host=100.83.33.20
 
 # Hardware Configs
 mainGpu=0

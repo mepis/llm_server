@@ -5,7 +5,6 @@ export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 CURRENT_DIR=$(pwd)
 
 # MODELS
-# This section is largely deprecated. Commenting out until it's 100% verified not needed.
 # -----------------
 
 ## GEMMA ##
