@@ -30,7 +30,7 @@ export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
 export LLAMA_ARG_FIT_CTX=131072
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999  --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads  --cpu-strict 1 --kv-unified --batch-size 512 --ubatch-size 256 --reasoning on --parallel 6 --cont-batching --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999  --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads  --cpu-strict 1 --kv-unified --batch-size 512 --ubatch-size 256 --parallel 6 --cont-batching --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8
 
 
 # NCCL_DEBUG=INFO ./llama-server -m /home/jon/llm_server/integrations/llama/models/Qwen3.5-27B-IQ4_NL.gguf --port 11434 --host 100.115.205.84 -c 131072 -ngl 999 --split-mode layer --tensor-split 16,12,12 --main-gpu 0 --temp 1 --top-p 0.95 --cont-batching --min-p 0.0 --top-k 64 --threads 8 --prio 2 --cpu-range 0-7 --cpu-strict 1 --swa-full --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size 4096 --ubatch-size 1024 

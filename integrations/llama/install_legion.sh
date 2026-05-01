@@ -37,7 +37,7 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
+  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DBUILD_SHARED_LIBS=OFF -DGGML_CUDA_FORCE_MMQ=on
 
   cmake --build build --config Release -j 6 --clean-first  
 
