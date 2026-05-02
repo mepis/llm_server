@@ -44,13 +44,13 @@ UBATCH_S=128,256,512,1024,2048
 K_CACHE_TYPE=q8_0,q4_0,iq4_nl
 V_CACHE_TYPE=q8_0,q4_0,iq4_nl
 
-FLASH_ATTENTION=on,off
+FLASH_ATTENTION=on
 #----------------------------
 # ENV VALS
 #----------------------------
 # llama-bench does not update these automatically while benchmarking. The benchmark must be restarted manually after changing these values
 
-CUDA_LAUNCH_QUEUE_SIZE=4x # Do not over do this, will cause memory issues and crash the system
+# CUDA_LAUNCH_QUEUE_SIZE=4x # Do not over do this, will cause memory issues and crash the system
 CUDA_P2P=1 # requires patched drivers or data center GPUs, set to 0 for unpatched drivers with Geforce cards
 CUDA_UNIFIED_MEMORY=1 # set to 0 for single GPU machines
 
@@ -72,5 +72,5 @@ systemctl --user stop llama.service
 
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
-./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --no-op-offload $NO_OFFLOAD --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE --output csv > BENCHMAR_RESULTS.csv --output-err md > BENCHMAR_ERRORS.md
+./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --no-op-offload $NO_OFFLOAD --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE --output csv > BENCHMAR_RESULTS.csv --output-err md > BENCHMAR_ERRORS.md --verbose
 
