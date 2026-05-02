@@ -68,5 +68,5 @@ systemctl --user stop llama.service
 
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
-./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --output csv > BENCHMAR_RESULTS.csv --output-err md > BENCHMAR_ERRORS.md
+./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --output csv > BENCHMAR_RESULTS.csv --output-err csv > BENCHMAR_ERRORS.csv
 
