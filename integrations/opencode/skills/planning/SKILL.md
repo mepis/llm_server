@@ -5,10 +5,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, playwright
 roles: ["user"]
 ---
 
-# Searching
-
-Use the playwright MCP server to search the web.
-
 # Summary
 
 Create a detailed implementation plan for the user's request. Once completed, request approval from the user. If the user approves, begin implementing. If the user does not approve, stop.
@@ -16,8 +12,6 @@ Create a detailed implementation plan for the user's request. Once completed, re
 **Target Audience**: Coding agents running on a local instance of llama.cpp with limited resources (smaller context window)
 
 # Prepare
-
-1. Use Playwright to search the web.
 
 ## Specific tasks
 
@@ -30,6 +24,14 @@ Create a detailed implementation plan for the user's request. Once completed, re
 - **Tracing** [references/tracing.md](references/tracing.md)
 - **Video recording** [references/video-recording.md](references/video-recording.md)
 - **Inspecting element attributes** [references/element-attributes.md](references/element-attributes.md)
+
+# Tools
+
+- Use the mcp-playwright tool to browse the internet.
+  -- Use online sources for research
+  -- Use Duck Duck Go, Bing, and other search engines to find data and information
+  -- Prioritize authoriatize sources
+  -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
 
 # Instructions
 

@@ -15,6 +15,53 @@ Use this skill when the task demands not just _information retrieval_, but _cogn
   -- Use online sources for research
   -- Use Duck Duck Go, Bing, and other search engines to find data and information
   -- Prioritize authoriatize sources
+  -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
+
+# Best Practices for AI Assistants: Internet Research
+
+## Search & Discovery
+
+- Use advanced search operators (site:, filetype:, inurl:, intitle:, exact phrases, date ranges) to narrow results precisely rather than relying on broad keyword queries
+- Combine semantic search with keyword search — use AI tools for intent-based discovery and operators for precision filtering
+- Leverage specialized academic databases (Google Scholar, Semantic Scholar, PubMed) when research involves peer-reviewed literature
+
+## Source Evaluation
+
+- Apply lateral reading: independently verify source credibility through external searches rather than trusting on-page indicators
+- Check for "container collapse" — sponsored content, blogs, and legitimate news often appear identically in search results
+- Use multiple sources to cross-verify claims rather than relying on a single authoritative-looking page
+- Be aware that AI-generated answers can reproduce historical biases — flag when intersectional or non-Western perspectives may be underrepresented
+
+## AI-Assisted Research
+
+- Acknowledge AI tool limitations: 15% of AI tools fail basic fairness thresholds, and performance varies 40%+ between vendors
+- Flag potential "AI as moral cover" risk — users may accept biased AI outputs as objective
+- When using tools like Elicit, Consensus, or Perplexity, note the training data scope and potential representation gaps (non-English sources, underrepresented institutions)
+- Cross-reference AI-generated findings with primary sources whenever possible
+
+## Knowledge Management
+
+- Organize findings by actionability (PARA: Projects, Areas, Resources, Archives) rather than by subject
+- Maintain source citations alongside all extracted data to enable verification
+- Prefer modular tool ecosystems over monolithic platforms — use specialized tools for their strengths (Zotero for citations, Obsidian for notes, AI tools for discovery)
+- Implement contextual recall by connecting new findings to existing knowledge rather than treating each query in isolation
+
+## Equity & Access Awareness
+
+- Recognize that recommended methods assume baseline internet access; offer alternatives when users face paywall or connectivity barriers
+- Suggest open-access repositories and preprint servers when paywalled content is encountered
+- Acknowledge that 2.2 billion people globally lack internet access — design research workflows that work for low-bandwidth environments when applicable
+
+## Interdisciplinary Flexibility
+
+- Adapt research methodology to the user's context: prioritize reproducibility for academic work, timeliness for journalism, actionability for intelligence/business
+- Bridge gaps between disciplines by providing both nuanced analysis and simplified summaries when users need to translate between academic and practical contexts
+
+## Transparency & Ethics
+
+- Disclose when AI tools were used in the research process and what limitations they may have
+- Flag content that may be algorithmically biased, sponsored, or from unverified sources
+- Recommend verification steps (lateral reading, cross-source comparison) rather than presenting findings as definitive
 
 ## 📚 USAGE EXAMPLES
 
@@ -166,6 +213,7 @@ ALWAYS execute the research using the following mandatory, sequential phases. Pr
 1. Check for existing state file at `./.agents/deep-research/STATE.md`
 2. If state exists and `status` is "active": Display "Resuming research on $TOPIC from {current_phase}" and skip to that phase
 3. If no state or status is "completed": Initialize new state file with topic, timestamp, and `current_phase: "Phase 1"`
+4. Verify today's date to determine relivancy of aged data found during research.
 
 **Phase 1: Foundational Survey & Scoping.**
 

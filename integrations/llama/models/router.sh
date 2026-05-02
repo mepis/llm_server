@@ -15,7 +15,7 @@ host=100.83.33.20
 mainGpu=0
 tensorSplit=16,12,12
 splitMode=layer
-threads=20
+threads=8
 PARALLEL=4
 
 # Model Configs
@@ -34,6 +34,6 @@ CURRENT_DIR=$(pwd)
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
-./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 1 --sleep-idle-seconds 30 --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --threads $threads --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $BATCH --ubatch-size $UBATCH --chat-template-kwargs '{"enable_thinking":true}' --parallel $PARALLEL --presence-penalty 1.5 --fit-target 512 --fit-ctx 131072
+./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 30 --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --batch-size $BATCH --ubatch-size $UBATCH --chat-template-kwargs '{"enable_thinking":true}' --parallel $PARALLEL --presence-penalty 1.5 --fit-target 512 --fit-ctx 131072 --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja 
 
 # --repeat-penalty 1.0 --presence-penalty 1.5 (1.0 - 1.5)  Use if looping is a problem

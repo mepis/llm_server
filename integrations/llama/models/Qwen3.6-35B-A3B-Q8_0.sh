@@ -12,8 +12,8 @@ splitMode=layer
 threads=20
 
 # Model Configs
-context=262144
-temp=0.7
+context=131072
+temp=0.6
 topP=0.95
 minP=0.00
 topK=20
@@ -31,9 +31,9 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=262144
+export LLAMA_ARG_FIT_CTX=131072
 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 8  --reasoning on --batch-size 1024 --ubatch-size 256  --threads $threads --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 4   --batch-size 1024 --ubatch-size 256  --threads $threads --cpu-strict 1 --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja --presence-penalty 1.0 --repeat-penalty 0.0 --chat-template-kwargs '{"enable_thinking":true}' --reasoning on -fa on 
 
 # --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5

@@ -56,11 +56,7 @@
               <i class="pi pi-book"></i>
               <span>Skills</span>
             </router-link>
-            <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/logs" class="nav-link" @click="closeAfterNav">
-              <i class="pi pi-list"></i>
-              <span>Logs</span>
-            </router-link>
-          <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/monitor" class="nav-link" @click="closeAfterNav">
+            <router-link v-if="user?.roles?.[0] === 'admin' || user?.roles?.[0] === 'system'" to="/monitor" class="nav-link" @click="closeAfterNav">
                <i class="pi pi-chart-bar"></i>
                <span>Monitor</span>
              </router-link>
