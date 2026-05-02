@@ -26,7 +26,7 @@ MAIN_GPU=0
 T_SPLIT=16,12,12
 SPLIT_MODE=layer
 LAYER_OFFLOAD=10,20,30,999
-NO_OFFLOAD=0,1 # default=0
+# NO_OFFLOAD=0,1 # default=0
 
 # common contet size windows: 16384, 32768, 65536, 131072, 262144, 524288
 FIT_MIN_CTX=16384,32768,65536,131072
@@ -40,11 +40,7 @@ POLL_RATE=10,50,90 # default=50
 BATCH_S=256,512,1024,2048,4096,8192
 UBATCH_S=128,256,512,1024,2048
 
-# valid values: q8_0, q4_0, q4_1, q5_0, q5_1, iq4_nl
-K_CACHE_TYPE=q8_0,q4_0,iq4_nl
-V_CACHE_TYPE=q8_0,q4_0,iq4_nl
-
-FLASH_ATTENTION=on
+FLASH_ATTENTION=1
 #----------------------------
 # ENV VALS
 #----------------------------
@@ -72,5 +68,5 @@ systemctl --user stop llama.service
 
 cd $CURRENT_DIR
 cd llama.cpp/build/bin/
-./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --no-op-offload $NO_OFFLOAD --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE --output csv > BENCHMAR_RESULTS.csv --output-err md > BENCHMAR_ERRORS.md --verbose
+./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --poll $POLL_RATE --mmap $MEMORY_MAP --n-prompt $PROMPT_SIZE --n-gen $GEN_SIZE --repetitions $TEST_REPITITIONS --batch-size $BATCH_S --ubatch-size $UBATCH_S --fit-target $FIT_TARGET --fit-ctx 131072 --threads $CPU_THREADS --cpu-strict $CPU_STRICT --flash-attn $FLASH_ATTENTION --output csv > BENCHMAR_RESULTS.csv --output-err md > BENCHMAR_ERRORS.md
 

@@ -18,6 +18,10 @@ topP=0.95
 minP=0.00
 topK=20
 
+# valid values: q8_0, q4_0, q4_1, q5_0, q5_1, iq4_nl
+K_CACHE_TYPE=q8_0
+V_CACHE_TYPE=q8_0
+
 ####################
 MODEL_DIR=$HOME/.llm_models
 CURRENT_DIR=$(pwd)
@@ -37,3 +41,5 @@ export LLAMA_ARG_FIT_CTX=131072
 ./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 4   --batch-size 1024 --ubatch-size 256  --threads $threads --cpu-strict 1 --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja --presence-penalty 1.0 --repeat-penalty 0.0 --chat-template-kwargs '{"enable_thinking":true}' --reasoning on -fa on 
 
 # --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5
+
+# --cache-type-v $V_CACHE_TYPE --cache-type-k $K_CACHE_TYPE
