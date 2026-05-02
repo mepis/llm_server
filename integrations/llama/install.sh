@@ -1,8 +1,8 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/usr/local/cuda-13.1/bin${PATH:+:${PATH}}
-export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
-source /opt/intel/oneapi/setvars.sh
+export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+# export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
+# source /opt/intel/oneapi/setvars.sh
 
 CURRENT_DIR=$(pwd)
 
@@ -58,12 +58,11 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_NATIVE=off -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FA=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_ACCELERATE=on -DGGML_SCHED_MAX_COPIES=8 -DGGML_BLAS=ON -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
-
+  cmake -B build -DGGML_CCACHE=off -DGGML_NATIVE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_FA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on
   
-  #  -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CCACHE=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
+  #  -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA_FORCE_CUBLAS=on 
 
-  cmake --build build --config Release -j$(nproc) --clean-first  
+  cmake --build build --config Release -j 8 --clean-first  
 
 fi
 
