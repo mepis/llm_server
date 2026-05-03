@@ -17,6 +17,18 @@ sudo systemctl enable mariadb
 echo "--------------------------------------------------------"
 echo "MariaDB installation completed successfully."
 echo "--------------------------------------------------------"
-echo "It is recommended to run 'sudo mysql_secure_installation' to secure your installation."
+echo "It is recommended to run 'sudo mariadb-secure-installation' to secure your installation."
 echo "To log in as root, use: sudo mysql -u root"
 echo ""
+
+
+
+# Create a super user
+# -- Create the user
+# CREATE USER 'admin_user'@'localhost' IDENTIFIED BY 'secure_password';
+
+# -- Grant all privileges (superuser access)
+# GRANT ALL PRIVILEGES ON *.* TO 'admin_user'@'localhost' WITH GRANT OPTION;
+
+# -- Apply changes
+# FLUSH PRIVILEGES;

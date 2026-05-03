@@ -4,7 +4,7 @@
 sudo apt update 
 sudo apt upgrade -y 
 
-sudo apt install git build-essential cmake ccache pkg-config libssl-dev libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build nvidia-smi -y 
+sudo apt install git build-essential cmake ccache pkg-config libssl-dev libnccl-dev libcurl4-openssl-dev curl libgomp1 software-properties-common clinfo ninja-build -y 
 
 # Install Intel OneAPI
 # https://www.intel.com/content/www/us/en/docs/oneapi/installation-guide-linux/2025-2/base-online-offline.html#BASE-ONLINE-OFFLINE

@@ -3,7 +3,7 @@ model=Qwen3.6-35B-A3B-Q8_0.gguf
 
 # Host Configs
 port=11434
-host=100.73.41.85
+host=100.110.89.87
 
 # Hardware Configs
 mainGpu=0

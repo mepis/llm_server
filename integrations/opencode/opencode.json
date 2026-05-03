@@ -17,7 +17,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.73.41.85",
+    "hostname": "100.110.89.87",
     "mdns": true,
     "cors": ["*"]
   },
@@ -54,7 +54,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.73.41.85:11434/v1"
+        "baseURL": "http://100.110.89.87:11434/v1"
       },
       "models": {
         "Qwen3.6-35B-A3B-Q8_0": {
