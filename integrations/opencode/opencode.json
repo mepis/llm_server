@@ -17,7 +17,7 @@
   },
   "server": {
     "port": 4096,
-    "hostname": "100.110.89.87",
+    "hostname": "100.103.210.3",
     "mdns": true,
     "cors": ["*"]
   },
