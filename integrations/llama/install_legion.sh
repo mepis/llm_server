@@ -3,11 +3,13 @@
 # User Defined
 # MODEL=router_legion.sh
 
-MODEL=Qwen3.5-9b-Sushi-Coder-RL.Q6_K.sh
+# MODEL=Qwen3.5-9b-Sushi-Coder-RL.Q6_K.sh
+MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+# export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+export CUDACXX=$(which nvcc)
 CURRENT_DIR=$(pwd)
 
 rm run.sh
@@ -37,7 +39,7 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on
+  cmake -B build -DGGML_CCACHE=on -DGGML_NATIVE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_FA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
 
   cmake --build build --config Release -j 6 --clean-first  
 
