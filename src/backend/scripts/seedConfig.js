@@ -14,6 +14,7 @@ const getEnvConfig = () => {
     { key: 'JWT_EXPIRES_IN', value: config.jwt.expiresin, category: 'auth' },
     { key: 'LLAMA_SERVER_URL', value: config.llama.url, category: 'llama' },
     { key: 'LLAMA_TIMEOUT', value: String(config.llama.timeout), category: 'llama' },
+    { key: 'LLAMA_MODEL', value: config.llama.model, category: 'llama' },
     { key: 'TTS_SERVER_URL', value: config.tts.serverUrl || '', category: 'tts' },
     { key: 'TTS_TIMEOUT', value: String(config.tts.timeout), category: 'tts' },
     { key: 'TTS_DEFAULT_SPEAKER', value: config.tts.speaker, category: 'tts' },

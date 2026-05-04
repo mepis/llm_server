@@ -1,3 +1,4 @@
+const config = require('../config/database');
 const { getDB } = require('../config/db');
 const logger = require('../utils/logger');
 
@@ -233,7 +234,7 @@ function buildMessages(session) {
 
 const createChatSession = async (userId, sessionName, options = {}) => {
   try {
-    const { model = 'llama-3-8b', temperature = 0.7, maxTokens = 2048, enableRAG = false, ragDocuments = [] } = options;
+    const { model = config.llama.model, temperature = 0.7, maxTokens = 2048, enableRAG = false, ragDocuments = [] } = options;
     const id = require('uuid').v4();
 
     await knex().insert({
@@ -437,7 +438,7 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
     if (toolCalls && toolCalls.length > 0) {
       await addMessageToSessionJSON(sessionId, 'assistant', null, {
         tool_calls: toolCalls,
-        model: metadata?.model || 'llama-3-8b',
+        model: metadata?.model || config.llama.model,
         citations: ragCitations.map(c => ({
           source_id: c.source.document_id, filename: c.source.filename,
           chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,
@@ -454,7 +455,7 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
     }
 
     await addMessageToSessionJSON(sessionId, 'assistant', contentText, {
-      model: metadata?.model || 'llama-3-8b',
+      model: metadata?.model || config.llama.model,
       citations: ragCitations.map(c => ({
         source_id: c.source.document_id, filename: c.source.filename,
         chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,
@@ -531,7 +532,7 @@ const runLoop = async (sessionId, content, options = {}) => {
       if (toolCalls && toolCalls.length > 0) {
         await addMessageToSessionJSON(sessionId, 'assistant', null, {
           tool_calls: toolCalls,
-          model: metadata?.model || 'llama-3-8b',
+          model: metadata?.model || config.llama.model,
           citations: ragCitations.map(c => ({
             source_id: c.source.document_id, filename: c.source.filename,
             chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,
@@ -549,7 +550,7 @@ const runLoop = async (sessionId, content, options = {}) => {
       }
 
       await addMessageToSessionJSON(sessionId, 'assistant', contentText, {
-        model: metadata?.model || 'llama-3-8b',
+        model: metadata?.model || config.llama.model,
         citations: ragCitations.map(c => ({
           source_id: c.source.document_id, filename: c.source.filename,
           chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,
@@ -618,7 +619,7 @@ async function* streamChatResponse(sessionId, messages, options) {
     clearTimeout(timeoutId);
 
     await addMessageToSessionJSON(sessionId, 'assistant', fullResponse, {
-      model: typeof session.metadata === 'string' ? JSON.parse(session.metadata)?.model || 'llama-3-8b' : (session.metadata?.model || 'llama-3-8b'),
+      model: typeof session.metadata === 'string' ? JSON.parse(session.metadata)?.model || config.llama.model : (session.metadata?.model || config.llama.model),
     });
   } catch (error) {
     logger.error('Streaming chat error: %s', error.message);
@@ -738,7 +739,7 @@ async function* streamRunLoop(sessionId, content, options = {}) {
 
       await addMessageToSessionJSON(sessionId, 'assistant', null, {
         tool_calls: toolCallObjs,
-        model: metadata?.model || 'llama-3-8b',
+        model: metadata?.model || config.llama.model,
         citations: ragCitations.map(c => ({
           source_id: c.source.document_id, filename: c.source.filename,
           chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,
@@ -764,7 +765,7 @@ async function* streamRunLoop(sessionId, content, options = {}) {
 
     if (hasStopReason || turnContent.length > 0) {
       await addMessageToSessionJSON(sessionId, 'assistant', turnContent, {
-        model: metadata?.model || 'llama-3-8b',
+        model: metadata?.model || config.llama.model,
         citations: ragCitations.map(c => ({
           source_id: c.source.document_id, filename: c.source.filename,
           chunk_index: c.source.chunk_index, similarity: c.source.similarity, sheet_name: c.source.sheet_name,

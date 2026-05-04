@@ -4,6 +4,13 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-05-04
+
+### Refactoring
+- **Centralized**: LLM model configuration — replaced all hardcoded `'llama-3-8b'` defaults in `chatService.js` with `config.llama.model` from `database.js`, configurable via `LLAMA_MODEL` env variable
+- **Added**: `LLAMA_MODEL` to `.env.example` and `seedConfig.js` for config seeding
+- **Added**: Qwen3.6-27B-Q8_0 model entry to `integrations/opencode/opencode.json`
+
 ## [Unreleased] - 2026-05-03
 
 ### Bug Fixes
