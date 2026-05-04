@@ -8,7 +8,7 @@ const getStatus = async (req, res) => {
     const result = { status: 'initialized', connected: true };
     res.json({ success: true, data: result });
   } catch (error) {
-    logger.error('Get Matrix status failed:', error.message);
+    logger.error('Get Matrix status failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -20,7 +20,7 @@ const handleWebhook = async (req, res) => {
     // Webhook handling delegated to matrix bot logic
     res.json({ success: true, data: { received: true } });
   } catch (error) {
-    logger.error('Handle webhook failed:', error.message);
+    logger.error('Handle webhook failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -32,7 +32,7 @@ const sendMessage = async (req, res) => {
     // Send via matrix bot client (external to service)
     res.json({ success: true, data: { sent: true } });
   } catch (error) {
-    logger.error('Send message failed:', error.message);
+    logger.error('Send message failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -42,7 +42,7 @@ const getMessages = async (req, res) => {
     const result = await matrixService.listRoomMessages(req.query.room_id, parseInt(req.query.limit) || 50);
     res.json({ success: true, data: result });
   } catch (error) {
-    logger.error('Get messages failed:', error.message);
+    logger.error('Get messages failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -54,7 +54,7 @@ const processIncomingMessage = async (req, res) => {
     const result = await matrixService.handleIncomingMessage(room_id, user_id, message);
     res.json({ success: true, data: result });
   } catch (error) {
-    logger.error('Process incoming message failed:', error.message);
+    logger.error('Process incoming message failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

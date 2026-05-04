@@ -7,7 +7,7 @@ const register = async (req, res) => {
     const result = await userService.registerUser(username, email, password);
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Register failed:', error.message);
+    logger.error('Register failed: %s', error.message);
     res.status(error.message.includes('already exists') ? 409 : 400).json({ success: false, error: error.message });
   }
 };
@@ -21,7 +21,7 @@ const createUser = async (req, res) => {
     const result = await userService.createUser({ username, email, password, roles: roles || ['user'], isActive: is_active !== undefined ? is_active : true });
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Create user failed:', error.message);
+    logger.error('Create user failed: %s', error.message);
     res.status(error.message.includes('already exists') ? 409 : 400).json({ success: false, error: error.message });
   }
 };
@@ -32,7 +32,7 @@ const login = async (req, res) => {
     const result = await userService.loginUser(username, password);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Login failed:', error.message);
+    logger.error('Login failed: %s', error.message);
     res.status(401).json({ success: false, error: error.message });
   }
 };
@@ -43,7 +43,7 @@ const logout = async (req, res) => {
     await userService.logoutUser(userId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Logout failed:', error.message);
+    logger.error('Logout failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -54,7 +54,7 @@ const getProfile = async (req, res) => {
     const result = await userService.getUserById(userId);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get profile failed:', error.message);
+    logger.error('Get profile failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -65,7 +65,7 @@ const updateProfile = async (req, res) => {
     const result = await userService.updateUser(userId, req.body);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Update profile failed:', error.message);
+    logger.error('Update profile failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -76,7 +76,7 @@ const deleteProfile = async (req, res) => {
     await userService.deleteUser(userId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Delete profile failed:', error.message);
+    logger.error('Delete profile failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -91,7 +91,7 @@ const getAllUsers = async (req, res) => {
     }));
     res.json({ success: true, data: sanitized });
   } catch (error) {
-    logger.error('Get all users failed:', error.message);
+    logger.error('Get all users failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -101,7 +101,7 @@ const getUserById = async (req, res) => {
     const result = await userService.getUserById(req.params.userId);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get user by ID failed:', error.message);
+    logger.error('Get user by ID failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -111,7 +111,7 @@ const updateUser = async (req, res) => {
     const result = await userService.updateUser(req.params.userId, req.body);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Update user failed:', error.message);
+    logger.error('Update user failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -121,7 +121,7 @@ const deleteUser = async (req, res) => {
     await userService.deleteUser(req.params.userId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Delete user failed:', error.message);
+    logger.error('Delete user failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -143,7 +143,7 @@ const updateUserRole = async (req, res) => {
     };
     res.json({ success: true, data: parsedUser });
   } catch (error) {
-    logger.error('Update user role failed:', error.message);
+    logger.error('Update user role failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -155,7 +155,7 @@ const resetUserPassword = async (req, res) => {
     const result = await userService.updateUserPassword(req.params.userId, password);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Reset user password failed:', error.message);
+    logger.error('Reset user password failed: %s', error.message);
     res.status(error.message.includes('not found') ? 404 : 400).json({ success: false, error: error.message });
   }
 };
@@ -168,7 +168,7 @@ const changePasswordSelf = async (req, res) => {
     const result = await userService.changePassword(userId, currentPassword, newPassword);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Change password failed:', error.message);
+    logger.error('Change password failed: %s', error.message);
     res.status(400).json({ success: false, error: error.message });
   }
 };

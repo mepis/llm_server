@@ -9,7 +9,7 @@ const setupDatabase = async () => {
     logger.info('Database tables created successfully');
     return true;
   } catch (error) {
-    logger.error('Database setup failed:', error);
+    logger.error('Database setup failed: %s', error.message);
     throw error;
   }
 };
@@ -21,7 +21,7 @@ const clearDatabase = async () => {
     logger.info('Database cleared successfully');
     return true;
   } catch (error) {
-    logger.error('Database clearing failed:', error);
+    logger.error('Database clearing failed: %s', error.message);
     throw error;
   }
 };

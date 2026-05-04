@@ -24,7 +24,7 @@ const getMemories = async (req, res) => {
     }
     res.json(result);
   } catch (error) {
-    logger.error('Get memories failed:', error.message);
+    logger.error('Get memories failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -34,7 +34,7 @@ const getEpisodic = async (req, res) => {
     const result = await memoryManager.getEpisodicMemories(req.user.user_id, parseInt(req.query.limit) || 10);
     res.json(result);
   } catch (error) {
-    logger.error('Get episodic failed:', error.message);
+    logger.error('Get episodic failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -44,7 +44,7 @@ const getSemantic = async (req, res) => {
     const result = await memoryManager.getSemanticMemories(req.user.user_id, req.query.q || null);
     res.json(result);
   } catch (error) {
-    logger.error('Get semantic failed:', error.message);
+    logger.error('Get semantic failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -54,7 +54,7 @@ const getProcedural = async (req, res) => {
     const result = await memoryManager.getProceduralMemories(req.user.user_id);
     res.json(result);
   } catch (error) {
-    logger.error('Get procedural failed:', error.message);
+    logger.error('Get procedural failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -90,7 +90,7 @@ const extractMemories = async (req, res) => {
 
     res.json({ success: true, data: { episodic_count: episodicCount, semantic_count: semanticCount, procedural_count: proceduralCount } });
   } catch (error) {
-    logger.error('Extract memories failed:', error.message);
+    logger.error('Extract memories failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -100,7 +100,7 @@ const deleteMemory = async (req, res) => {
     const result = await memoryManager.deleteMemory(req.params.id, req.user.user_id);
     res.json(result);
   } catch (error) {
-    logger.error('Delete memory failed:', error.message);
+    logger.error('Delete memory failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(403).json({ success: false, error: error.message });
   }

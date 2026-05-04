@@ -18,7 +18,7 @@ const createSession = async (req, res) => {
     });
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Create session failed:', error.message);
+    logger.error('Create session failed: %s', error.message);
     res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -28,7 +28,7 @@ const getUserSessions = async (req, res) => {
     const result = await chatService.getSessionsByUser(req.user.user_id, { page: parseInt(req.query.page) || 1, limit: parseInt(req.query.limit) || 10 });
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get user sessions failed:', error.message);
+    logger.error('Get user sessions failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -47,7 +47,7 @@ const getSession = async (req, res) => {
 
     res.json({ success: true, data: { ...session, chat_id: session.id, messages, memory, metadata, rag_document_ids: ragDocumentIds } });
   } catch (error) {
-    logger.error('Get session failed:', error.message);
+    logger.error('Get session failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -71,7 +71,7 @@ const updateSession = async (req, res) => {
 
     res.json({ success: true, data: { ...updated, chat_id: updated.id } });
   } catch (error) {
-    logger.error('Update session failed:', error.message);
+    logger.error('Update session failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -85,7 +85,7 @@ const deleteSession = async (req, res) => {
     await chatService.deleteSession(sessionId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Delete session failed:', error.message);
+    logger.error('Delete session failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -100,7 +100,7 @@ const bulkDeleteSessions = async (req, res) => {
     const result = await chatService.deleteSessions(sessionIds, req.user.user_id);
     res.json({ success: true, deleted: result.deleted });
   } catch (error) {
-    logger.error('Bulk delete sessions failed:', error.message);
+    logger.error('Bulk delete sessions failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -117,7 +117,7 @@ const addMessage = async (req, res) => {
     const result = await chatService.addMessageToSession(sessionId, role, content);
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Add message failed:', error.message);
+    logger.error('Add message failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -131,7 +131,7 @@ const getMessages = async (req, res) => {
     const result = await chatService.getMessages(sessionId);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get messages failed:', error.message);
+    logger.error('Get messages failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -211,7 +211,7 @@ const getToolCalls = async (req, res) => {
     const result = await chatService.getToolCalls(sessionId, req.query.messageId);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get tool calls failed:', error.message);
+    logger.error('Get tool calls failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -227,7 +227,7 @@ const getToolCall = async (req, res) => {
 
     res.json({ success: true, data: toolCall });
   } catch (error) {
-    logger.error('Get tool call failed:', error.message);
+    logger.error('Get tool call failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -241,7 +241,7 @@ const clearMessages = async (req, res) => {
     await chatService.clearSessionMessages(sessionId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Clear messages failed:', error.message);
+    logger.error('Clear messages failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -255,7 +255,7 @@ const updateMemory = async (req, res) => {
     const result = await chatService.updateSessionMemory(sessionId, req.body);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Update memory failed:', error.message);
+    logger.error('Update memory failed: %s', error.message);
     res.status(404).json({ success: false, error: error.message });
   }
 };
@@ -266,7 +266,7 @@ const regenerateStaleSubjects = async (req, res) => {
     const result = await chatService.regenerateStaleSubjects(userId);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Regenerate stale subjects failed:', error.message);
+    logger.error('Regenerate stale subjects failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

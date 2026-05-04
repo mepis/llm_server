@@ -4,6 +4,11 @@ All notable changes to the LLM Server application.
 
 ---
 
+## [Unreleased] - 2026-05-03
+
+### Bug Fixes
+- **Fixed**: Winston logger error messages no longer serialize as character-indexed objects (e.g., `{"0":"R","1":"e"...}`) — all 190 call sites across 30 backend files updated from two-argument `logger.error('msg:', error.message)` to splat-compatible `logger.error('msg: %s', error.message)` format, matching the `winston.format.splat()` configuration in `src/backend/utils/logger.js`
+
 ## [Unreleased] - 2026-04-29
 
 ### Document Groups RBAC Migration

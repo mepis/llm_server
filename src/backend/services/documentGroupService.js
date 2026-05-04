@@ -52,7 +52,7 @@ const createGroup = async (userId, name, description = '', roles = ['user']) => 
     if (error.code === 'ER_DUP_ENTRY' || error.message.includes('Duplicate')) {
       throw new Error('A group with this name already exists for your account');
     }
-    logger.error('Create group failed:', error.message);
+    logger.error('Create group failed: %s', error.message);
     throw error;
   }
 };
@@ -98,7 +98,7 @@ const updateGroup = async (groupId, userId, updateData) => {
 
     return { success: true, data: updatedGroup };
   } catch (error) {
-    logger.error('Update group failed:', error.message);
+    logger.error('Update group failed: %s', error.message);
     throw error;
   }
 };
@@ -121,7 +121,7 @@ const deleteGroup = async (groupId, userId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete group failed:', error.message);
+    logger.error('Delete group failed: %s', error.message);
     throw error;
   }
 };
@@ -165,7 +165,7 @@ const transferOwnership = async (groupId, userId, newOwnerId, newOwnerRoles) => 
 
     return { success: true, data: updatedGroup };
   } catch (error) {
-    logger.error('Transfer ownership failed:', error.message);
+    logger.error('Transfer ownership failed: %s', error.message);
     throw error;
   }
 };
@@ -205,7 +205,7 @@ const addDocumentToGroup = async (groupId, userId, documentId) => {
 
     return { success: true, data: group };
   } catch (error) {
-    logger.error('Add document to group failed:', error.message);
+    logger.error('Add document to group failed: %s', error.message);
     throw error;
   }
 };
@@ -234,7 +234,7 @@ const removeDocumentFromGroup = async (groupId, userId, documentId) => {
 
     return { success: true, data: group };
   } catch (error) {
-    logger.error('Remove document from group failed:', error.message);
+    logger.error('Remove document from group failed: %s', error.message);
     throw error;
   }
 };
@@ -277,7 +277,7 @@ const getGroupAccessibleDocuments = async (userId, userRoles) => {
 
     return { success: true, data: result };
   } catch (error) {
-    logger.error('Get accessible documents failed:', error.message);
+    logger.error('Get accessible documents failed: %s', error.message);
     throw error;
   }
 };
@@ -290,7 +290,7 @@ const getUserGroups = async (userRoles) => {
 
     return { success: true, data: groups };
   } catch (error) {
-    logger.error('Get user groups failed:', error.message);
+    logger.error('Get user groups failed: %s', error.message);
     throw error;
   }
 };
@@ -311,7 +311,7 @@ const getGroupDocuments = async (groupId) => {
 
     return { success: true, data: docs };
   } catch (error) {
-    logger.error('Get group documents failed:', error.message);
+    logger.error('Get group documents failed: %s', error.message);
     throw error;
   }
 };

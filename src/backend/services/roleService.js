@@ -26,7 +26,7 @@ const ensureBuiltinRoles = async () => {
       }
     }
   } catch (error) {
-    logger.error('Failed to ensure builtin roles:', error.message);
+    logger.error('Failed to ensure builtin roles: %s', error.message);
   }
 };
 
@@ -35,7 +35,7 @@ const getAllRoles = async () => {
     const roles = await knex().from('roles').orderByRaw('is_builtin ASC, name ASC');
     return { success: true, data: roles };
   } catch (error) {
-    logger.error('Get all roles failed:', error.message);
+    logger.error('Get all roles failed: %s', error.message);
     throw error;
   }
 };
@@ -46,7 +46,7 @@ const getRoleByName = async (name) => {
     if (!role) return null;
     return { success: true, data: role };
   } catch (error) {
-    logger.error('Get role by name failed:', error.message);
+    logger.error('Get role by name failed: %s', error.message);
     throw error;
   }
 };
@@ -76,7 +76,7 @@ const createRole = async (name, description) => {
 
     return { success: true, data: insertedRole };
   } catch (error) {
-    logger.error('Create role failed:', error.message);
+    logger.error('Create role failed: %s', error.message);
     throw error;
   }
 };
@@ -103,7 +103,7 @@ const deleteRole = async (name) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete role failed:', error.message);
+    logger.error('Delete role failed: %s', error.message);
     throw error;
   }
 };
@@ -121,7 +121,7 @@ const cascadeRemoveRoleFromTools = async (roleName) => {
     }
     logger.info(`Removed role "${roleName}" from tools`);
   } catch (error) {
-    logger.error('Cascade remove role from tools failed:', error.message);
+    logger.error('Cascade remove role from tools failed: %s', error.message);
   }
 };
 
@@ -168,7 +168,7 @@ ${data.roles ? `roles: [${data.roles.map(r => `"${r}"`).join(', ')}]
 
     logger.info(`Removed role "${roleName}" from skills`);
   } catch (error) {
-    logger.error('Cascade remove role from skills failed:', error.message);
+    logger.error('Cascade remove role from skills failed: %s', error.message);
   }
 };
 
@@ -187,7 +187,7 @@ const cascadeRemoveRoleFromGroups = async (roleName) => {
     }
     logger.info(`Removed role "${roleName}" from document groups`);
   } catch (error) {
-    logger.error('Cascade remove role from groups failed:', error.message);
+    logger.error('Cascade remove role from groups failed: %s', error.message);
   }
 };
 
@@ -200,7 +200,7 @@ const isValidRole = async (roleName) => {
     const role = await knex().from('roles').where({ name: normalizedName }).first();
     return !!role;
   } catch (error) {
-    logger.error('Validate role failed:', error.message);
+    logger.error('Validate role failed: %s', error.message);
     return false;
   }
 };

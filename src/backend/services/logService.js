@@ -22,7 +22,7 @@ const createLog = async (level, service, message, metadata = {}) => {
 
     return { success: true, data: log };
   } catch (error) {
-    logger.error('Create log failed:', error.message);
+    logger.error('Create log failed: %s', error.message);
     throw error;
   }
 };
@@ -64,7 +64,7 @@ const getLogs = async (options = {}) => {
       },
     };
   } catch (error) {
-    logger.error('Get logs failed:', error.message);
+    logger.error('Get logs failed: %s', error.message);
     throw error;
   }
 };
@@ -83,7 +83,7 @@ const getLogStats = async () => {
 
     return { success: true, data: result };
   } catch (error) {
-    logger.error('Get log stats failed:', error.message);
+    logger.error('Get log stats failed: %s', error.message);
     throw error;
   }
 };
@@ -98,7 +98,7 @@ const getRecentLogs = async (hours = 24, limit = 50) => {
 
     return { success: true, data: logs };
   } catch (error) {
-    logger.error('Get recent logs failed:', error.message);
+    logger.error('Get recent logs failed: %s', error.message);
     throw error;
   }
 };
@@ -110,7 +110,7 @@ const deleteOldLogs = async (days = 30) => {
 
     return { success: true, data: { deletedCount: result } };
   } catch (error) {
-    logger.error('Delete old logs failed:', error.message);
+    logger.error('Delete old logs failed: %s', error.message);
     throw error;
   }
 };
@@ -131,7 +131,7 @@ const getLogsByLevel = async (level, options = {}) => {
       data: { logs, total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   } catch (error) {
-    logger.error('Get logs by level failed:', error.message);
+    logger.error('Get logs by level failed: %s', error.message);
     throw error;
   }
 };
@@ -152,7 +152,7 @@ const getUserLogs = async (userId, options = {}) => {
       data: { logs, total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   } catch (error) {
-    logger.error('Get user logs failed:', error.message);
+    logger.error('Get user logs failed: %s', error.message);
     throw error;
   }
 };
@@ -177,7 +177,7 @@ const getLogsByDateRange = async (startTime, endTime, level = null, options = {}
       data: { logs, total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   } catch (error) {
-    logger.error('Get logs by date range failed:', error.message);
+    logger.error('Get logs by date range failed: %s', error.message);
     throw error;
   }
 };
@@ -200,7 +200,7 @@ const getSystemMonitor = async () => {
       },
     };
   } catch (error) {
-    logger.error('Get system monitor failed:', error.message);
+    logger.error('Get system monitor failed: %s', error.message);
     throw error;
   }
 };

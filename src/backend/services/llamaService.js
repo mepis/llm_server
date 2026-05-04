@@ -39,7 +39,7 @@ const getModels = async () => {
 
     return cachedModels;
   } catch (error) {
-    logger.error('Failed to get models from Llama.cpp:', error.message);
+    logger.error('Failed to get models from Llama.cpp: %s', error.message);
     throw error;
   }
 };
@@ -62,7 +62,7 @@ const getChatCompletions = async (messages, options = {}) => {
 
     return response.data;
   } catch (error) {
-    logger.error('Failed to get chat completions:', error.message);
+    logger.error('Failed to get chat completions: %s', error.message);
     throw error;
   }
 };
@@ -86,7 +86,7 @@ const chatWithTools = async (messages, tools, options = {}) => {
 
     return response.data;
   } catch (error) {
-    logger.error('Failed to get chat completions with tools:', error.message);
+    logger.error('Failed to get chat completions with tools: %s', error.message);
     throw error;
   }
 };
@@ -187,7 +187,7 @@ const getEmbeddings = async (input, model = config.llama.embeddingsModel) => {
 
     return response.data;
   } catch (error) {
-    logger.error('Failed to get embeddings:', error.message);
+    logger.error('Failed to get embeddings: %s', error.message);
     throw error;
   }
 };
@@ -199,7 +199,7 @@ const healthCheck = async () => {
     });
     return response.data;
   } catch (error) {
-    logger.error('Llama.cpp health check failed:', error.message);
+    logger.error('Llama.cpp health check failed: %s', error.message);
     return null;
   }
 };

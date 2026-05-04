@@ -61,7 +61,7 @@ const getHealth = async (req, res) => {
     const [llama, tts, matrix] = await Promise.all([checkLlamaHealth(), checkTTSHealth(), checkMatrixHealth()]);
     res.json({ success: true, data: { llama, tts, matrix } });
   } catch (error) {
-    logger.error('Failed to get health status:', error.message);
+    logger.error('Failed to get health status: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

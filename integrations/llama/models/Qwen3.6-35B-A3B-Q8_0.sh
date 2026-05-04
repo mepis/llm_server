@@ -9,7 +9,7 @@ host=100.110.89.87
 mainGpu=0
 tensorSplit=16,12,12
 splitMode=layer
-threads=20
+threads=8
 
 # Model Configs
 context=131072
@@ -38,7 +38,7 @@ export LLAMA_ARG_FIT_TARGET=512
 export LLAMA_ARG_FIT_CTX=131072
 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 4   --batch-size 1024 --ubatch-size 256  --threads $threads --cpu-strict 1 --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --jinja --presence-penalty 1.0 --repeat-penalty 0.0 --chat-template-kwargs '{"enable_thinking":true}' --reasoning on -fa on 
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 4  --batch-size 256 --ubatch-size 256  --threads $threads --cpu-strict 1 --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --presence-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' -fa on 
 
 # --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5
 

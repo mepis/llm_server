@@ -23,7 +23,7 @@
   },
   "permission": {
     "question": "allow",
-    "webfetch": "deny",
+    "webfetch": "allow",
     "todoread": "allow",
     "todowrite": "allow",
     "skill": {

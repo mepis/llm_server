@@ -7,7 +7,7 @@ const getAllSettings = async (req, res) => {
     const settings = await knex().from('configs').orderBy('category', 'asc').orderBy('key', 'asc');
     res.json({ success: true, data: settings });
   } catch (error) {
-    logger.error('Failed to get all settings:', error.message);
+    logger.error('Failed to get all settings: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -18,7 +18,7 @@ const getSetting = async (req, res) => {
     if (!setting) return res.status(404).json({ success: false, error: 'Setting not found' });
     res.json({ success: true, data: setting });
   } catch (error) {
-    logger.error('Failed to get setting:', error.message);
+    logger.error('Failed to get setting: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -46,7 +46,7 @@ const updateSetting = async (req, res) => {
     logger.info(`Setting updated: ${key}`);
     res.json({ success: true, data: setting || { key, value: String(value) } });
   } catch (error) {
-    logger.error('Failed to update setting:', error.message);
+    logger.error('Failed to update setting: %s', error.message);
     if (error.code === 'ER_DUP_ENTRY' || error.message.includes('Duplicate')) return res.status(409).json({ success: false, error: 'Setting key already exists' });
     res.status(500).json({ success: false, error: error.message });
   }
@@ -74,7 +74,7 @@ const resetToEnvDefaults = async (req, res) => {
     logger.info(`Settings reset from env: ${updated} updated, ${created} created`);
     res.json({ success: true, data: { updated, created } });
   } catch (error) {
-    logger.error('Failed to reset settings:', error.message);
+    logger.error('Failed to reset settings: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

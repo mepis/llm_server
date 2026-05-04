@@ -7,7 +7,7 @@ const listSkills = async (req, res) => {
     const result = await skillService.getAccessibleSkills(userRoles);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('List skills failed:', error.message);
+    logger.error('List skills failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -27,7 +27,7 @@ const getSkill = async (req, res) => {
     }
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get skill failed:', error.message);
+    logger.error('Get skill failed: %s', error.message);
     if (error.message.includes('not found')) {
       return res.status(404).json({ success: false, error: error.message });
     }
@@ -40,7 +40,7 @@ const createSkill = async (req, res) => {
     const result = await skillService.createSkill(req.body);
     res.status(201).json(result);
   } catch (error) {
-    logger.error('Create skill failed:', error.message);
+    logger.error('Create skill failed: %s', error.message);
     res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -50,7 +50,7 @@ const updateSkill = async (req, res) => {
     const result = await skillService.updateSkill(req.params.name, req.body);
     res.json(result);
   } catch (error) {
-    logger.error('Update skill failed:', error.message);
+    logger.error('Update skill failed: %s', error.message);
     if (error.message.includes('not found')) {
       return res.status(404).json({ success: false, error: error.message });
     }
@@ -63,7 +63,7 @@ const deleteSkill = async (req, res) => {
     const result = await skillService.deleteSkill(req.params.name);
     res.json(result);
   } catch (error) {
-    logger.error('Delete skill failed:', error.message);
+    logger.error('Delete skill failed: %s', error.message);
     if (error.message.includes('not found')) {
       return res.status(404).json({ success: false, error: error.message });
     }

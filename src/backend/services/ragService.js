@@ -99,7 +99,7 @@ const uploadDocument = async (userId, fileBuffer, filename, options = {}) => {
 
     return { success: true, data: document };
   } catch (error) {
-    logger.error('Document upload failed:', error.message);
+    logger.error('Document upload failed: %s', error.message);
     throw error;
   }
 };
@@ -160,7 +160,7 @@ const processDocument = async (documentId) => {
 
     return { success: true, data: updatedDoc };
   } catch (error) {
-    logger.error('Document processing failed:', error.message);
+    logger.error('Document processing failed: %s', error.message);
 
     await knex().from('rag_documents')
       .where({ id: documentId })
@@ -256,7 +256,7 @@ const searchDocuments = async (userId, userRoles, query, limit = 10, documentIds
       },
     };
   } catch (error) {
-    logger.error('Document search failed:', error.message);
+    logger.error('Document search failed: %s', error.message);
     throw error;
   }
 };
@@ -279,7 +279,7 @@ const deleteDocument = async (documentId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete document failed:', error.message);
+    logger.error('Delete document failed: %s', error.message);
     throw error;
   }
 };
@@ -292,7 +292,7 @@ const getDocumentsByUser = async (userId) => {
 
     return { success: true, data: documents };
   } catch (error) {
-    logger.error('Get user documents failed:', error.message);
+    logger.error('Get user documents failed: %s', error.message);
     throw error;
   }
 };
@@ -305,7 +305,7 @@ const getDocumentById = async (documentId) => {
 
     return { success: true, data: document };
   } catch (error) {
-    logger.error('Get document failed:', error.message);
+    logger.error('Get document failed: %s', error.message);
     throw error;
   }
 };
@@ -345,7 +345,7 @@ const getChunks = async (documentId, userId, options = {}) => {
       data: { chunks, total, page: parseInt(page), limit: parseInt(limit) },
     };
   } catch (error) {
-    logger.error('Get chunks failed:', error.message);
+    logger.error('Get chunks failed: %s', error.message);
     throw error;
   }
 };
@@ -365,7 +365,7 @@ const updateSettings = async (documentId, userId, settings) => {
 
     return { success: true, data: updatedDoc };
   } catch (error) {
-    logger.error('Update settings failed:', error.message);
+    logger.error('Update settings failed: %s', error.message);
     throw error;
   }
 };

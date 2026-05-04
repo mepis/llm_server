@@ -7,7 +7,7 @@ CURRENT_DIR=$(pwd)
 
 ## QWEN ##
 ##--------
-MODEL=Qwen3-Embedding-4B-Q8_0.sh
+MODEL=Qwen3-Embedding-0.6B-Q8_0.sh
 
 
 ###############################################################

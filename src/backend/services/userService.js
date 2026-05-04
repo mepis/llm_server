@@ -53,7 +53,7 @@ const registerUser = async (username, email, password) => {
       },
     };
   } catch (error) {
-    logger.error('User registration failed:', error.message);
+    logger.error('User registration failed: %s', error.message);
     throw error;
   }
 };
@@ -90,7 +90,7 @@ const createUser = async ({ username, email, password, roles = ['user'], isActiv
 
     return { success: true, data: user };
   } catch (error) {
-    logger.error('Create user failed:', error.message);
+    logger.error('Create user failed: %s', error.message);
     throw error;
   }
 };
@@ -139,7 +139,7 @@ const loginUser = async (username, password) => {
       },
     };
   } catch (error) {
-    logger.error('Login failed:', error.message);
+    logger.error('Login failed: %s', error.message);
     throw error;
   }
 };
@@ -149,7 +149,7 @@ const logoutUser = async (userId) => {
     logger.info(`User logged out: ${userId}`);
     return { success: true };
   } catch (error) {
-    logger.error('Logout failed:', error.message);
+    logger.error('Logout failed: %s', error.message);
     throw error;
   }
 };
@@ -167,7 +167,7 @@ const getUserById = async (userId) => {
 
     return { success: true, data: { ...user, roles, preferences } };
   } catch (error) {
-    logger.error('Get user failed:', error.message);
+    logger.error('Get user failed: %s', error.message);
     throw error;
   }
 };
@@ -213,7 +213,7 @@ const updateUser = async (userId, updateData) => {
       validationErr.status = 400;
       throw validationErr;
     }
-    logger.error('Update user failed:', error.message);
+    logger.error('Update user failed: %s', error.message);
     throw error;
   }
 };
@@ -228,7 +228,7 @@ const deleteUser = async (userId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete user failed:', error.message);
+    logger.error('Delete user failed: %s', error.message);
     throw error;
   }
 };
@@ -255,7 +255,7 @@ const setUserRole = async (userId, role) => {
 
     return { success: true, data: user };
   } catch (error) {
-    logger.error('Set user role failed:', error.message);
+    logger.error('Set user role failed: %s', error.message);
     throw error;
   }
 };
@@ -279,7 +279,7 @@ const removeUserRole = async (userId, role) => {
 
     return { success: true, data: user };
   } catch (error) {
-    logger.error('Remove user role failed:', error.message);
+    logger.error('Remove user role failed: %s', error.message);
     throw error;
   }
 };
@@ -302,7 +302,7 @@ const updateUserPassword = async (userId, newPassword) => {
       data: { username: user.username, email: user.email },
     };
   } catch (error) {
-    logger.error('Update user password failed:', error.message);
+    logger.error('Update user password failed: %s', error.message);
     throw error;
   }
 };
@@ -330,7 +330,7 @@ const changePassword = async (userId, currentPassword, newPassword) => {
       data: { username: user.username, email: user.email },
     };
   } catch (error) {
-    logger.error('Change password failed:', error.message);
+    logger.error('Change password failed: %s', error.message);
     throw error;
   }
 };

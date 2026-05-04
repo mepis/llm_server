@@ -23,7 +23,7 @@ const createTool = async (userId, name, description, parameters, code, isActive,
 
     return { success: true, data: tool };
   } catch (error) {
-    logger.error('Create tool failed:', error.message);
+    logger.error('Create tool failed: %s', error.message);
     throw error;
   }
 };
@@ -37,7 +37,7 @@ const getAccessibleTools = async (userRoles) => {
 
     return { success: true, data: tools };
   } catch (error) {
-    logger.error('Get accessible tools failed:', error.message);
+    logger.error('Get accessible tools failed: %s', error.message);
     throw error;
   }
 };
@@ -55,7 +55,7 @@ const getTool = async (toolId, userRoles) => {
 
     return { success: true, data: tool };
   } catch (error) {
-    logger.error('Get tool failed:', error.message);
+    logger.error('Get tool failed: %s', error.message);
     throw error;
   }
 };
@@ -85,7 +85,7 @@ const updateTool = async (toolId, updates) => {
 
     return { success: true, data: tool };
   } catch (error) {
-    logger.error('Update tool failed:', error.message);
+    logger.error('Update tool failed: %s', error.message);
     throw error;
   }
 };
@@ -102,7 +102,7 @@ const deleteTool = async (toolId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete tool failed:', error.message);
+    logger.error('Delete tool failed: %s', error.message);
     throw error;
   }
 };
@@ -185,7 +185,7 @@ const callTool = async (toolId, userRoles, input) => {
       },
     };
   } catch (error) {
-    logger.error('Call tool failed:', error.message);
+    logger.error('Call tool failed: %s', error.message);
     throw error;
   }
 };

@@ -9,7 +9,7 @@ const createTool = async (req, res) => {
     const result = await toolService.createTool(userId, name, description, parameters, function_code, is_active, roles);
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Create tool failed:', error.message);
+    logger.error('Create tool failed: %s', error.message);
     res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -19,7 +19,7 @@ const getAccessibleTools = async (req, res) => {
     const result = await toolService.getAccessibleTools(req.user.roles || ['user']);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get accessible tools failed:', error.message);
+    logger.error('Get accessible tools failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -29,7 +29,7 @@ const getTool = async (req, res) => {
     const result = await toolService.getTool(req.params.toolId, req.user.roles || ['user']);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get tool failed:', error.message);
+    logger.error('Get tool failed: %s', error.message);
     if (error.message.includes('access denied')) return res.status(403).json({ success: false, error: error.message });
     res.status(404).json({ success: false, error: error.message });
   }
@@ -40,7 +40,7 @@ const updateTool = async (req, res) => {
     const result = await toolService.updateTool(req.params.toolId, req.body);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Update tool failed:', error.message);
+    logger.error('Update tool failed: %s', error.message);
     if (error.message === 'Tool not found') return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -51,7 +51,7 @@ const deleteTool = async (req, res) => {
     await toolService.deleteTool(req.params.toolId);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Delete tool failed:', error.message);
+    logger.error('Delete tool failed: %s', error.message);
     if (error.message === 'Tool not found') return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -62,7 +62,7 @@ const callTool = async (req, res) => {
     const result = await toolService.callTool(req.params.toolId, req.user.roles || ['user'], req.body);
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Call tool failed:', error.message);
+    logger.error('Call tool failed: %s', error.message);
     if (error.message.includes('access denied')) return res.status(403).json({ success: false, error: error.message });
     res.status(404).json({ success: false, error: error.message });
   }

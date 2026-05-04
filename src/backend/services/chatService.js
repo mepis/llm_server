@@ -108,7 +108,7 @@ async function buildUserMemoryContext(userId, query) {
 
     return { memoryContext: '', memorySources: [] };
   } catch (error) {
-    logger.error('Build user memory context failed:', error.message);
+    logger.error('Build user memory context failed: %s', error.message);
     return { memoryContext: '', memorySources: [] };
   }
 }
@@ -152,7 +152,7 @@ async function triggerAutomaticMemoryExtraction(session, userId) {
       logger.error(`Memory extraction failed for session ${session.id}:`, extractError.message);
     }
   } catch (error) {
-    logger.error('Trigger automatic memory extraction failed:', error.message);
+    logger.error('Trigger automatic memory extraction failed: %s', error.message);
   }
 }
 
@@ -163,7 +163,7 @@ async function getMaxToolTurns() {
       return parseInt(config.value) || 10;
     }
   } catch (error) {
-    logger.error('Failed to get MAX_TOOL_TURNS from config:', error.message);
+    logger.error('Failed to get MAX_TOOL_TURNS from config: %s', error.message);
   }
   return 10;
 }
@@ -190,7 +190,7 @@ async function buildSkillsPrompt(userRoles) {
       '</available_skills>',
     ].join('\n');
   } catch (error) {
-    logger.error('Build skills prompt failed:', error.message);
+    logger.error('Build skills prompt failed: %s', error.message);
     return null;
   }
 }
@@ -259,7 +259,7 @@ const createChatSession = async (userId, sessionName, options = {}) => {
 
     return { success: true, data: { ...session, chat_id: session.id, messages, memory, metadata, rag_document_ids: ragDocumentIds } };
   } catch (error) {
-    logger.error('Create chat session failed:', error.message);
+    logger.error('Create chat session failed: %s', error.message);
     throw error;
   }
 };
@@ -275,7 +275,7 @@ const addMessageToSession = async (sessionId, role, content) => {
 
     return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
-    logger.error('Add message failed:', error.message);
+    logger.error('Add message failed: %s', error.message);
     throw error;
   }
 };
@@ -305,7 +305,7 @@ const getMessages = async (sessionId) => {
 
     return { success: true, data: messages };
   } catch (error) {
-    logger.error('Get messages failed:', error.message);
+    logger.error('Get messages failed: %s', error.message);
     throw error;
   }
 };
@@ -463,7 +463,7 @@ const chatWithLLM = async (sessionId, content, options = {}) => {
 
     return { success: true, data: contentText, session, needsMoreTurns: false };
   } catch (error) {
-    logger.error('Chat with LLM failed:', error.message);
+    logger.error('Chat with LLM failed: %s', error.message);
     throw error;
   }
 };
@@ -589,7 +589,7 @@ const runLoop = async (sessionId, content, options = {}) => {
 
     return { success: true, data: finalContent, session };
   } catch (error) {
-    logger.error('Run loop failed:', error.message);
+    logger.error('Run loop failed: %s', error.message);
     throw error;
   }
 };
@@ -621,7 +621,7 @@ async function* streamChatResponse(sessionId, messages, options) {
       model: typeof session.metadata === 'string' ? JSON.parse(session.metadata)?.model || 'llama-3-8b' : (session.metadata?.model || 'llama-3-8b'),
     });
   } catch (error) {
-    logger.error('Streaming chat error:', error.message);
+    logger.error('Streaming chat error: %s', error.message);
     throw error;
   }
 }
@@ -821,7 +821,7 @@ const clearSessionMessages = async (sessionId) => {
 
     return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
-    logger.error('Clear messages failed:', error.message);
+    logger.error('Clear messages failed: %s', error.message);
     throw error;
   }
 };
@@ -837,7 +837,7 @@ const updateSessionMemory = async (sessionId, memoryData) => {
 
     return { success: true, data: { ...updatedSession, chat_id: updatedSession.id } };
   } catch (error) {
-    logger.error('Update session memory failed:', error.message);
+    logger.error('Update session memory failed: %s', error.message);
     throw error;
   }
 };
@@ -876,7 +876,7 @@ const getSessionsByUser = async (userId, options = {}) => {
 
     return { success: true, data: { sessions: result, total, page, limit, totalPages: Math.ceil(total / limit) } };
   } catch (error) {
-    logger.error('Get user sessions failed:', error);
+    logger.error('Get user sessions failed: %s', error.message);
     throw error;
   }
 };
@@ -893,7 +893,7 @@ const deleteSession = async (sessionId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete session failed:', error.message);
+    logger.error('Delete session failed: %s', error.message);
     throw error;
   }
 };
@@ -919,7 +919,7 @@ const deleteSessions = async (sessionIds, userId) => {
     logger.info(`Bulk deleted ${userOwned.length} sessions for user ${userId}`);
     return { success: true, deleted: userOwned.length };
   } catch (error) {
-    logger.error('Delete sessions failed:', error.message);
+    logger.error('Delete sessions failed: %s', error.message);
     throw error;
   }
 };
@@ -938,7 +938,7 @@ const generateSessionSubject = (messages) => {
     const trimmed = firstUserMsg.substring(0, 57).replace(/\s+\S*$/, '') + '...';
     return trimmed;
   } catch (error) {
-    logger.error('Generate session subject failed:', error.message);
+    logger.error('Generate session subject failed: %s', error.message);
     return null;
   }
 };
@@ -952,7 +952,7 @@ const getToolCalls = async (sessionId, messageId) => {
 
     return { success: true, data: toolCalls };
   } catch (error) {
-    logger.error('Get tool calls failed:', error.message);
+    logger.error('Get tool calls failed: %s', error.message);
     throw error;
   }
 };
@@ -983,7 +983,7 @@ const regenerateStaleSubjects = async (userId) => {
 
     return { success: true, data: { updated } };
   } catch (error) {
-    logger.error('Regenerate stale subjects failed:', error.message);
+    logger.error('Regenerate stale subjects failed: %s', error.message);
     throw error;
   }
 };

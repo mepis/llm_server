@@ -1,5 +1,5 @@
 #!/bin/bash
-model=Qwen3-Embedding-4B-Q8_0.gguf
+model=Qwen3-Embedding-0.6B-Q8_0.gguf
 
 # Host Configs
 port=11433

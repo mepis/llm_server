@@ -12,7 +12,7 @@ const createGroup = async (req, res) => {
     const result = await documentGroupService.createGroup(userId, name.trim(), description || '', roles || ['user']);
     res.status(201).json(result);
   } catch (error) {
-    logger.error('Create group failed:', error.message);
+    logger.error('Create group failed: %s', error.message);
     res.status(400).json({ success: false, error: error.message });
   }
 };
@@ -22,7 +22,7 @@ const getGroups = async (req, res) => {
     const result = await documentGroupService.getUserGroups(req.user.roles || []);
     res.json(result);
   } catch (error) {
-    logger.error('Get groups failed:', error.message);
+    logger.error('Get groups failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -36,7 +36,7 @@ const getGroup = async (req, res) => {
     const docResult = await documentGroupService.getGroupDocuments(groupId);
     res.json({ success: true, data: { ...foundGroup, documents: docResult.data } });
   } catch (error) {
-    logger.error('Get group failed:', error.message);
+    logger.error('Get group failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -46,7 +46,7 @@ const updateGroup = async (req, res) => {
     const result = await documentGroupService.updateGroup(req.params.id, req.user.user_id, req.body);
     res.json(result);
   } catch (error) {
-    logger.error('Update group failed:', error.message);
+    logger.error('Update group failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -57,7 +57,7 @@ const deleteGroup = async (req, res) => {
     const result = await documentGroupService.deleteGroup(req.params.id, req.user.user_id);
     res.json(result);
   } catch (error) {
-    logger.error('Delete group failed:', error.message);
+    logger.error('Delete group failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(403).json({ success: false, error: error.message });
   }
@@ -70,7 +70,7 @@ const transferOwnership = async (req, res) => {
     const result = await documentGroupService.transferOwnership(req.params.id, req.user.user_id, new_owner_id);
     res.json(result);
   } catch (error) {
-    logger.error('Transfer ownership failed:', error.message);
+    logger.error('Transfer ownership failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -83,7 +83,7 @@ const addDocumentToGroup = async (req, res) => {
     const result = await documentGroupService.addDocumentToGroup(req.params.id, req.user.user_id, document_id);
     res.json(result);
   } catch (error) {
-    logger.error('Add document to group failed:', error.message);
+    logger.error('Add document to group failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -94,7 +94,7 @@ const removeDocumentFromGroup = async (req, res) => {
     const result = await documentGroupService.removeDocumentFromGroup(req.params.id, req.user.user_id, req.params.did);
     res.json(result);
   } catch (error) {
-    logger.error('Remove document from group failed:', error.message);
+    logger.error('Remove document from group failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
@@ -105,7 +105,7 @@ const getAccessibleDocs = async (req, res) => {
     const result = await documentGroupService.getGroupAccessibleDocuments(req.user.user_id, req.user.roles || []);
     res.json(result);
   } catch (error) {
-    logger.error('Get accessible docs failed:', error.message);
+    logger.error('Get accessible docs failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

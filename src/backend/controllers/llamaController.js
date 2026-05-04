@@ -77,7 +77,7 @@ const generateAudio = async (req, res) => {
 
     res.json({ success: true, data: base64Wav });
   } catch (error) {
-    logger.error('TTS generation failed:', error.message);
+    logger.error('TTS generation failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };

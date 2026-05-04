@@ -24,7 +24,7 @@ const createPrompt = async (userId, name, content, type = 'custom', variables = 
 
     return { success: true, data: prompt };
   } catch (error) {
-    logger.error('Create prompt failed:', error.message);
+    logger.error('Create prompt failed: %s', error.message);
     throw error;
   }
 };
@@ -37,7 +37,7 @@ const getUserPrompts = async (userId) => {
 
     return { success: true, data: prompts };
   } catch (error) {
-    logger.error('Get user prompts failed:', error.message);
+    logger.error('Get user prompts failed: %s', error.message);
     throw error;
   }
 };
@@ -54,7 +54,7 @@ const getPrompt = async (promptId, userId) => {
 
     return { success: true, data: prompt };
   } catch (error) {
-    logger.error('Get prompt failed:', error.message);
+    logger.error('Get prompt failed: %s', error.message);
     throw error;
   }
 };
@@ -84,7 +84,7 @@ const updatePrompt = async (promptId, userId, updates) => {
 
     return { success: true, data: prompt };
   } catch (error) {
-    logger.error('Update prompt failed:', error.message);
+    logger.error('Update prompt failed: %s', error.message);
     throw error;
   }
 };
@@ -101,7 +101,7 @@ const deletePrompt = async (promptId, userId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete prompt failed:', error.message);
+    logger.error('Delete prompt failed: %s', error.message);
     throw error;
   }
 };
@@ -142,7 +142,7 @@ const executePrompt = async (userId, options) => {
       },
     };
   } catch (error) {
-    logger.error('Execute prompt failed:', error.message);
+    logger.error('Execute prompt failed: %s', error.message);
     throw error;
   }
 };

@@ -61,7 +61,7 @@ const getPerformance = async (req, res) => {
       performance.error_rate = errors ? ((parseInt(errors.count) || 0) / (parseInt(total.count) || 1)).toFixed(4) : 0;
     }
   } catch (error) {
-    logger.error('Failed to get performance stats:', error);
+    logger.error('Failed to get performance stats: %s', error.message);
   }
 
   res.json({ success: true, data: performance });

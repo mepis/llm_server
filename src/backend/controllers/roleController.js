@@ -6,7 +6,7 @@ const getAllRoles = async (req, res) => {
     const result = await roleService.getAllRoles();
     res.json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Get all roles failed:', error.message);
+    logger.error('Get all roles failed: %s', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -18,7 +18,7 @@ const createRole = async (req, res) => {
     const result = await roleService.createRole(name, description);
     res.status(201).json({ success: true, data: result.data });
   } catch (error) {
-    logger.error('Create role failed:', error.message);
+    logger.error('Create role failed: %s', error.message);
     res.status(error.message.includes('already exists') ? 409 : 400).json({ success: false, error: error.message });
   }
 };
@@ -28,7 +28,7 @@ const deleteRole = async (req, res) => {
     await roleService.deleteRole(req.params.name);
     res.json({ success: true });
   } catch (error) {
-    logger.error('Delete role failed:', error.message);
+    logger.error('Delete role failed: %s', error.message);
     if (error.message.includes('not found')) return res.status(404).json({ success: false, error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }

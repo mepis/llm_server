@@ -93,7 +93,7 @@ const startServer = async () => {
     try {
       await initQdrant();
     } catch (error) {
-      logger.warn('Qdrant initialization failed (RAG features will be unavailable):', error.message);
+      logger.warn('Qdrant initialization failed (RAG features will be unavailable): %s', error.message);
     }
 
     await roleService.ensureBuiltinRoles();
@@ -105,7 +105,7 @@ const startServer = async () => {
       logger.info(`Environment: ${config.env}`);
     });
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    logger.error('Failed to start server: %s', error.message);
     process.exit(1);
   }
 };

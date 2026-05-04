@@ -60,7 +60,7 @@ const extractFromConversation = async (messages) => {
       return extractWithKeywords(userAssistantMessages);
     }
   } catch (error) {
-    logger.error('Extract from conversation failed:', error.message);
+    logger.error('Extract from conversation failed: %s', error.message);
     return { episodic: [], semantic: [], procedural: [] };
   }
 };

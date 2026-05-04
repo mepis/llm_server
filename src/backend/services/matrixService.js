@@ -29,7 +29,7 @@ class MatrixService {
       const fullMessage = { ...message, _id: id };
       return { message: fullMessage, user };
     } catch (error) {
-      logger.error('Handle incoming matrix message failed:', error.message);
+      logger.error('Handle incoming matrix message failed: %s', error.message);
       throw error;
     }
   }
@@ -58,7 +58,7 @@ class MatrixService {
       await this.knex().insert(user).into('users');
       return { ...user, _id: id };
     } catch (error) {
-      logger.error('Auto create matrix user failed:', error.message);
+      logger.error('Auto create matrix user failed: %s', error.message);
       throw error;
     }
   }
@@ -85,7 +85,7 @@ class MatrixService {
 
       return session;
     } catch (error) {
-      logger.error('Create room chat session failed:', error.message);
+      logger.error('Create room chat session failed: %s', error.message);
       throw error;
     }
   }
@@ -114,7 +114,7 @@ class MatrixService {
       await this.knex().insert(response).into('matrix_messages');
       return { ...response, _id: id };
     } catch (error) {
-      logger.error('Send matrix response failed:', error.message);
+      logger.error('Send matrix response failed: %s', error.message);
       throw error;
     }
   }
@@ -126,7 +126,7 @@ class MatrixService {
         .first();
       return user;
     } catch (error) {
-      logger.error('Get user by matrix id failed:', error.message);
+      logger.error('Get user by matrix id failed: %s', error.message);
       throw error;
     }
   }
@@ -140,7 +140,7 @@ class MatrixService {
 
       return messages.map(m => ({ ...m, _id: m.id }));
     } catch (error) {
-      logger.error('List room messages failed:', error.message);
+      logger.error('List room messages failed: %s', error.message);
       throw error;
     }
   }

@@ -30,7 +30,7 @@ const addEpisodicMemory = async (userId, content, sessionId) => {
 
     return { success: true, data: memory };
   } catch (error) {
-    logger.error('Add episodic memory failed:', error.message);
+    logger.error('Add episodic memory failed: %s', error.message);
     throw error;
   }
 };
@@ -75,7 +75,7 @@ const addSemanticMemory = async (userId, content, keywords, embedding) => {
 
     return { success: true, data: memory };
   } catch (error) {
-    logger.error('Add semantic memory failed:', error.message);
+    logger.error('Add semantic memory failed: %s', error.message);
     throw error;
   }
 };
@@ -98,7 +98,7 @@ const addProceduralMemory = async (userId, content, keywords) => {
 
     return { success: true, data: memory };
   } catch (error) {
-    logger.error('Add procedural memory failed:', error.message);
+    logger.error('Add procedural memory failed: %s', error.message);
     throw error;
   }
 };
@@ -141,7 +141,7 @@ const getEpisodicMemories = async (userId, limit = 3) => {
 
     return { success: true, data: memories };
   } catch (error) {
-    logger.error('Get episodic memories failed:', error.message);
+    logger.error('Get episodic memories failed: %s', error.message);
     throw error;
   }
 };
@@ -165,7 +165,7 @@ const getSemanticMemories = async (userId, query) => {
 
     return { success: true, data: memories };
   } catch (error) {
-    logger.error('Get semantic memories failed:', error.message);
+    logger.error('Get semantic memories failed: %s', error.message);
     throw error;
   }
 };
@@ -175,7 +175,7 @@ const getProceduralMemories = async (userId, limit = 10) => {
     const memories = await getProcedural(userId, limit);
     return { success: true, data: memories };
   } catch (error) {
-    logger.error('Get procedural memories failed:', error.message);
+    logger.error('Get procedural memories failed: %s', error.message);
     throw error;
   }
 };
@@ -238,7 +238,7 @@ const getAllMemoriesForContext = async (userId, query) => {
       },
     };
   } catch (error) {
-    logger.error('Get all memories for context failed:', error.message);
+    logger.error('Get all memories for context failed: %s', error.message);
     throw error;
   }
 };
@@ -261,7 +261,7 @@ const deleteMemory = async (memoryId, userId) => {
 
     return { success: true };
   } catch (error) {
-    logger.error('Delete memory failed:', error.message);
+    logger.error('Delete memory failed: %s', error.message);
     throw error;
   }
 };
@@ -297,7 +297,7 @@ const consolidateSemantic = async (userId) => {
 
     return { success: true, data: { merged: toDelete.length } };
   } catch (error) {
-    logger.error('Consolidate semantics failed:', error.message);
+    logger.error('Consolidate semantics failed: %s', error.message);
     throw error;
   }
 };

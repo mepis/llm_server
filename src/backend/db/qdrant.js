@@ -70,7 +70,7 @@ const initQdrant = async () => {
 
     return client;
   } catch (error) {
-    logger.error('Qdrant initialization failed:', error.message);
+    logger.error('Qdrant initialization failed: %s', error.message);
     throw error;
   }
 };
