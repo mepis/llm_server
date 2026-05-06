@@ -53,6 +53,7 @@ Create documentation for this project. Do not stop to ask questions. Keep workin
 ### Technical Requirements
 
 - Create documentation in the root of this repository in a folder called 'docs'
+  -- If instructed to save to library, create documentation in the root of this repository in a folder called 'library' if the folder exists. If the 'ibrary' folder does not exist, inform the user, and ignore this request.
   -- If documenation already exists, update it per the standards outline in these instruction
 - Use Markdown
 - Organize documentation pages in a folder tree structure

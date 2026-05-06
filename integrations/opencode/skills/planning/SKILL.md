@@ -27,11 +27,12 @@ Create a detailed implementation plan for the user's request. Once completed, re
 
 # Tools
 
-- Use the mcp-playwright tool to browse the internet.
+- Use the playwright-cli to browse the internet.
   -- Use online sources for research
   -- Use Duck Duck Go, Bing, and other search engines to find data and information
   -- Prioritize authoriatize sources
   -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
+- If the project contains a folder (or symlink) called 'library', check it for relevant documentation before planning begins.
 
 # Instructions
 
