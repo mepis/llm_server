@@ -62,7 +62,7 @@ if [ "$choice" == "y" ]; then
   
   #  -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
 
-  cmake --build build --config Release -j 8 --clean-first  
+  cmake --build build --config Release -j 14 --clean-first  
 
 fi
 
