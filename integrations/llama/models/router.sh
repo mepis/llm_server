@@ -34,6 +34,6 @@ export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
 # export LLAMA_ARG_FIT_CTX=131072
 
-./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 300 --port $port --host $host -c $context -ngl 999  --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --parallel 2  --batch-size 1024 --ubatch-size 256 --chat-template-kwargs '{"enable_thinking":true}' --flash-attn on --reasoning on --repeat-penalty 1.0 --presence-penalty 1.0 --cache-prompt --rope-scaling yarn ---rope-scale 2.0 -mirostat 2 
+./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 300 --port $port --host $host -c $context -ngl 999  --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --parallel 2  --batch-size 1024 --ubatch-size 256 --chat-template-kwargs '{"enable_thinking":true}' --flash-attn on --reasoning on --repeat-penalty 1.0 --presence-penalty 1.0 --cache-prompt --rope-scaling yarn --rope-scale 2.0 -mirostat 2 
 
 # --repeat-penalty 1.0 --presence-penalty 1.5 (1.0 - 1.5)  Use if looping is a problem --cache-type-k q8_0 --cache-type-v q8_0 --kv-unified --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu--cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8  --threads $threads --cpu-strict 1 
