@@ -9,7 +9,7 @@ splitMode=layer
 threads=8
 
 # Model Configs
-context=524288
+context=262144
 temp=0.6
 topP=0.95
 minP=0.00
@@ -32,7 +32,7 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=131072
+# export LLAMA_ARG_FIT_CTX=131072
 
 ./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 300 --port $port --host $host -c $context -ngl 999  --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --parallel 2  --batch-size 1024 --ubatch-size 256 --chat-template-kwargs '{"enable_thinking":true}' --flash-attn on --reasoning on --repeat-penalty 1.0 --presence-penalty 1.0 --cache-prompt --rope-scaling yarn ---rope-scale 2 -mirostat 2 
 
