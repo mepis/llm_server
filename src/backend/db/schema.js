@@ -115,7 +115,7 @@ async function createTables(knex) {
     tool_name VARCHAR(255) NOT NULL,
     input JSON NOT NULL,
     state ENUM('pending','running','completed','error') DEFAULT 'pending',
-    output TEXT DEFAULT '',
+    output TEXT,
     error TEXT,
     title VARCHAR(255),
     metadata JSON DEFAULT '{}',
@@ -170,7 +170,7 @@ async function createTables(knex) {
   await knex.raw(`CREATE TABLE IF NOT EXISTS configs (
     id VARCHAR(36) PRIMARY KEY,
     \`key\` VARCHAR(255) NOT NULL UNIQUE,
-    value TEXT DEFAULT '',
+    value TEXT,
     category ENUM('server','database','auth','llama','tts','matrix','session','logging') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
