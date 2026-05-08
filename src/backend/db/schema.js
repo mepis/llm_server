@@ -7,7 +7,7 @@ async function createTables(knex) {
   await knex.raw(`CREATE TABLE IF NOT EXISTS roles (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT DEFAULT '',
+    description TEXT,
     is_builtin BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
