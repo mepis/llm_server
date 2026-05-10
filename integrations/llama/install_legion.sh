@@ -3,7 +3,7 @@
 # User Defined
 # MODEL=router_legion.sh
 
-MODEL=NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-MXFP4_MOE.sh
+MODEL=router_legion.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
