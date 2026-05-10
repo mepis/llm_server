@@ -76,13 +76,13 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Legion",
       "options": {
-        "baseURL": "http://100.103.210.3:11434/v1"
+        "baseURL": "http://100.105.3.99:11434/v1"
       },
       "models": {
         "Qwen3.6-9B": {
-          "name": "Qwen3.6-9B",
+          "name": "NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-MXFP4_MOE",
           "limit": {
-            "context": 131072,
+            "context": 65536,
             "output": 32768
           }
         }

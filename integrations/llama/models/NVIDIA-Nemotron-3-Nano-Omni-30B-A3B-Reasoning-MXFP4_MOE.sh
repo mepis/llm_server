@@ -3,7 +3,7 @@ MODEL=NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-MXFP4_MOE.gguf
 
 # Host Configs
 PORT=11434
-HOST=100.115.205.84
+HOST=100.105.3.99
 
 # Hardware Configs
 THREADS=8
