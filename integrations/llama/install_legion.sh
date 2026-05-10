@@ -7,7 +7,7 @@ MODEL=NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-MXFP4_MOE.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
+export PATH=/opt/intel/oneapi/2025.2/bin:/opt/intel/oneapi/compiler/latest/lib/${PATH:+:${PATH}}
 source /opt/intel/oneapi/setvars.sh
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 export CUDACXX=$(which nvcc)
