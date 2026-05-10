@@ -3,13 +3,14 @@
 # User Defined
 # MODEL=router_legion.sh
 
-# MODEL=Qwen3.5-9b-Sushi-Coder-RL.Q6_K.sh
-MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
+MODEL=NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-MXFP4_MOE.sh
 # -----------------------
 
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-# export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
-# export CUDACXX=$(which nvcc)
+export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
+source /opt/intel/oneapi/setvars.sh
+export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+export CUDACXX=$(which nvcc)
 CURRENT_DIR=$(pwd)
 
 rm run.sh
@@ -39,7 +40,7 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on
+  cmake -B build -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_NATIVE=on -DGGML_CUDA=on -DLLAMA_CURL=ON -DGGML_CUDA_FA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
 
   cmake --build build --config Release -j 6 --clean-first  
 
