@@ -45,7 +45,7 @@ source /opt/intel/oneapi/setvars.sh
 # export LLAMA_ARG_FIT=on
 # export LLAMA_ARG_FIT_TARGET=512
 
-./llama-server -hf unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-GGUF:MXFP4_MOE --alias "unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning" --port $PORT --host $HOST -c $CONTEXT -ngl $LAYERS --temp $TEMP --top-p $TOP_P --cont-batching --min-p $MIN_P --kv-unified  --parallel $PARALLEL  --batch-size $BATCH --ubatch-size $UBATCH --threads $THREADS --cpu-strict $CPU_STRICT --cpu-range $CPU_RANGE --cpu-strict-batch $CPU_STRICT --threads-batch $THREADS --presence-penalty $PRESENCE_PENALTY --reasoning $REASONING -fa $FA  --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE
+./llama-server -hf unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-GGUF:MXFP4_MOE --alias "unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning" --port $PORT --host $HOST -c $CONTEXT -ngl $LAYERS --temp $TEMP --top-p $TOP_P --cont-batching --min-p $MIN_P --kv-unified  --parallel $PARALLEL  --batch-size $BATCH --ubatch-size $UBATCH --threads $THREADS --cpu-strict $CPU_STRICT --cpu-range $CPU_RANGE --cpu-strict-batch $CPU_STRICT --threads-batch $THREADS --presence-penalty $PRESENCE_PENALTY --reasoning $REASONING -fa $FA  --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE --n-cpu-moe 10
 
 llama-server -hf unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-GGUF:MXFP4_MOE
 
