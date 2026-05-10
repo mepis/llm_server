@@ -44,6 +44,8 @@ source /opt/intel/oneapi/setvars.sh
 # export LLAMA_ARG_FIT=on
 # export LLAMA_ARG_FIT_TARGET=512
 
-./llama-server --model $MODEL_DIR/$MODEL --mmproj $MODEL_DIR/$MODEL --alias $MODEL --port $PORT --host $HOST -c $CONTEXT -ngl 20 --temp $TEMP --top-p $TOP_P --cont-batching --min-p $MIN_P --kv-unified  --parallel $PARALLEL  --batch-size $BATCH --ubatch-size $UBATCH --threads $THREADS --cpu-strict $CPU_STRICT --cpu-range $CPU_RANGE --cpu-strict-batch $CPU_STRICT --threads-batch $THREADS --presence-penalty $PRESENCE_PENALTY --reasoning $REASONING -fa $FA  --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE
+./llama-server -hf unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-GGUF:MXFP4_MOE --alias "unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning" --port $PORT --host $HOST -c $CONTEXT -ngl 20 --temp $TEMP --top-p $TOP_P --cont-batching --min-p $MIN_P --kv-unified  --parallel $PARALLEL  --batch-size $BATCH --ubatch-size $UBATCH --threads $THREADS --cpu-strict $CPU_STRICT --cpu-range $CPU_RANGE --cpu-strict-batch $CPU_STRICT --threads-batch $THREADS --presence-penalty $PRESENCE_PENALTY --reasoning $REASONING -fa $FA  --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE
 
-# --top-k $TOP_K 
+llama-server -hf unsloth/NVIDIA-Nemotron-3-Nano-Omni-30B-A3B-Reasoning-GGUF:MXFP4_MOE
+
+# --top-k $TOP_K  --model $MODEL_DIR/$MODEL --mmproj $MODEL_DIR/$MODEL  --alias $MODEL
