@@ -39,6 +39,6 @@ export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
 # export LLAMA_ARG_FIT_CTX=131072
 
-./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 300 --port $port --host $host -c $context -ngl 999 --cont-batching --parallel 2 --temp $temp --top-p $topP  --min-p $minP --top-k $topK   --batch-size 512 --ubatch-size 256 --kv-unified --chat-template-kwargs '{"enable_thinking":true}' --flash-attn on --reasoning on --cache-prompt --rope-scaling yarn --rope-scale 2.0 --mirostat 2 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --prio 2 --poll 30 --n-cpu-moe 0 --ctx-checkpoints 64
+./llama-server --models-dir $MODEL_DIR --models-autoload --models-max 2 --sleep-idle-seconds 300 --port $port --host $host -c $context -ngl 999 --cont-batching --parallel 2 --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 512 --ubatch-size 256 --kv-unified --chat-template-kwargs '{"enable_thinking":true}' --flash-attn on --reasoning on --cache-prompt --rope-scaling yarn --rope-scale 2.0 --mirostat 2 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --prio 2 --poll 30 --n-cpu-moe 0 --ctx-checkpoints 64
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0
