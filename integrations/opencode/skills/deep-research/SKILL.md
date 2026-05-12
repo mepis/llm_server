@@ -1,7 +1,7 @@
 ---
 name: deep-research
 description: "ALWAYS execute deep, multi-phase, recursive, and highly structured research on a specified topic ($TOPIC). The primary goal is to build a complete knowledge base, culminating in a definitive, formal analysis report."
-allowed-tools: playwright
+allowed-tools: playwright-cli
 roles: ["user"]
 ---
 
@@ -11,11 +11,12 @@ Use this skill when the task demands not just _information retrieval_, but _cogn
 
 ## Tools
 
-- Use the mcp-playwright tool to browse the internet.
+- Use playwright-cli to browse the internet in headed mode.
   -- Use online sources for research
   -- Use Duck Duck Go, Bing, and other search engines to find data and information
   -- Prioritize authoriatize sources
   -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
+  -- Attempt to solve captchas
 
 # Best Practices for AI Assistants: Internet Research
 

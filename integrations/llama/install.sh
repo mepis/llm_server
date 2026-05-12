@@ -1,5 +1,6 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
+export GGML_CUDA_P2P=1
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 # export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
 # source /opt/intel/oneapi/setvars.sh
@@ -9,25 +10,7 @@ CURRENT_DIR=$(pwd)
 # MODELS
 # -----------------
 MODEL=router.sh
-
-## GEMMA ##
-##--------
-# MODEL=gemma-4-26B-A4B.sh
-
-## NEMOTRON ##
-##--------
-# MODEL=Nemotron-3-Nano-30B.sh
-
-## QWEN ##
-##--------
-# MODEL=Qwen3.5-122B-A10B-UD-IQ2_XXS.sh
-# MODEL=Qwen3.5-122B-A10B-MXFP4_MOE.sh
-# MODEL=Qwen3.5-35B-A3B-MXFP4_MOE.sh
-# MODEL=Qwen3.5-27B-IQ4_NL.sh
-# MODEL=Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q4_K_M.sh
-# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-# MODEL=Qwen3.6-35B-A3B-MXFP4_MOE.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
 
 rm run.sh
@@ -38,7 +21,6 @@ $CURRENT_DIR/models/./$MODEL
 
 " >> $CURRENT_DIR/run.sh
 chmod 755 run.sh
-
 
 mkdir $HOME/.llama_cache
 mkdir $HOME/.config/systemd
@@ -58,7 +40,7 @@ if [ "$choice" == "y" ]; then
   rm -r build
   git pull
 
-  cmake -B build -DGGML_CCACHE=on -DGGML_NATIVE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_FA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on 
+  cmake -B build -DGGML_CCACHE=on -DGGML_NATIVE=on -DGGML_LTO=on -DGGML_CUDA=on -DGGML_CUDA_FA=on -DGGML_CUDA_GRAPHS=on -DGGML_CUDA_PEER_MAX_BATCH_SIZE=256 -DGGML_CUDA_FORCE_MMQ=on -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_NCCL=ON
   
   #  -DGGML_CUDA_FA_ALL_QUANTS=on -DGGML_CUDA_FORCE_MMQ=on -DCMAKE_CUDA_ARCHITECTURES="86;120" -DGGML_CUDA_PEER_MAX_BATCH_SIZE=512 -DGGML_CCACHE=on -DGGML_LTO=on -DGGML_CUDA_FORCE_CUBLAS=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=Intel10_64lp -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx
 
