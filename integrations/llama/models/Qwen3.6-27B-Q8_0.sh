@@ -13,7 +13,7 @@ threads=8
 
 # Model Configs
 # common contet size windows: 16384, 32768, 65536, 131072, 262144, 524288
-context=131072
+context=262144
 temp=0.6
 topP=0.95
 minP=0.00
@@ -40,6 +40,6 @@ export LLAMA_ARG_FIT=on
 # export LLAMA_ARG_FIT_TARGET=512
 # export LLAMA_ARG_FIT_CTX=131072
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 512 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1  
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 512 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --rope-scaling yarn --rope-scale 2.0
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0
