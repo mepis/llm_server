@@ -1,9 +1,10 @@
 #!/bin/bash
 model=Qwen3.6-35B-A3B-Q8_0.gguf
+mmproj=qwen3.6-35b-mmproj-f16.gguf
 
 # Host Configs
 port=11434
-host=100.110.89.87
+host=100.88.77.33
 
 # Hardware Configs
 mainGpu=0
@@ -12,7 +13,8 @@ splitMode=layer
 threads=8
 
 # Model Configs
-context=131072
+# common contet size windows: 16384, 32768, 65536, 131072, 262144, 524288
+context=262144
 temp=0.6
 topP=0.95
 minP=0.00
@@ -36,11 +38,8 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=131072
+export LLAMA_ARG_FIT_CTX=262144
 
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 
 
-./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --temp $temp --top-p $topP --cont-batching --min-p $minP --top-k $topK --kv-unified --cache-type-k q8_0 --cache-type-v q8_0 --parallel 4  --batch-size 256 --ubatch-size 256  --threads $threads --cpu-strict 1 --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --presence-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' -fa on 
-
-# --repeat-penalty 1.0 --chat-template-kwargs '{"enable_thinking":true}' --presence-penalty 1.5
-
-# --cache-type-v $V_CACHE_TYPE --cache-type-k $K_CACHE_TYPE
+# --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0 --rope-scaling yarn --rope-scale 2.0

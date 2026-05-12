@@ -46,32 +46,11 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.110.89.87:11434/v1"
+        "baseURL": "http://100.88.77.33:11434/v1"
       },
       "models": {
         "Qwen3.6-35B-A3B-Q8_0": {
           "name": "Qwen3.6-35B-A3B-Q8_0",
-          "limit": {
-            "context": 262144,
-            "output": 65536
-          }
-        },
-        "Qwen3.6-27B-Q8_0": {
-          "name": "Qwen3.6-27B-Q8_0",
-          "limit": {
-            "context": 262144,
-            "output": 65536
-          }
-        },
-        "gemma-4-31B-it-UD-Q4_K_XL": {
-          "name": "gemma-4-31B-it-UD-Q4_K_XL",
-          "limit": {
-            "context": 262144,
-            "output": 65536
-          }
-        },
-        "BugTraceAI-CORE-Ultra-SFT-Q6_K": {
-          "name": "BugTraceAI-CORE-Ultra-SFT-Q6_K",
           "limit": {
             "context": 262144,
             "output": 65536
