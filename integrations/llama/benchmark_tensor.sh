@@ -53,7 +53,7 @@ CPU_STRICT=1
 BATCH_S=256,512,1024,2048,4096,8192
 UBATCH_S=128,256,512,1024,2048
 
-FLASH_ATTENTION=0,1
+FLASH_ATTENTION=1
 
 # valid values: q8_0, q4_0, q4_1, q5_0, q5_1, iq4_nl
 K_CACHE_TYPE=q8_0,q4_0
@@ -92,4 +92,4 @@ cd llama.cpp/build/bin/
 
 # EXTENSIVE TESTS CONFIGS
 #------------------------------------------------
-./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --batch-size $BATCH_S --ubatch-size $UBATCH_S --threads $CPU_THREADS --cpu-strict $CPU_STRICT --verbose
+./llama-bench -m $MODEL_DIR/$MODEL -ngl $LAYER_OFFLOAD --split-mode $SPLIT_MODE --tensor-split $T_SPLIT --main-gpu $MAIN_GPU --batch-size $BATCH_S --ubatch-size $UBATCH_S --threads $CPU_THREADS --cpu-strict $CPU_STRICT --verbose --flash-attn $FLASH_ATTENTION
