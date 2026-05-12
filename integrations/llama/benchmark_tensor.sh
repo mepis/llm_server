@@ -65,7 +65,7 @@ V_CACHE_TYPE=q8_0,q4_0
 #----------------------------
 # llama-bench does not update these automatically while benchmarking. The benchmark must be restarted manually after changing these values
 
-CUDA_LAUNCH_QUEUE_SIZE=4x # Do not over do this, will cause memory issues and crash the system
+# CUDA_LAUNCH_QUEUE_SIZE=4x # Do not over do this, will cause memory issues and crash the system
 CUDA_UNIFIED_MEMORY=1 # set to 0 for single GPU machines
 
 #----------------------------
