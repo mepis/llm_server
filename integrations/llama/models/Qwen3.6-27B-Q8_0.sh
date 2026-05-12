@@ -31,7 +31,7 @@ cd $CURRENT_DIR
 cd llama.cpp/build/bin/
 
 # export LLAMA_ARG_MLOCK=on
-export CUDA_SCALE_LAUNCH_QUEUES=4x 
+# export CUDA_SCALE_LAUNCH_QUEUES=4x 
 export GGML_CUDA_P2P=0
 export LLAMA_CACHE=$MODEL_CACHE
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
