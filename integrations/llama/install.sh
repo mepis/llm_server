@@ -1,6 +1,6 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export GGML_CUDA_P2P=1
+export GGML_CUDA_P2P=0
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 # export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
 # source /opt/intel/oneapi/setvars.sh
