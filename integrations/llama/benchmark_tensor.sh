@@ -62,7 +62,7 @@ CUDA_UNIFIED_MEMORY=1
 #----------------------------
 export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
 export CUDACXX=$(which nvcc)
-export GGML_CUDA_P2P=1
+# export GGML_CUDA_P2P=1
 export CUDA_SCALE_LAUNCH_QUEUES=$CUDA_LAUNCH_QUEUE_SIZE
 export LLAMA_CACHE=$HOME/.llama_cache
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=$CUDA_UNIFIED_MEMORY
