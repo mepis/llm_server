@@ -52,28 +52,28 @@
         "Qwen3.6-35B-A3B-Q8_0": {
           "name": "Qwen3.6-35B-A3B-Q8_0",
           "limit": {
-            "context": 131072,
+            "context": 524288,
             "output": 65536
           }
         },
         "Qwen3.6-27B-Q8_0": {
           "name": "Qwen3.6-27B-Q8_0",
           "limit": {
-            "context": 131072,
+            "context": 524288,
             "output": 65536
           }
         },
         "gemma-4-31B-it-UD-Q4_K_XL": {
           "name": "gemma-4-31B-it-UD-Q4_K_XL",
           "limit": {
-            "context": 131072,
+            "context": 524288,
             "output": 65536
           }
         },
         "BugTraceAI-CORE-Ultra-SFT-Q6_K": {
           "name": "BugTraceAI-CORE-Ultra-SFT-Q6_K",
           "limit": {
-            "context": 131072,
+            "context": 524288,
             "output": 65536
           }
         }
