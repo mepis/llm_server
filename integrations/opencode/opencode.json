@@ -54,6 +54,10 @@
           "limit": {
             "context": 262144,
             "output": 65536
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
           }
         }
       }

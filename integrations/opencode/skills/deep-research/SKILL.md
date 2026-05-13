@@ -9,15 +9,6 @@ roles: ["user"]
 
 Use this skill when the task demands not just _information retrieval_, but _cognitive construction_. Use it for complex whitepapers, comprehensive competitive analyses, or deep technical due diligence.
 
-## Tools
-
-- Use playwright-cli to browse the internet in headed mode.
-  -- Use online sources for research
-  -- Use Duck Duck Go, Bing, and other search engines to find data and information
-  -- Prioritize authoriatize sources
-  -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
-  -- Attempt to solve captchas
-
 # Best Practices for AI Assistants: Internet Research
 
 ## Search & Discovery
@@ -64,7 +55,7 @@ Use this skill when the task demands not just _information retrieval_, but _cogn
 - Flag content that may be algorithmically biased, sponsored, or from unverified sources
 - Recommend verification steps (lateral reading, cross-source comparison) rather than presenting findings as definitive
 
-## 📚 USAGE EXAMPLES
+## USAGE EXAMPLES
 
 ### Starting Fresh Research
 
@@ -107,11 +98,21 @@ Research can span days/weeks. State file ensures:
 - All findings preserved through context compaction
 - Seamless continuation from any interruption point
 
-## 📦 STATE MANAGEMENT
+## Tools
+
+- Playwright-cli is installed globally. Use playwright-cli (in headed mode) to browse the internet.
+  -- Use online sources for research
+  -- Use Duck Duck Go, Bing, and other search engines for research
+  -- Prioritize authoriatize sources
+  -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
+  -- **Always** Attempt to solve captchas
+  -- **Always search for external resources to confirm your knowledge and discover new information**
+
+## STATE MANAGEMENT
 
 ### State File Location
 
-Maintain research state in `./.agents/deep-research/STATE.md`
+Maintain research state in `.agents/deep-research/STATE.md`
 
 ### State File Schema
 
@@ -205,13 +206,13 @@ If research spans multiple sessions:
 3. Continue from where previous session left off
 4. All findings persist across session boundaries
 
-## 🔬 WHAT I DO (Execution Plan)
+## WHAT I DO (Execution Plan)
 
 ALWAYS execute the research using the following mandatory, sequential phases. Proceed to the next phase ONLY when the current phase's stated objectives are 100% met.
 
 **⚡ INITIALIZATION (Before Phase 1)**
 
-1. Check for existing state file at `./.agents/deep-research/STATE.md`
+1. Check for existing state file at `.agents/deep-research/STATE.md`
 2. If state exists and `status` is "active": Display "Resuming research on $TOPIC from {current_phase}" and skip to that phase
 3. If no state or status is "completed": Initialize new state file with topic, timestamp, and `current_phase: "Phase 1"`
 4. Verify today's date to determine relivancy of aged data found during research.
@@ -228,9 +229,10 @@ ALWAYS execute the research using the following mandatory, sequential phases. Pr
 - **Objective:** Systematically explore the 3 most critical sub-topics from Phase 1.
 - **Pre-Check:** Read state file, identify 3 critical sub-topics from Phase 1 findings
 - **Action:** For each of the 3 critical sub-topics:
-  1.  **Define:** Explain the concept thoroughly (approx. 150-200 words, maintaining expert tone).
-  2.  **Trends:** List and briefly describe 3 major current trends/advances.
-  3.  **Example:** Provide 1 concrete, high-quality example (must be verifiable or cited).
+  1.  **Research** Always search the web for external resources and information
+  2.  **Define:** Explain the concept thoroughly (approx. 150-200 words, maintaining expert tone).
+  3.  **Trends:** List and briefly describe 3 major current trends/advances.
+  4.  **Example:** Provide 1 concrete, high-quality example (must be verifiable or cited).
 - **State Update:** Populate "Phase 2: Deep Dive" section with `defined`, `trends_identified`, `example_provided`, and `example_source` for each sub-topic. Set `phase_2_complete: true`
 - **Output Format:** A dedicated section for each sub-topic, clearly titled (e.g., `### Sub-Topic: [Concept Name]`).
 
@@ -245,7 +247,7 @@ ALWAYS execute the research using the following mandatory, sequential phases. Pr
 - **State Update:** Document each gap under "Phase 3: Gap Analysis" with `gap_description`, `follow_up_questions`, set `resolved: true` after research, add `findings`. Set `phase_3_complete: true`
 - **Output Format:** A section titled "Phase 3: Gap Analysis & Expansion," detailing the critique, the gaps, and the new findings.
 
-**🛑 STOPPING CRITERIA (The Guardrail):**
+** STOPPING CRITERIA (The Guardrail):**
 Halt research when Phase 3 is complete AND one of these conditions is met:
 (A) All gaps have been addressed with sufficient depth (no obvious weak spots remain).
 (B) Your self-critique determines that the next logical step will only yield minor, redundant detail (i.e., incremental knowledge vs. breakthrough knowledge).
@@ -257,10 +259,10 @@ Halt research when Phase 3 is complete AND one of these conditions is met:
 3. Create checkpoint copy: `STATE_YYYYMMDD_HHMMSS.md`
 4. Archive original state file for future reference
 
-**✍️ FINAL DELIVERABLE (Report Synthesis):**
+**FINAL DELIVERABLE (Report Synthesis):**
 Once the criteria are met, generate the final report in strict Markdown format:
 
-# 📊 ANALYTICAL REPORT: $TOPIC
+# ANALYTICAL REPORT: $TOPIC
 
 ---
 
