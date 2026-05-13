@@ -2,10 +2,6 @@
 model=Qwen3.6-27B-Q8.gguf
 mmproj=Qwen3.6-27B-mmprog.gguf
 
-#!/bin/bash
-model=Qwen3.6-35B-A3B-Q8_0.gguf
-mmproj=qwen3.6-35b-mmproj-f16.gguf
-
 # Host Configs
 port=11434
 host=100.88.77.33
