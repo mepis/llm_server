@@ -5,7 +5,12 @@
   "autoupdate": true,
   "compaction": {
     "auto": true,
-    "prune": true
+    "prune": true,
+    "reserved": 20000,
+    "tail_turns": 5
+  },
+  "experimental": {
+    "batch_tool": true
   },
   "server": {
     "port": 4096,
@@ -46,7 +51,8 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Betty",
       "options": {
-        "baseURL": "http://100.88.77.33:11434/v1"
+        "baseURL": "http://100.88.77.33:11434/v1",
+        "setCacheKey": true
       },
       "models": {
         "Qwen3.6-35B-A3B-Q8_0": {
