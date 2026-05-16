@@ -10,7 +10,8 @@ CURRENT_DIR=$(pwd)
 # -----------------
 # MODEL=router.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-MODEL=Qwen3.6-27B-Q8_0.sh
+# MODEL=Qwen3.6-27B-Q8_0.sh
+MODEL=Qwen3.6-35B-A3B-Q8_0.sh
 
 rm run.sh
 echo -e "#!/bin/bash

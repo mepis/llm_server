@@ -1,5 +1,6 @@
 #!/bin/bash
-model=Qwen3.6-35B-A3B-Q8_0.gguf
+# model=Qwen3.6-35B-A3B-Q8_0.gguf
+model=Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf
 mmproj=qwen3.6-35b-mmproj-f16.gguf
 
 # Host Configs
@@ -37,9 +38,9 @@ export LLAMA_CACHE=$MODEL_CACHE
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
-export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=262144
+export LLAMA_ARG_FIT_TARGET=256
+export LLAMA_ARG_FIT_CTX=131072
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 1024 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --no-mmap 
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0 --rope-scaling yarn --rope-scale 2.0
