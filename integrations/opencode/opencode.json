@@ -67,6 +67,27 @@
           }
         }
       }
+    },
+    "Legion": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Legion",
+      "options": {
+        "baseURL": "http://100.105.3.99:11434/v1",
+        "setCacheKey": true
+      },
+      "models": {
+        "gemma-4-26B-A4B-it-MXFP4_MOE": {
+          "name": "gemma-4-26B-A4B-it-MXFP4_MOE",
+          "limit": {
+            "context": 65536,
+            "output": 65536
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          }
+        }
+      }
     }
   }
 }
