@@ -8,8 +8,8 @@
 # MODEL CONFIGS
 #----------------------------
 # MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
-MODEL=Qwen3.6-27B-NVFP4-Q4_K_M.gguf
-# MODEL=Qwen3.6-27B-Q8_0.gguf
+# MODEL=Qwen3.6-27B-NVFP4-Q4_K_M.gguf
+MODEL=Qwen3.6-27B-Q8_0.gguf
 # MODEL=Qwen3.6-35B-A3B-Q8_0.gguf
 
 #----------------------------
