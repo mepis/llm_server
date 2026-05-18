@@ -1,10 +1,50 @@
 ---
 name: playwright-cli
-description: Automate browser interactions, test web pages and work with Playwright tests.
+description: Web search and browser automation. Search the web via SearxNG or Bing, extract page content, and automate browser interactions.
 allowed-tools: Bash(playwright-cli:*) Bash(npx:*) Bash(npm:*)
 ---
 
 # Browser Automation with playwright-cli
+
+## Web Search (Quick Start)
+
+Search the web using the helper script (SearxNG preferred, Bing as fallback):
+
+```bash
+# Search with default 10 results (uses SearxNG)
+./scripts/web-search.sh "what is TypeScript" 
+
+# Search with custom number of results
+./scripts/web-search.sh "playwright vs puppeteer" 5
+
+# Explicitly use SearxNG
+./scripts/web-search.sh "Rust programming" 3 searxng
+
+# Fall back to Bing (browser-based)
+./scripts/web-search.sh "Go vs Rust" 5 bing
+```
+
+Or search manually:
+
+```bash
+# SearxNG (fast, clean JSON API - preferred)
+curl -s "http://100.91.131.108/searxng/search?q=your+search+terms&format=json" | jq '.results[:5][] | {title, url, content}'
+
+# Bing search (via playwright; use when SearxNG unavailable)
+playwright-cli open "https://www.bing.com/search?q=your+search+terms"
+playwright-cli snapshot
+
+# Extract results as JSON
+playwright-cli --raw eval "[...document.querySelectorAll('li.b_algo')].map(li => ({title: li.querySelector('h2 a')?.textContent?.trim(), url: li.querySelector('h2 a')?.href}))"
+
+# Get page content after clicking a result
+playwright-cli tab-new "https://example.com/article"
+playwright-cli --raw eval "document.body.innerText"
+
+playwright-cli close
+```
+
+See [references/web-search.md](references/web-search.md) for advanced search patterns.
 
 ## Quick start
 

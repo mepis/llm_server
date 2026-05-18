@@ -1,276 +1,228 @@
 ---
 name: deep-research
-description: "ALWAYS execute deep, multi-phase, recursive, and highly structured research on a specified topic ($TOPIC). The primary goal is to build a complete knowledge base, culminating in a definitive, formal analysis report."
-allowed-tools: playwright-cli
-roles: ["user"]
+description: "Execute deep, multi-phase, structured research on a topic ($TOPIC) using web search and browser automation. Produces a comprehensive analytical report with citations."
+allowed-tools: Bash(playwright-cli:*) Bash(curl:*) Bash(jq:*) Bash(grep:*) Bash(git:*)
 ---
 
-## WHEN TO USE ME
+# Deep Research Skill
 
-Use this skill when the task demands not just _information retrieval_, but _cognitive construction_. Use it for complex whitepapers, comprehensive competitive analyses, or deep technical due diligence.
+Run a 3-phase research workflow on the given topic and produce a formal analytical report with MLA citations (include inline citations).
 
-# Best Practices for AI Assistants: Internet Research
+## WHEN TO USE
 
-## Search & Discovery
+- Comprehensive competitive analyses
+- Technical due diligence on unfamiliar subjects
+- Whitepapers requiring cross-source verification
+- Any task where depth and source triangulation matter more than speed
 
-- Use advanced search operators (site:, filetype:, inurl:, intitle:, exact phrases, date ranges) to narrow results precisely rather than relying on broad keyword queries
-- Combine semantic search with keyword search — use AI tools for intent-based discovery and operators for precision filtering
-- Leverage specialized academic databases (Google Scholar, Semantic Scholar, PubMed) when research involves peer-reviewed literature
+## TOOLS
 
-## Source Evaluation
+Prefer **SearxNG** (fast, JSON, no browser overhead) over browser-based search. Fall back to **Bing via playwright-cli** when needed.
 
-- Apply lateral reading: independently verify source credibility through external searches rather than trusting on-page indicators
-- Check for "container collapse" — sponsored content, blogs, and legitimate news often appear identically in search results
-- Use multiple sources to cross-verify claims rather than relying on a single authoritative-looking page
-- Be aware that AI-generated answers can reproduce historical biases — flag when intersectional or non-Western perspectives may be underrepresented
+### SearxNG (Preferred)
 
-## AI-Assisted Research
+```bash
+# Quick search — returns JSON with title, url, content
+curl -s "http://100.91.131.108/searxng/search?q=QUERY&format=json" | jq '.results[:5][] | {title, url, content}'
 
-- Acknowledge AI tool limitations: 15% of AI tools fail basic fairness thresholds, and performance varies 40%+ between vendors
-- Flag potential "AI as moral cover" risk — users may accept biased AI outputs as objective
-- When using tools like Elicit, Consensus, or Perplexity, note the training data scope and potential representation gaps (non-English sources, underrepresented institutions)
-- Cross-reference AI-generated findings with primary sources whenever possible
+# Filter by category (news, images, etc.)
+curl -s "http://100.91.131.108/searxng/search?q=QUERY&format=json&categories=news" | jq '.results[:3]'
 
-## Knowledge Management
+# Site-specific search
+curl -s "http://100.91.131.108/searxng/search?q=QUERY+site:github.com&format=json" | jq '.results[:3]'
 
-- Organize findings by actionability (PARA: Projects, Areas, Resources, Archives) rather than by subject
-- Maintain source citations alongside all extracted data to enable verification
-- Prefer modular tool ecosystems over monolithic platforms — use specialized tools for their strengths (Zotero for citations, Obsidian for notes, AI tools for discovery)
-- Implement contextual recall by connecting new findings to existing knowledge rather than treating each query in isolation
-
-## Equity & Access Awareness
-
-- Recognize that recommended methods assume baseline internet access; offer alternatives when users face paywall or connectivity barriers
-- Suggest open-access repositories and preprint servers when paywalled content is encountered
-- Acknowledge that 2.2 billion people globally lack internet access — design research workflows that work for low-bandwidth environments when applicable
-
-## Interdisciplinary Flexibility
-
-- Adapt research methodology to the user's context: prioritize reproducibility for academic work, timeliness for journalism, actionability for intelligence/business
-- Bridge gaps between disciplines by providing both nuanced analysis and simplified summaries when users need to translate between academic and practical contexts
-
-## Transparency & Ethics
-
-- Disclose when AI tools were used in the research process and what limitations they may have
-- Flag content that may be algorithmically biased, sponsored, or from unverified sources
-- Recommend verification steps (lateral reading, cross-source comparison) rather than presenting findings as definitive
-
-## USAGE EXAMPLES
-
-### Starting Fresh Research
-
-```
-Research "quantum error correction methods"
+# Use the helper script
+cd /root/git/betty/.pi/skills/playwright-cli && ./scripts/web-search.sh "QUERY" 5 searxng
 ```
 
-Skill initializes new state file, begins Phase 1.
+### Bing via Playwright (Fallback)
 
-### Resuming Interrupted Research
-
-```
-Continue research
-```
-
-Skill reads state file, displays "Resuming research on quantum error correction from Phase 2", continues from checkpoint.
-
-### Checking Progress
-
-```
-What's the research status?
+```bash
+playwright-cli open "https://www.bing.com/search?q=QUERY"
+playwright-cli snapshot
+playwright-cli --raw eval "[...document.querySelectorAll('li.b_algo')].map(li => ({title: li.querySelector('h2 a')?.textContent?.trim(), url: li.querySelector('h2 a')?.href}))"
+playwright-cli close
 ```
 
-Skill reads state file, displays:
+### Best Practices
 
-- Current phase and completion status
-- Sub-topics identified
-- Gaps discovered
-- Next actions required
-
-### Pausing and Resuming Later
-
-State persists automatically. Next session automatically resumes from last phase.
-
-### Cross-Session Research
-
-Research can span days/weeks. State file ensures:
-
-- No duplicate work across sessions
-- All findings preserved through context compaction
-- Seamless continuation from any interruption point
-
-## Tools
-
-- Playwright-cli is installed globally. Use playwright-cli (in headed mode) to browse the internet.
-  -- Use online sources for research
-  -- Use Duck Duck Go, Bing, and other search engines for research
-  -- Prioritize authoriatize sources
-  -- Look for forums dedicated to the topic. Use similar responses from various users to verify validity of information.
-  -- **Always** Attempt to solve captchas
-  -- **Always search for external resources to confirm your knowledge and discover new information**
+- Use advanced operators: `site:`, `filetype:`, `intitle:`, exact phrases, date ranges
+- Cross-verify claims across **3+ independent sources**
+- Prioritize authoritative sources: .edu, .gov, peer-reviewed journals, official documentation, well-regarded industry blogs
+- Check for publication dates — flag stale information for the topic
+- Use lateral reading: verify source credibility independently rather than trusting on-page indicators
+- Flag when AI-generated answers may reproduce historical biases or underrepresented perspectives
 
 ## STATE MANAGEMENT
 
 ### State File Location
 
-Maintain research state in `.agents/deep-research/STATE.md`
+`.agents/deep-research/STATE.md` (create directory on first use)
 
-### State File Schema
+### State Schema
 
 ```markdown
 ---
 topic: "$TOPIC"
-created_at: "YYYY-MM-DD HH:MM:SS"
-last_updated: "YYYY-MM-DD HH:MM:SS"
+created_at: "YYYY-MM-DD HH:MM"
+last_updated: "YYYY-MM-DD HH:MM"
 current_phase: "Phase 1|Phase 2|Phase 3|Complete"
 status: "active|paused|completed"
+stopping_criteria: ""
 ---
 
 ## Phase 1: Foundational Survey
 
-sub_topics_identified:
+sub_topics:
 
-- name: "Sub-topic 1"
-  definition: "One-sentence definition"
-  key_concepts: ["concept1", "concept2", "concept3"]
-- name: "Sub-topic 2"
-  definition: "One-sentence definition"
-  key_concepts: ["concept1", "concept2", "concept3"]
+- name: ""
+  definition: ""
+  key_concepts: [""]
 
 ## Phase 2: Deep Dive
 
-critical_sub_topics:
+deep_dives:
 
-- name: "Sub-topic X"
+- topic: ""
   defined: true|false
-  trends_identified: ["trend1", "trend2", "trend3"]
-  example_provided: true|false
-  example_source: "URL or citation"
+  trends: [""]
+  example: ""
+  example_source: ""
 
 ## Phase 3: Gap Analysis
 
-gaps_identified:
+gaps:
 
-- gap_description: "What is thin/contradictory/unexplored"
-  follow_up_questions:
-  - "Question 1"
-  - "Question 2"
-    resolved: true|false
-    findings: "Integrated findings here"
+- description: ""
+  questions: [""]
+  resolved: true|false
+  findings: ""
 
-## Progress Tracking
-
-phase_1_complete: true|false
-phase_2_complete: true|false
-phase_3_complete: true|false
-stopping_criteria_met: "A|B|Neither"
+phase_1_complete: false
+phase_2_complete: false
+phase_3_complete: false
 ```
 
 ### State Operations
 
-**On Skill Activation (Read State)**
-
-1. Check if state file exists at either location
-2. If exists, load and display current progress
-3. Resume from `current_phase` if `status` is "active"
-4. If no state or status is "completed", initialize new state
-
-**After Each Phase (Update State)**
-
-1. Update `current_phase` to next phase
-2. Populate relevant section with findings
-3. Set phase completion flag to `true`
-4. Update `last_updated` timestamp
-5. Write state file with `synthetic: true` flag for compaction survival
-
-**On Completion (Finalize State)**
-
-1. Set `status` to "completed"
-2. Set `stopping_criteria_met` to "A" or "B"
-3. Archive state file with completion timestamp
-4. Optionally create checkpoint copy: `STATE_YYYYMMDD.md`
-
-### Compaction Survival Strategy
-
-All state updates must use OpenCode's synthetic context injection:
-
-- Mark state file writes with `synthetic: true` to survive context compaction
-- Use `noReply: true` to avoid counting as user input
-- Re-inject critical state at phase boundaries if session is long-running
+| Event            | Action                                                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Skill activated  | Read state file. If `status: "active"`, resume from `current_phase`. Otherwise initialize new state.              |
+| After each phase | Populate section, set completion flag, update timestamp, write file                                               |
+| On completion    | Set `status: "completed"`, record `stopping_criteria` (A or B), create checkpoint copy `STATE_YYYYMMDD_HHMMSS.md` |
 
 ### Cross-Session Continuity
 
-If research spans multiple sessions:
+State persists automatically. On next session start, the skill reads the state file, displays a summary ("Resuming research on $TOPIC from Phase X"), and continues from the checkpoint.
 
-1. At session start, automatically read state file
-2. Display summary: "Resuming research on $TOPIC from Phase X"
-3. Continue from where previous session left off
-4. All findings persist across session boundaries
+## EXECUTION PLAN
 
-## WHAT I DO (Execution Plan)
+Always run phases sequentially. Proceed to the next phase **only** when the current phase's objectives are fully met.
 
-ALWAYS execute the research using the following mandatory, sequential phases. Proceed to the next phase ONLY when the current phase's stated objectives are 100% met.
+### INITIALIZATION
 
-**⚡ INITIALIZATION (Before Phase 1)**
+1. Check for state file at `.agents/deep-research/STATE.md`
+2. If active state exists → resume from `current_phase`
+3. Otherwise → create new state with `current_phase: "Phase 1"`
 
-1. Check for existing state file at `.agents/deep-research/STATE.md`
-2. If state exists and `status` is "active": Display "Resuming research on $TOPIC from {current_phase}" and skip to that phase
-3. If no state or status is "completed": Initialize new state file with topic, timestamp, and `current_phase: "Phase 1"`
-4. Verify today's date to determine relivancy of aged data found during research.
+---
 
-**Phase 1: Foundational Survey & Scoping.**
+### Phase 1: Foundational Survey & Scoping
 
-- **Objective:** Establish terminology, historical context, and current domain landscape for $TOPIC.
-- **Action:** Identify 5-7 primary, distinct sub-topics/angles. For each, provide a one-sentence definition AND list 2-3 key concepts related to it.
-- **State Update:** Write findings to state file under "Phase 1: Foundational Survey", set `phase_1_complete: true`
-- **Output Format:** A bulleted list titled "Phase 1: Foundational Survey of $TOPIC"
+**Objective:** Map the domain landscape — terminology, context, and sub-topics.
 
-**Phase 2: Deep Dive & Synthesis.**
+**Action:**
 
-- **Objective:** Systematically explore the 3 most critical sub-topics from Phase 1.
-- **Pre-Check:** Read state file, identify 3 critical sub-topics from Phase 1 findings
-- **Action:** For each of the 3 critical sub-topics:
-  1.  **Research** Always search the web for external resources and information
-  2.  **Define:** Explain the concept thoroughly (approx. 150-200 words, maintaining expert tone).
-  3.  **Trends:** List and briefly describe 3 major current trends/advances.
-  4.  **Example:** Provide 1 concrete, high-quality example (must be verifiable or cited).
-- **State Update:** Populate "Phase 2: Deep Dive" section with `defined`, `trends_identified`, `example_provided`, and `example_source` for each sub-topic. Set `phase_2_complete: true`
-- **Output Format:** A dedicated section for each sub-topic, clearly titled (e.g., `### Sub-Topic: [Concept Name]`).
+1. Search broadly for the topic using 2-3 different query formulations
+2. Identify **5-7 distinct sub-topics** or angles
+3. For each sub-topic, provide:
+   - One-sentence definition
+   - 2-3 key concepts
 
-**Phase 3: Recursive Gap Analysis & Expansion.**
+**State Update:** Write sub-topics to state, set `phase_1_complete: true`
 
-- **Objective:** Challenge the existing knowledge base and drill down into uncertainty.
-- **Pre-Check:** Read state file, review all findings from Phases 1 & 2
-- **Action:**
-  1.  **Critique:** Review Phases 1 & 2. Articulate 2-3 specific areas where knowledge feels thin, contradictory, or unexplored.
-  2.  **Generate:** For each identified gap, generate 2 highly focused, unanswered follow-up questions.
-  3.  **Recurse:** Research the precise answers to these 6 questions, integrating the findings seamlessly into the existing structure.
-- **State Update:** Document each gap under "Phase 3: Gap Analysis" with `gap_description`, `follow_up_questions`, set `resolved: true` after research, add `findings`. Set `phase_3_complete: true`
-- **Output Format:** A section titled "Phase 3: Gap Analysis & Expansion," detailing the critique, the gaps, and the new findings.
+---
 
-** STOPPING CRITERIA (The Guardrail):**
-Halt research when Phase 3 is complete AND one of these conditions is met:
-(A) All gaps have been addressed with sufficient depth (no obvious weak spots remain).
-(B) Your self-critique determines that the next logical step will only yield minor, redundant detail (i.e., incremental knowledge vs. breakthrough knowledge).
+### Phase 2: Deep Dive & Synthesis
 
-**State Finalization:** Upon meeting stopping criteria:
+**Objective:** Systematically explore the **3 most critical** sub-topics from Phase 1.
 
-1. Set `status: "completed"` and `stopping_criteria_met: "A"` or `"B"`
-2. Update `last_updated` timestamp
-3. Create checkpoint copy: `STATE_YYYYMMDD_HHMMSS.md`
-4. Archive original state file for future reference
+**Action (for each of the 3 sub-topics):**
 
-**FINAL DELIVERABLE (Report Synthesis):**
-Once the criteria are met, generate the final report in strict Markdown format:
+1. Research with 2-3 targeted searches, consulting 2-3 authoritative sources each
+2. **Define** — thorough explanation (150-200 words, expert tone)
+3. **Trends** — list 3 major current trends or advances
+4. **Example** — provide 1 concrete, verifiable example with source citation
 
+**State Update:** Populate deep-dives section, set `phase_2_complete: true`
+
+---
+
+### Phase 3: Recursive Gap Analysis & Expansion
+
+**Objective:** Challenge the knowledge base and resolve remaining uncertainties.
+
+**Action:**
+
+1. **Critique** — identify 2-3 areas where knowledge is thin, contradictory, or unexplored
+2. **Generate** — for each gap, formulate 2 focused follow-up questions
+3. **Research** — search for answers to these questions (up to 6 questions total)
+4. **Integrate** — add findings to the existing structure, mark gaps as resolved
+
+**State Update:** Document gaps with findings, set `phase_3_complete: true`
+
+---
+
+### Stopping Criteria (Guardrail)
+
+Halt when Phase 3 is complete **and** one condition is met:
+
+- **(A)** All gaps addressed — no obvious weak spots remain
+- **(B)** Self-critique determines the next step yields only minor, redundant detail (incremental vs. breakthrough knowledge)
+
+Record which criteria triggered the stop in the state file.
+
+## FINAL DELIVERABLE
+
+Once stopping criteria are met, generate this report:
+
+```markdown
 # ANALYTICAL REPORT: $TOPIC
 
----
+## Executive Summary
 
-**Executive Summary:** (Max 3 paragraphs. Must summarize _the journey_ before summarizing _the findings_.)
-**Methodology:** (Detail the 3-phase process, noting the stopping criteria used.)
-**Detailed Findings:** (A consolidated, structured presentation of all data from Phases 1, 2, & 3—this is the bulk of the content.)
-**Conclusion:** (A definitive, high-impact statement answering the core need for $TOPIC.)
-**Future Work & Recommendations:** (Propose 3 actionable, concrete next steps for a human researcher.)
-**Citations** (Provide MLA formatted citations for all sources)
+(Max 3 paragraphs. Summarize the research journey, then the findings.)
 
----
+## Methodology
+
+(Describe the 3-phase process and which stopping criteria applied.)
+
+## Detailed Findings
+
+(Consolidated structure from Phases 1, 2, and 3 — this is the core content.)
+
+## Conclusion
+
+(A definitive statement answering the core research question.)
+
+## Future Work & Recommendations
+
+(3 actionable next steps for a human researcher.)
+
+## Citations
+
+(MLA-formatted citations for all sources referenced.)
+```
+
+## USAGE EXAMPLES
+
+```
+Research "quantum error correction methods"
+→ Skill initializes state, begins Phase 1
+
+Continue research
+→ Skill reads state, resumes from last phase
+
+What's the research status?
+→ Skill reads state, displays phase progress, gaps, and next actions
+```
