@@ -1,61 +1,66 @@
 ---
-name: documentation-writer
-description: Create application documentation
-license: MIT
-compatibility: opencode
+name: project-docs
+description: Creates comprehensive, developer-focused documentation for projects. Generates documentation pages with diagrams, indexes, QA examples, and architecture deep-dives. Use when creating or updating project documentation.
 ---
 
-## What I do
+# Project Documentation Creator
 
-- Create documentation for application developers
-- Create concise and detailed documentation pages that LLMs can easily understand
+Create thorough, developer-focused documentation for this project. Do not stop to ask questions — keep working until all documentation is complete. After creating all pages, verify each one for correctness.
 
-## When to use me
+## Output Location
 
-Use this when creating documentation.
+- Default: `<repo-root>/docs/`
+- Library (if `library/` folder exists): `<repo-root>/library/` — if `library/` does not exist, inform the user and skip this request.
+- If documentation already exists, update it to match these standards.
 
-## Instructions
+## Page Requirements
 
-Create documentation for this project. Do not stop to ask questions. Keep working until all documentation is created. After all documentation is created, check each page to ensure the documentation page is correct.
+### Per Function / Feature
 
-### State Management
+- Each function gets its own documentation page.
+- Each feature gets its own documentation page.
 
-- Skills must be designed to interact with the persistent context or session state.
-- **Context Injection**: Utilize OpenAI/OpenCode plugins, such as a CompactionPlugin, to inject relevant state (e.g., 'User Profile', 'Current Task Status') directly into the prompt before execution.
-- **Session Lifecycle**: State persists across tool calls via the Session mechanism; skills implicitly use this via the active session ID.
-- **Guidance**: Always design your skill to either RETURN a new state object or ACCEPT state data as an input parameter for execution.
+### Index Pages
 
-**Target audience:** Developers, technical engineers
+1. **Main index** (`docs/index.md` or `library/index.md`)
+   - Links to every documentation page.
+   - Each entry includes a concise summary of the linked page.
 
-## Requirements
+2. **Tag index** (`docs/tags.md` or `library/tags.md`)
+   - Organized by categories.
+   - Maps tags to their documentation pages.
 
-### Feature Requirements
+### QA Pages
 
-- Each function requires an independant documentation page
-- Each feature requires an independant documentation page
-- Create an index file with links to each documentation page
-  -- Every index entry should include a concise summary of the documentation page the entry links to
-- Create a second index file that links tags to documentation pages
-  -- Organized the second index by categories
-- Include QA pages with practical examples
-- Include a page with technical information
+- Create QA pages with practical, runnable examples demonstrating real-world usage.
 
-### Content Requirements
+### Architecture
 
-- Documentation pages must include charts that describe schemas, application flow, etc.
-- Include tags in each document page
-  -- Use feature-based and user-based tags
-- Use concise langauge, avoid jargon
-- Avoid Ambiguity: Ensure that critical information is repeated where necessary
-- Create relevant links to other documentation pages in each page
-- Include an architecture deep-dive
+- Include an architecture deep-dive page covering system design, data flow, and component relationships.
 
-### Technical Requirements
+## Content Standards
 
-- Create documentation in the root of this repository in a folder called 'docs'
-  -- If instructed to save to library, create documentation in the root of this repository in a folder called 'library' if the folder exists. If the 'ibrary' folder does not exist, inform the user, and ignore this request.
-  -- If documenation already exists, update it per the standards outline in these instruction
-- Use Markdown
-- Organize documentation pages in a folder tree structure
-- Use Markdown-native diagrams. Reference this web page for instructions if needed: https://www.markdownlang.com/advanced/diagrams.html
-- Use Wiki style links
+- **Diagrams**: Include charts describing schemas, application flow, and component relationships. Use Markdown-native diagrams (e.g., Mermaid).
+- **Tags**: Every page must include tags — use both feature-based and user-based tags.
+- **Language**: Concise, jargon-free. Avoid ambiguity. Repeat critical information where helpful.
+- **Cross-links**: Create relevant wiki-style links between related documentation pages.
+- **Target audience**: Developers and technical engineers.
+
+## Technical Standards
+
+- Format: Markdown (`.md`)
+- Diagrams: Markdown-native (see [Markdown Diagrams](https://www.markdownlang.com/advanced/diagrams.html))
+- Links: Wiki-style (`[[page-name]]`)
+- Structure: Organized folder tree reflecting the project's module/feature hierarchy.
+
+## Workflow
+
+1. Analyze the project source code and structure.
+2. Identify all functions, features, and architectural components.
+3. Create the folder tree under `docs/` (or `library/` if applicable).
+4. Create individual pages for each function and feature.
+5. Create the main index with summaries.
+6. Create the tag index organized by categories.
+7. Create QA pages with practical examples.
+8. Create the architecture deep-dive.
+9. Review every page for accuracy, completeness, and correct cross-references.
