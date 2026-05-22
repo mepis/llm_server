@@ -4,7 +4,7 @@ sudo npx playwright install-deps
 sudo npx playwright install
 
 sudo mkdir -p /opt/google/chrome
-sudo ln -sf /home/jon/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome /opt/google/chrome/chrome
+sudo ln -sf /home/jon/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome /opt/google/chrome/chrome
 
 
 ## If using ubuntu 26 and playwright isn't working, run these commands below. Then rerun the ones above. 
