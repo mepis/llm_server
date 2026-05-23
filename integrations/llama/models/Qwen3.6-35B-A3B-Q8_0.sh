@@ -42,6 +42,7 @@ export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=262144
+export GGML_CUDA_P2P=on
 
 ./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --no-mmap 
 
