@@ -1,7 +1,7 @@
 #!/bin/bash
 # model=Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
-# model=Qwen3.6-35B-A3B-Q8_0.gguf.1 # mtp model
-model=Qwen3.6-35B-A3B-Q8_0.gguf
+model=Qwen3.6-35B-A3B-Q8_0.gguf.1 # mtp model
+# model=Qwen3.6-35B-A3B-Q8_0.gguf
 # model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # model=Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf
 # mmproj=qwen3.6-35b-mmproj-f16.gguf
@@ -41,10 +41,10 @@ export LLAMA_CACHE=$MODEL_CACHE
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
-# export LLAMA_ARG_FIT_TARGET=256
+export LLAMA_ARG_FIT_TARGET=1024
 # export LLAMA_ARG_FIT_CTX=262144
 # export GGML_CUDA_P2P=on
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --no-mmap --rope-scaling yarn --rope-scale 2.0 --presence-penalty 0.0 --repeat-penalty 1.0 --jinja
+./llama-server -m $MODEL_DIR/$model --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --cache-prompt --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --no-mmap --rope-scaling yarn --rope-scale 2.0 --presence-penalty 0.0 --repeat-penalty 1.0 --jinja --spec-type draft-mtp --spec-draft-n-max 3
 
-# --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0 --rope-scaling yarn --rope-scale 2.0
+# --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --mmproj $MODEL_DIR/$mmproj
