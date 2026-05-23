@@ -1,6 +1,6 @@
 #!/bin/bash
-model=Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
-# model=Qwen3.6-35B-A3B-Q8_0.gguf # mtp model
+# model=Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
+model=Qwen3.6-35B-A3B-Q8_0.gguf.1 # mtp model
 # model=Qwen3.6-35B-A3B-Q8_0.gguf
 # model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # model=Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf
