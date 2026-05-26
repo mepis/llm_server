@@ -15,7 +15,7 @@ threads=8
 
 # Model Configs
 # common contet size windows: 16384, 32768, 65536, 131072, 262144, 524288
-context=524288
+context=131072
 temp=0.6
 topP=0.95
 minP=0.00
