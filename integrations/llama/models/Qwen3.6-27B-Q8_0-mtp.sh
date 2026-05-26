@@ -42,6 +42,6 @@ export LLAMA_ARG_FIT_TARGET=256
 export LLAMA_ARG_FIT_CTX=131072
 export GGML_CUDA_P2P=on
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --spec-type draft-mtp --spec-draft-n-max 3 --repeat-penalty 1.0 --rope-scaling yarn --rope-scale 2.0 
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --kv-unified --flash-attn on --reasoning on --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --spec-type draft-mtp --spec-draft-n-max 3 --repeat-penalty 1.0 --rope-scaling yarn --rope-scale 2.0 --cache-type-k $K_CACHE_TYPE --cache-type-v $V_CACHE_TYPE
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0 --rope-scaling yarn --rope-scale 2.0 --cache-prompt
