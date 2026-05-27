@@ -1,6 +1,7 @@
 #!/bin/bash
 # model=Qwen3.6-27B-Q8.gguf
-model=Qwen3.6-27B-Q8_0.gguf
+# model=Qwen3.6-27B-Q8_0.gguf
+model=Qwen3.6-27B-UD-Q6_K_XL.gguf
 mmproj=Qwen3.6-27B-mmprog.gguf
 
 # Host Configs
