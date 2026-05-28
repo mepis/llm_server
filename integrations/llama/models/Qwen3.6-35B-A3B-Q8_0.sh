@@ -18,7 +18,7 @@ threads=8
 
 # Model Configs
 # common contet size windows: 16384, 32768, 65536, 131072, 262144, 524288
-context=262144
+context=131072
 temp=0.7
 topP=0.95
 minP=0.00
@@ -42,7 +42,7 @@ export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 export LLAMA_ARG_FIT_TARGET=256
-export LLAMA_ARG_FIT_CTX=65536
+export LLAMA_ARG_FIT_CTX=131072
 # export GGML_CUDA_P2P=on
 
 ./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 256 --ubatch-size 256 --flash-attn on --reasoning on --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --spec-type draft-mtp --spec-draft-n-max 3  --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 1.1
