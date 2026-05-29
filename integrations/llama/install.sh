@@ -1,6 +1,6 @@
 #!/bin/bash
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
-export PATH=/usr/local/cuda-13.2/bin${PATH:+:${PATH}}
+export PATH=/usr/local/cuda-13.3/bin${PATH:+:${PATH}}
 # export PATH=/opt/intel/oneapi/2025.2/bin${PATH:+:${PATH}}
 # source /opt/intel/oneapi/setvars.sh
 
@@ -11,8 +11,8 @@ CURRENT_DIR=$(pwd)
 # MODEL=router.sh
 # MODEL=Qwen3.6-35B-A3B-Q8_0.sh
 # MODEL=Qwen3.6-27B-Q8_0.sh
-# MODEL=Qwen3.6-35B-A3B-Q8_0.sh
-MODEL=Qwen3.6-27B-Q8_0-mtp.sh
+MODEL=Qwen3.6-35B-A3B-Q8_0.sh
+# MODEL=Qwen3.6-27B-Q8_0-mtp.sh
 
 rm run.sh
 echo -e "#!/bin/bash
