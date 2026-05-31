@@ -1,7 +1,7 @@
 #!/bin/bash
 # model=Qwen3.6-27B-Q8.gguf
-# model=Qwen3.6-27B-Q8_0.gguf
-model=Qwen3.6-27B-UD-Q6_K_XL.gguf
+model=Qwen3.6-27B-Q8_0.gguf
+# model=Qwen3.6-27B-UD-Q6_K_XL.gguf
 mmproj=Qwen3.6-27B-mmprog.gguf
 
 # Host Configs
@@ -39,10 +39,10 @@ export LLAMA_CACHE=$MODEL_CACHE
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
-export LLAMA_ARG_FIT_TARGET=512
-export LLAMA_ARG_FIT_CTX=131072
-export GGML_CUDA_P2P=on
+# export LLAMA_ARG_FIT_TARGET=512
+# export LLAMA_ARG_FIT_CTX=131072
+# export GGML_CUDA_P2P=on
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 1024 --ubatch-size 256 --flash-attn 1 --reasoning 1 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1 --spec-type draft-mtp --spec-draft-n-max 3 --jinja  --rope-scaling yarn --rope-scale 2.0 --cache-type-k q8_0 --cache-type-v q8_0 -e --cache-reuse 512
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 1024 --ubatch-size 256 --flash-attn 1 --reasoning 1 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --spec-type draft-mtp --spec-draft-n-max 3 -e --cache-reuse 512 --chat-template-kwargs '{"enable_thinking":false}' --presence-penalty 0.0 --repeat-penalty 1.0 --spec-draft-p-min 0.75
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --presence-penalty 0.0 --rope-scaling yarn --rope-scale 2.0 --cache-prompt --kv-unified --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1
