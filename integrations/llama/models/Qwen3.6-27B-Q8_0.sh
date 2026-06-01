@@ -36,4 +36,4 @@ export LLAMA_CACHE=$MODEL_CACHE
 export GGML_CUDA_ENABLE_UNIFIED_MEMORY=1 
 export CUDACXX=$(which nvcc)
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP --min-p $minP --top-k $topK --batch-size 2048 --ubatch-size 2048 --flash-attn on --reasoning on --split-mode tensor -e --cache-reuse 512 --chat-template-kwargs '{"preserve_thinking":false}' --presence-penalty 0.0 --threads 8 --prio 2 --cpu-range 0-8 --cpu-strict 1 --cache-type-k q8_0 --cache-type-v q8_0 
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP --min-p $minP --top-k $topK --batch-size 2048 --ubatch-size 2048 --flash-attn on --reasoning on --split-mode tensor -e  --presence-penalty 0.0 
