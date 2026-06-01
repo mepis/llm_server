@@ -1,7 +1,7 @@
 #!/bin/bash
 # model=Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
-# model=Qwen3.6-35B-A3B-Q8_0.gguf.1 # mtp model
-model=Qwen3.6-35B-A3B-UD-Q6_K_XL.gguf # mtp model
+model=Qwen3.6-35B-A3B-Q8_0.gguf.1 # mtp model
+# model=Qwen3.6-35B-A3B-UD-Q6_K_XL.gguf # mtp model
 # model=Qwen3.6-35B-A3B-Q8_0.gguf
 # model=Qwen3.6-35B-A3B-MXFP4_MOE.gguf
 # model=Qwen3.6-35B-A3B-UD-IQ4_NL_XL.gguf
@@ -44,9 +44,11 @@ export CUDACXX=$(which nvcc)
 export LLAMA_ARG_FIT=on
 # export LLAMA_ARG_FIT_TARGET=256
 # export LLAMA_ARG_FIT_CTX=131072
-# export GGML_CUDA_P2P=on
+export GGML_CUDA_P2P=on
 
-./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 1024 --ubatch-size 256 --flash-attn 1 --reasoning 1 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --spec-type draft-mtp --spec-draft-n-max 3 -e --cache-reuse 512 --chat-template-kwargs '{"enable_thinking":false}' --presence-penalty 0.0 --repeat-penalty 1.0 --spec-draft-p-min 0.75
+# ./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP  --min-p $minP --top-k $topK --batch-size 1024 --ubatch-size 256 --flash-attn 1 --reasoning 1 --split-mode $splitMode --tensor-split $tensorSplit --main-gpu $mainGpu --spec-type draft-mtp --spec-draft-n-max 3 -e --cache-reuse 512 --chat-template-kwargs '{"enable_thinking":false}' --presence-penalty 0.0 --repeat-penalty 1.0 --spec-draft-p-min 0.75
+
+./llama-server -m $MODEL_DIR/$model --mmproj $MODEL_DIR/$mmproj --port $port --host $host -c $context -ngl 999 --cont-batching --temp $temp --top-p $topP --min-p $minP --top-k $topK --batch-size 2048 --ubatch-size 1024 --flash-attn on --reasoning on --split-mode tensor -e --cache-reuse 512 --chat-template-kwargs '{"preserve_thinking":true}' --presence-penalty 0.0 --threads 8 --prio 2 --cpu-range 0-8 --cpu-strict 1 --spec-type draft-mtp --spec-draft-n-max 3
 
 
 # --cache-type-k q8_0 --cache-type-v q8_0 --repeat-penalty 0.0 --mmproj $MODEL_DIR/$mmproj --rope-scaling yarn --rope-scale 2.0 --presence-penalty 0.0 --repeat-penalty 1.0 --jinja --no-mmap --spec-type draft-mtp --spec-draft-n-max 3 --jinja --cpu-range 0-7 --cpu-strict-batch 1 --threads-batch 8 --threads $threads --cpu-strict 1
